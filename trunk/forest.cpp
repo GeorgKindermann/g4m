@@ -1,6 +1,6 @@
 //   Name:      g4m
 //   Author:    Andriy Bun, based on works of ...
-//   Date:      9.06.2008
+//   Date:      9.June.2008
 
 #include <iostream>
 #include <cstdlib>

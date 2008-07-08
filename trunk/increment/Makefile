@@ -1,9 +1,9 @@
 all:	 as ic mi
 
 
-mi:	testMisc #misc
+mi:	testMisc misc
 
-testMisc:	testMisc.cc misc.o
+testMisc:	testMisc.cc misc.h
 	g++ -Wall testMisc.cc -O2 -otestMisc misc.o
 	strip testMisc
 

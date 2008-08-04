@@ -42,7 +42,7 @@ double forVal(double * compr, double &rotInt, double &priceTimber, double &forVa
   double vIncr = cUptake * ftimber;
 // Rotation interval of a Forest in Years
   double rotInter = 100;                                                        // vykorystovujetsya dali
-  { double harvestVolume = 600. - abs(vIncr -6.) * 50.;
+  { double harvestVolume = 600. - fabs(vIncr -6.) * 50.;
   if(cUptake > 0.) {rotInter = harvestVolume/vIncr;}
   if(rotInter < minRotInter) {rotInter = minRotInter;}
   if(rotInter > maxRotInter) {rotInter = maxRotInter;} }

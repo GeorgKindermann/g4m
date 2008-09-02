@@ -113,7 +113,8 @@ namespace g4m {
       for(unsigned int j=0; j < iter->first.size() && j < i.size(); ++j) {
 	double tmp = iter->first[j] - i[j];
 	if(tmp > 0.) {pos += mul;}
-	d += tmp * tmp;
+	//d += tmp * tmp; //Geometric interpolation
+	d += std::fabs(tmp);  //Manhaten distance
 	mul *= 2;
       }
       if(d <= dist[pos] || dist[pos]<0.) {
@@ -122,7 +123,10 @@ namespace g4m {
       }
     }
     for(unsigned int j=0; j < regions; ++j) {
-      if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
+      if(dist[j] > 0.) {
+	//dist[j] = std::sqrt(dist[j]); //Geometric
+	dist[j] = dist[j]; //Manhaten distance
+      }
     }
     double ip = 0.;
     double distsum = 0.;
@@ -160,21 +164,28 @@ namespace g4m {
   //Fast Interploation where the steps of the index are 1 and starting at 0
   //and the size of the data array is known in advance
   //and complete filled with values
-  template <class VAL>  //Interpolate: IDX .. Index, VAL .. Value
+  //Interpolate: IDX .. Index, VAL .. Value
+  template <class VAL>
     class fipol {
   public:
     bool insert(unsigned int, VAL);
+    bool insert(unsigned int*, VAL);
     bool insert(std::vector<unsigned int>, VAL);
     VAL g(const double);   //returns the value
-    VAL g(std::vector<double>);   //returns the value
+    VAL g(double*);
+    VAL g(std::vector<double>);
     void fill(VAL);
     VAL operator[](const double);
     void operator*=(const double x);
+    fipol();
     fipol(unsigned int);
     fipol(std::vector<unsigned int>);
+    fipol(const unsigned int*, const unsigned int dim);
     ~fipol();
     void clear(unsigned int);
+    void clear(unsigned int*, unsigned int dim);
     void clear(std::vector<unsigned int>);
+    unsigned int gs();
   private:
     VAL* aMap;
     unsigned int* n;
@@ -183,10 +194,31 @@ namespace g4m {
   };
 
   template <class VAL>
+    unsigned int fipol<VAL>::gs() {
+    return(n[0]);
+  }
+
+  template <class VAL>
+    fipol<VAL>::fipol() : dim(1) {
+    n = new unsigned int[1];
+    n[0] = 1;
+    aMap = new VAL[n[0]];
+  }
+
+  template <class VAL>
     fipol<VAL>::fipol(unsigned int an) : dim(1) {
     n = new unsigned int[dim];
     n[0] = an;
     aMap = new VAL[n[0]];
+  }
+
+  template <class VAL>
+    fipol<VAL>::fipol(const unsigned int* an, const unsigned int adim) {
+    dim = adim;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
   }
 
   template <class VAL>
@@ -211,7 +243,18 @@ namespace g4m {
     n = new unsigned int[dim];
     n[0] = an;
     aMap = new VAL[n[0]];
- }
+  }
+
+  template <class VAL>
+    void fipol<VAL>::clear(unsigned int* an, unsigned int adim) {
+    dim = adim;
+    delete[] n;
+    delete[] aMap;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
+  }
 
   template <class VAL>
     void fipol<VAL>::clear(std::vector<unsigned int> an) {
@@ -235,6 +278,20 @@ namespace g4m {
   bool fipol<VAL>::insert(unsigned int i, VAL v) {
     bool ret = false;
     if(i < n[0]) {aMap[i] = v; ret = true;}
+    return(ret);
+  }
+
+  template <class VAL>
+  bool fipol<VAL>::insert(unsigned int* i, VAL v) {
+    bool ret = true;
+    unsigned int idx = i[0];
+    unsigned int mul = n[0];
+    for(unsigned int j=1; j<dim; ++j) {
+      if(i[j] >= n[j]) {ret = false;}
+      idx += i[j] * mul;
+      mul *= n[j];
+    }
+    if(ret == true) {aMap[idx] = v;}
     return(ret);
   }
 
@@ -277,6 +334,66 @@ namespace g4m {
   }
 
   template <class VAL>
+    VAL fipol<VAL>::g(double* i) {
+    //Test if index is in the possible range
+    for(unsigned j = 1; j < dim; ++j) {
+      if(i[j] >= n[j]) {i[j] = n[j]-1;}
+      if(i[j] < 0) {i[j] = 0;}
+    }
+    unsigned int sur = std::ceil(std::pow(2,dim));
+    unsigned int* idx = new unsigned int[sur];
+    double* dist = new double[sur];
+    for(unsigned j = 0; j < sur; ++j) {
+      idx[j] = -1; dist[j] = -1;
+    }
+    idx[0] = std::floor(i[0]);
+    idx[1] = std::ceil(i[0]);
+    //dist[0] = std::pow(i[0] - std::floor(i[0]), 2); //Geometric
+    //dist[1] = std::pow(i[0] - std::ceil(i[0]), 2);  //Geometric
+    dist[0] = std::fabs(i[0] - std::floor(i[0])); //Manhaten distance
+    dist[1] = 1. - dist[0];                       //Manhaten distance
+    unsigned int mul = n[0];
+    for(unsigned j = 1; j < dim; ++j) {
+      unsigned int t = std::ceil(std::pow(2,j));
+      unsigned int uc = std::ceil(i[j]) * mul;
+      unsigned int uf = std::floor(i[j]) * mul;
+      //double dc = std::pow(i[j] - std::ceil(i[j]), 2);  //Geometric
+      //double df = std::pow(i[j] - std::floor(i[j]), 2); //Geometric
+      double dc = std::fabs(i[j] - std::ceil(i[j]));  //Manhaten distance
+      double df = 1. - dc;                            //Manhaten distance
+      for(unsigned int k=0; k<t; ++k) {
+	idx[k+t] = idx[k] + uc;
+	idx[k] += uf;
+	dist[k+t] = dist[k] + dc;
+	dist[k] += df;
+      }
+      mul *= n[j];
+    }
+    //for(unsigned j = 0; j < sur; ++j) { //Geometric
+    //  if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
+    //}
+    double sdist = 0.;
+    double sval = 0.;
+    for(unsigned j=0; j<sur; ++j) {
+      if(idx[j] >= 0) {
+	if(dist[j] > 0.) {
+	  sval += aMap[idx[j]] / dist[j];
+	  sdist += 1./dist[j];
+	} else {
+	  sval = aMap[idx[j]];
+	  sdist = 1.;
+	  break;
+	}
+      }
+    }
+    VAL ret = 0.;
+    if(sdist > 0.) {ret = sval / sdist;}
+    delete[] idx;
+    delete[] dist;
+    return(ret);
+  }
+
+  template <class VAL>
     VAL fipol<VAL>::g(std::vector<double> i) {
     //Test if index is in the possible range
     for(unsigned j = 1; j < dim && j < i.size(); ++j) {
@@ -291,15 +408,19 @@ namespace g4m {
     }
     idx[0] = std::floor(i[0]);
     idx[1] = std::ceil(i[0]);
-    dist[0] = std::pow(i[0] - std::floor(i[0]), 2);
-    dist[1] = std::pow(i[0] - std::ceil(i[0]), 2);
+    //dist[0] = std::pow(i[0] - std::floor(i[0]), 2); //Geometric
+    //dist[1] = std::pow(i[0] - std::ceil(i[0]), 2);  //Geometric
+    dist[0] = std::fabs(i[0] - std::floor(i[0])); //Manhaten distance
+    dist[1] = 1. - dist[0];                       //Manhaten distance
     unsigned int mul = n[0];
     for(unsigned j = 1; j < dim && j < i.size(); ++j) {
       unsigned int t = std::ceil(std::pow(2,j));
       unsigned int uc = std::ceil(i[j]) * mul;
       unsigned int uf = std::floor(i[j]) * mul;
-      double dc = std::pow(i[j] - std::ceil(i[j]), 2);
-      double df = std::pow(i[j] - std::floor(i[j]), 2);
+      //double dc = std::pow(i[j] - std::ceil(i[j]), 2);  //Geometric
+      //double df = std::pow(i[j] - std::floor(i[j]), 2); //Geometric
+      double dc = std::fabs(i[j] - std::ceil(i[j]));  //Manhaten distance
+      double df = 1. - dc;                            //Manhaten distance
       for(unsigned int k=0; k<t; ++k) {
 	idx[k+t] = idx[k] + uc;
 	idx[k] += uf;
@@ -308,9 +429,9 @@ namespace g4m {
       }
       mul *= n[j];
     }
-    for(unsigned j = 0; j < sur; ++j) {
-      if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
-    }
+    //for(unsigned j = 0; j < sur; ++j) { //Geometric
+    //  if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
+    //}
     double sdist = 0.;
     double sval = 0.;
     for(unsigned j=0; j<sur; ++j) {

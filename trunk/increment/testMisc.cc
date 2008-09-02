@@ -72,6 +72,18 @@ int main() {
   cout << fipm.g(gfidx) << endl;
 
   //2dim
+  unsigned int fidxx[] = {5, 10};
+  fipm.clear(fidxx, 2);
+  fipm.fill(0.);
+  fidxx[0] = 3; fidxx[1] = 5; fipm.insert(fidxx, 10.5);
+  fidxx[0] = 2; fidxx[1] = 5; fipm.insert(fidxx, 20.5);
+  fidxx[0] = 3; fidxx[1] = 4; fipm.insert(fidxx, 30.5);
+  fidxx[0] = 2; fidxx[1] = 4; fipm.insert(fidxx, 40.5);
+  double gfidxx[] = {2.75, 4.5};
+  cout << fipm.g(gfidxx) << endl;
+  gfidxx[0] = 2; gfidxx[1] = 4;
+  cout << fipm.g(gfidxx) << endl;
+
   fidx.clear();
   fidx.push_back(5);
   fidx.push_back(10);

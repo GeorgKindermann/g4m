@@ -1,5 +1,7 @@
 #include "ageStruct.h"
 
+#include <iostream>
+
 namespace g4m {
 
   ageStruct::v::v() {
@@ -176,34 +178,34 @@ namespace g4m {
 
   double ageStruct::createNormalForest
   (int rotationPeriod, double area, double sd) {
-    if(rotationPeriod < ageClasses) {
-      area /= rotationPeriod;
-      cohort tmp;
-      tmp.area = area;
-      tmp.bm = 0.; tmp.d = 0.; tmp.h = 0.;
-      double dbm=0.; double thin=0.;
-      for(int i=0; i<rotationPeriod; ++i) {
-	if(targetSd > 0.) {
-	  tmp.bm = it->gHbmt(i, mai) * targetSd;
-	  std::pair<double,double> tt = it->gDbmt(i, mai, tmp.bm, targetSd);
-	  dbm=tt.first; thin=tt.second;
-	  tmp.d =  it->gD(i, mai, targetSd);
-	  tmp.h =  it->gH(i, mai);
-	}
-	else {
-	  tmp.bm = it->gHbm(i, mai);
-	  std::pair<double,double> tt = it->gDbm(i, mai, tmp.bm, 1.);
-	  dbm=tt.first; thin=tt.second;
-	  tmp.d =  it->gD(i, mai, 999.);
-	  tmp.h =  it->gH(i, mai);
-	}
-	dat[i] = tmp;
+    if(rotationPeriod >= ageClasses) {rotationPeriod = ageClasses-1;}
+    if(rotationPeriod < 1) {rotationPeriod = 1;}
+    area /= rotationPeriod;
+    cohort tmp;
+    tmp.area = area;
+    tmp.bm = 0.; tmp.d = 0.; tmp.h = 0.;
+    double dbm=0.; double thin=0.;
+    for(int i=0; i<rotationPeriod; ++i) {
+      if(targetSd > 0.) {
+	tmp.bm = it->gHbmt(i, mai) * targetSd;
+	std::pair<double,double> tt = it->gDbmt(i, mai, tmp.bm, targetSd);
+	dbm=tt.first; thin=tt.second;
+	tmp.d =  it->gD(i, mai, targetSd);
+	tmp.h =  it->gH(i, mai);
       }
-      for(int i=rotationPeriod; i<ageClasses; ++i) {
-	dat[i].area = 0.;
+      else {
+	tmp.bm = it->gHbm(i, mai);
+	std::pair<double,double> tt = it->gDbm(i, mai, tmp.bm, 1.);
+	dbm=tt.first; thin=tt.second;
+	tmp.d =  it->gD(i, mai, 999.);
+	tmp.h =  it->gH(i, mai);
       }
-      activeAge = rotationPeriod;
-    } else {area = -1.;}
+      dat[i] = tmp;
+    }
+    for(int i=rotationPeriod; i<ageClasses; ++i) {
+      dat[i].area = 0.;
+    }
+    activeAge = rotationPeriod;
     updateHarvestArea();
     return(area);
   }
@@ -271,6 +273,7 @@ namespace g4m {
    , int arotationPeriod, double astockingDegree
    , double aarea, double aminRot)
   {
+    activeAge = 0;
     it = ait;
     sws = asws;
     hlv = ahlv;
@@ -292,6 +295,12 @@ namespace g4m {
 
   ageStruct::~ageStruct() {
     delete[] dat;
+    it = NULL;
+    sws = NULL;
+    hlv = NULL;
+    hle = NULL;
+    dbv = NULL;
+    dbe = NULL;
   }
 
   ageStruct::v ageStruct::divArea(v& x, double area) {
@@ -312,6 +321,174 @@ namespace g4m {
       x.area = 0.;
     }
     return(x);
+  }
+
+
+  ageLUT::ageLUT(ageStruct *aas, double acPriceIncentive)
+    : cPriceIncentive(acPriceIncentive)
+    , maiStep(aas->it->gMaiStep())
+    , tStep(aas->it->gTStep()) {
+    as = aas;
+    if(maiStep <= 0.) {maiStep = 1.;}
+    maiHi = as->it->gMaiHi() / maiStep;
+    if(tStep <= 0.) {tStep = 1.;}
+    tHi = as->it->gTHi() / tStep;
+    fidx[0] = maiHi; fidx[1] = tHi;
+    tabBm = new g4m::fipol<double> (fidx, 2);
+    tabEnSw = new g4m::fipol<double> (fidx, 2);
+    tabEnRw = new g4m::fipol<double> (fidx, 2);
+    tabVnSw = new g4m::fipol<double> (fidx, 2);
+    tabVnRw = new g4m::fipol<double> (fidx, 2);
+    tabDbEn = new g4m::fipol<double> (fidx, 2);
+    tabDbVn = new g4m::fipol<double> (fidx, 2);
+    tabBmNT = new g4m::fipol<double> (fidx, 2);
+    tabEnSwNT = new g4m::fipol<double> (fidx, 2);
+    tabEnRwNT = new g4m::fipol<double> (fidx, 2);
+    tabDbEnNT = new g4m::fipol<double> (fidx, 2);
+    tabOptRot = new g4m::fipol<double>[8];
+    for(int i=0; i<8; ++i) {tabOptRot[i].clear(maiHi/maiStep);}
+    ageStruct::v asRet;
+    fidx[0] = 0; fidx[1] = 5;
+    tabBm->insert(fidx, 0.);
+    for(unsigned int i=0; i < maiHi; ++i) {
+      tabOptRot[1].insert(i,0); //1 .. Highest average harvest with thinning
+      tabOptRot[2].insert(i,0); //2 .. Maximum avarage Biomass
+      tabOptRot[3].insert(i,0); //3 .. Maximum average Biomass with thinning
+      tabOptRot[4].insert(i,0); //4 .. Maximum harvest at final cut
+      tabOptRot[5].insert(i,0); //5 .. Maximum average harvest with final cut
+      tabOptRot[6].insert(i,0); //6 .. Maximize Deckungsbeitrag
+      tabOptRot[7].insert(i,0); //7 .. Maximize Deckungsbeitrag with thining
+      double fidx0[] = {i, 0};
+      double fidx1[] = {i, 0};
+      for(unsigned int j=0; j < tHi; ++j) {
+	fidx1[1] = j;
+ 	fidx[0] = i; fidx[1] = j;
+	as->setMai(i*maiStep);
+	as->setRotPeriod(double(j)*tStep);
+	as->setStockingdegree(1.);
+	as->createNormalForest(j*tStep, 1., 1.);
+	asRet = as->aging();
+	tabBm->insert(fidx, as->getBm());
+	tabEnSw->insert(fidx, asRet.enSw);
+	tabEnRw->insert(fidx, asRet.enRw);
+	tabVnSw->insert(fidx, asRet.vnSw);
+	tabVnRw->insert(fidx, asRet.vnRw);
+	tabDbEn->insert(fidx, asRet.dbEn);
+	tabDbVn->insert(fidx, asRet.dbVn);
+	as->setStockingdegree(-1.);
+	as->createNormalForest(j*tStep, 1., -1.);
+	asRet = as->aging();
+	tabBmNT->insert(fidx, as->getBm());
+	tabEnSwNT->insert(fidx, asRet.enSw);
+	tabEnRwNT->insert(fidx, asRet.enRw);
+	tabDbEnNT->insert(fidx, asRet.dbEn);
+	//Search optimal rotation times
+	fidx0[1] = tabOptRot[1].g(i);
+	if((tabEnSw->g(fidx1) + tabEnRw->g(fidx1)
+	    + tabVnSw->g(fidx1) + tabVnRw->g(fidx1)) > 
+	   (tabEnSw->g(fidx0) + tabEnRw->g(fidx0)
+	    + tabVnSw->g(fidx0) + tabVnRw->g(fidx0))) {
+	  tabOptRot[1].insert(i,j);
+	}
+	fidx0[1] = tabOptRot[2].g(i);
+	if(tabBmNT->g(fidx1) > tabBmNT->g(fidx0)) {tabOptRot[2].insert(i,j);}
+	fidx0[1] = tabOptRot[3].g(i);
+	if(tabBm->g(fidx1) > tabBm->g(fidx0)) {tabOptRot[3].insert(i,j);}
+ 	fidx0[1] = tabOptRot[4].g(i);
+	if((tabEnSwNT->g(fidx1) + tabEnRwNT->g(fidx1)) >
+	   (tabEnSwNT->g(fidx0) + tabEnRwNT->g(fidx0))) {
+	  tabOptRot[4].insert(i,j);
+	}
+ 	fidx0[1] = tabOptRot[5].g(i);
+	if((tabEnSwNT->g(fidx1) + tabEnRwNT->g(fidx1))*fidx1[1] >
+	   (tabEnSwNT->g(fidx0) + tabEnRwNT->g(fidx0))*fidx0[1]) {
+	  tabOptRot[5].insert(i,j);
+	}
+ 	fidx0[1] = tabOptRot[6].g(i);
+	if(tabDbEnNT->g(fidx1) > tabDbEnNT->g(fidx0)) {
+	  tabOptRot[6].insert(i,j);
+	}
+ 	fidx0[1] = tabOptRot[7].g(i);
+	if((tabDbEn->g(fidx1) + tabDbVn->g(fidx1)) > 
+	   (tabDbEn->g(fidx0) + tabDbVn->g(fidx0))) {
+	  tabOptRot[7].insert(i,j);
+	}
+      }
+    }
+  }
+
+  ageLUT::~ageLUT() {
+    delete tabBm;
+    delete tabEnSw;
+    delete tabEnRw;
+    delete tabVnSw;
+    delete tabVnRw;
+    delete tabDbEn;
+    delete tabDbVn;
+    delete tabBmNT;
+    delete tabEnSwNT;
+    delete tabEnRwNT;
+    delete tabDbEnNT;
+    as = NULL;
+  }
+  
+  double ageLUT:: gTopt(double mai, int type) {
+    return(tabOptRot[type].g(mai/maiStep)*tStep);
+  }
+
+  double ageLUT::getBm(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabBm->g(idx));
+  }
+
+  double ageLUT::getEnSw(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabEnSw->g(idx));
+  }
+
+  double ageLUT::getEnRw(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabEnRw->g(idx));
+  }
+
+  double ageLUT::getVnSw(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabVnSw->g(idx));
+  }
+
+  double ageLUT::getVnRw(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabVnRw->g(idx));
+  }
+
+  double ageLUT::getDbEn(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabDbEn->g(idx));
+  }
+
+  double ageLUT::getDbVn(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabDbVn->g(idx));
+  }
+
+  double ageLUT::getBmNT(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabBmNT->g(idx));
+  }
+
+  double ageLUT::getEnSwNT(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabEnSwNT->g(idx));
+  }
+
+  double ageLUT::getEnRwNT(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabEnRwNT->g(idx));
+  }
+
+  double ageLUT::getDbEnNT(double mai, double t) {
+    double idx[] = {mai/maiStep, t/tStep};
+    return(tabDbEnNT->g(idx));
   }
 
 }

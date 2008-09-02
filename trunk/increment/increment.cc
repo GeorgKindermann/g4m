@@ -1,4 +1,5 @@
 #include "increment.h"
+#include <iostream>
 
 namespace {
   double interpol(double x0, double x1, double y0, double y1, double y) {

@@ -92,6 +92,10 @@ namespace g4m {
     //pair:(dbm, thin),  sd .. Ertragstafel Bestockungsgrad der angestrebt wird
     std::pair<double, double> gDbmt(double age, double mai, double bm, double sd=1.);
     double gSdopt2Sdnat(double u, double mai, double sdOpt); //returns sdNat
+    double gMaiHi() {return(maiHi);}
+    double gMaiStep() {return(maiStep);}
+    double gTHi() {return(tHi);}
+    double gTStep() {return(tStep);}
   private:
     double ip(double u, double mai, double *tab);
     incrementCurves ic;

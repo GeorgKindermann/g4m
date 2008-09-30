@@ -1,7 +1,5 @@
 #include "ageStruct.h"
 
-#include <iostream>
-
 namespace g4m {
 
   ageStruct::v::v() {
@@ -169,7 +167,7 @@ namespace g4m {
   int ageStruct::fitActiveAge(int type) { //Adjust active Age
     if(type==0) {
       while(dat[activeAge].area-1 == 0 && activeAge>0) {--activeAge;}
-      while(dat[activeAge].area != 0 && activeAge<ageClasses) {++activeAge;}
+      while(dat[activeAge].area != 0 && activeAge<ageClasses-1) {++activeAge;}
     } else {
       for(activeAge=ageClasses; dat[activeAge].area == 0 && activeAge > 0; --activeAge) {;}
     }
@@ -178,8 +176,8 @@ namespace g4m {
 
   double ageStruct::createNormalForest
   (int rotationPeriod, double area, double sd) {
-    if(rotationPeriod >= ageClasses) {rotationPeriod = ageClasses-1;}
     if(rotationPeriod < 1) {rotationPeriod = 1;}
+    if(rotationPeriod >= ageClasses) {rotationPeriod = ageClasses-1;}
     area /= rotationPeriod;
     cohort tmp;
     tmp.area = area;
@@ -259,8 +257,8 @@ namespace g4m {
     if(age < ageClasses) {
       dat[age].area = area;
       ret = dat[age].area;
+      if(age > activeAge) {activeAge = age;}
     }
-    if(age > activeAge) {activeAge = age;}
     return(ret);
   }
 
@@ -429,6 +427,7 @@ namespace g4m {
     delete tabEnSwNT;
     delete tabEnRwNT;
     delete tabDbEnNT;
+    delete[] tabOptRot;
     as = NULL;
   }
   

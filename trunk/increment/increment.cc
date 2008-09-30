@@ -1,5 +1,4 @@
 #include "increment.h"
-#include <iostream>
 
 namespace {
   double interpol(double x0, double x1, double y0, double y1, double y) {
@@ -281,8 +280,8 @@ namespace g4m {
     u /= tStep;
     if(u >= nt) {u=nt-1.;}
     if(u < 0) {u=0.;}
-    int uh = ceil(u/tStep);
-    int ul = floor(u/tStep);
+    int uh = ceil(u);
+    int ul = floor(u);
     double t1 = interpol(tab[ul + mail*nt], tab[uh + mail*nt], ul, uh, u);
     double t2 = interpol(tab[ul + maih*nt], tab[uh + maih*nt], ul, uh, u);
     return(interpol(t1, t2, mail, maih, mai));
@@ -395,9 +394,11 @@ namespace g4m {
   }
   
   int incrementTab::fillTables() {
+    double minMAI = 0.01;
     //Fill the arrays with gwl, biomass, ... for age/yield
     for(int cmai=0; cmai<nmai; ++cmai) {
-      ic.setMai(cmai * maiStep);
+      if(cmai * maiStep > minMAI) {ic.setMai(cmai * maiStep);}
+      else {ic.setMai(minMAI);}
       double sbm=0.; double sbmt=0.;
       for(int ct=0; ct<nt; ++ct) {
 	double t=ct*tStep;

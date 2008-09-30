@@ -5,8 +5,6 @@
 #include <vector>
 #include <cmath>
 
-#include <iostream>
-
 namespace g4m {
 
   template <class IDX, class VAL>

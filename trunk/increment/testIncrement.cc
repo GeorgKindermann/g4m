@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
      , 0.851274, 0.028899, 1.472047, 0.5, 2., 1.6, 10., 0.25, 600., 1.);
   cout << fi.gTopt(2.5, 1) << endl;
   cout << fi.gMai(90, 2.5) << endl;
-  exit(0);
   cout << fi.gH(40, 5) << " " << fi.gH(41, 5) << endl;
   cout << fi.gHi(40, 5.) << endl;
   cout << fi.gD(40, 5) << " " << fi.gD(41, 5) << endl;
@@ -33,8 +32,10 @@ int main(int argc, char **argv) {
   cout << fi.gDbmt(40, 5, 110.4, 1).first << " " << fi.gDbmt(40, 5, 110.4, 1).second << endl;
   cout << fi.gLfz(40, 5, 0.5) << endl;
   cout << fi.gSd(70, 5, 30, 2) << endl;
+  cout << "Umtriebszeit:" << endl;
   cout << fi.gU(70, 6., 1.) << endl;
-  cout << fi.gUt(70, 6., 1.) << endl;
+  cout << fi.gUt(75, 3.2, 1.) << endl;
+  cout << fi.gAvgBmt(85., 3.2) << endl;
   cout << fi.gTopt(0.3, 2) << endl;
   cout << fi.gAvgBm(180, 6) << endl;
   cout << fi.gAvgBmt(180, 6) << endl;

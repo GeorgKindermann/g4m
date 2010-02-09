@@ -27,7 +27,7 @@ namespace g4m {
 
   template <class IDX, class VAL>
   void ipol<IDX, VAL>::insert(IDX i, VAL v) {
-    aMap.insert(make_pair(i, v));
+    aMap.insert(std::make_pair(i, v));
   }
   
   template <class IDX, class VAL>

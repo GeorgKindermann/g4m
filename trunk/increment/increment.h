@@ -176,9 +176,8 @@ namespace g4m {
     //Get average stocking degree with rotation time, mai, average biomass
     double gAvgSdNat(double u, double mai, double avgBm);
     double gAvgSdTab(double u, double mai, double avgBm);
-
-    //pair:(dbm, mort),  sd .. Natuerlicher Bestockungsgrad der angestrebt wird
-    //std::pair<double, double> gDbm(double age, double mai, double bm, double sd=1.);
+    //Get time step width
+    double gtimeframe();
   private:
     //Optimal rotation time
     struct optRotTimes {
@@ -241,103 +240,6 @@ namespace g4m {
     optRotTimes *optTimeSdNat;
     optRotTimes *optTimeSdTab;
   };
-
-
-
-  /*
-  class incrementTab {
-  public:
-    ~incrementTab();
-    incrementTab(double a0, double a1, double a2, double a3, double a4,
-		 double a5, double a6, double a7, double a8, double a9,
-		 double a10, double a11, double a12, double a13, double a14,
-		 double a15, double a16, double a17, double a18, double a19,
-		 double a20, double a21, double a22, double a23, double a24,
-		 double a25, double a26, double amaiMax, double amaiStep,
-		 double atMax, double atStep, const double asdStep = 0.1,
-		 double atimeframe=1.);
-    incrementTab(double a0, double a1, double a2, double a3, double a4,
-       double a5, double a6, double a7, double a8, double a9,
-       double a10, double a11, double a12, double a13,
-       double a14, double a15, double a16, double a17,
-       double a18, double a19, double a20, double a21,
-       double a22, double a23, double a24, double a25,
-       double a26, double a27, double a28, double a29, double a30, double a31,
-       double a32, double a33, double a34, double a35, double a36, double a37,
-       double a38, double a39,
-       double amaiMax, double amaiStep, double atMax, double atStep,
-       double atimeframe=1.);
-    int setCoef(double a0, double a1, double a2, double a3, double a4,
-		double a5, double a6, double a7, double a8, double a9,
-		double a10, double a11, double a12, double a13, double a14,
-		double a15, double a16, double a17, double a18, double a19,
-		double a20, double a21, double a22, double a23, double a24,
-		double a25, double a26);
-    int setCoef(double a0, double a1, double a2, double a3, double a4
-		, double a5, double a6, double a7, double a8, double a9
-		, double a10, double a11, double a12, double a13, double a14
-		, double a15, double a16, double a17, double a18, double a19
-		, double a20, double a21, double a22, double a23, double a24
-		, double a25, double a26, double a27, double a28, double a29
-		, double a30, double a31, double a32, double a33, double a34
-		, double a35, double a36, double a37, double a38, double a39);
-     //Average biomass, u .. rotation time, mai .. Site index
-    double gAvgBm(double u, double mai);
-    double gAvgBmt(double u, double mai); //with thining
-    double gHbm(double t, double mai); //Harvestable Biomass at t
-    double gHbmt(double t, double mai); //Harvestable Biomass at t with thinning
-    double gGwl(double t, double mai);  //Gesamtwuchsleistung
-    double gMai(double t, double mai); //Mean annual increment
-    //BHD bei Ertragstafelbestockung
-    double gD(double t, double mai, double sd=1);
-    //BHD increment mit Ertragstafelbestockungsgrad
-    double gDi(double t, double mai, double sd=1);
-    double gH(double t, double mai); //Height
-    double gHi(double t, double mai); //Height increment
-    //Get optimal rotation time
-    //0 .. Rotation time Unmanaged forests
-    //1 .. Highest average increment
-    //2 .. Maximum avarage Biomass
-    //3 .. Maximum average Biomass with thinning
-    //4 .. Maximum harvest at final cut
-    //5 .. Maximum average harvest with final cut
-    double gTopt(double mai, int type);
-    double gU(double bm, double mai, double sd=1.);  //Get u out of mean bm
-    double gUt(double bm, double mai, double sd=1.);
-    //Stocking degree: typ1..Max, 2..with Thinning
-    double gSd(double age, double mai, double bm, int type=1);
-    double gLfz(double age, double mai, double sd=1.); //etragstafelbestockung
-    //pair:(dbm, mort),  sd .. Natuerlicher Bestockungsgrad der angestrebt wird
-    std::pair<double, double> gDbm(double age, double mai, double bm, double sd=1.);
-    //pair:(dbm, thin),  sd .. Ertragstafel Bestockungsgrad der angestrebt wird
-    std::pair<double, double> gDbmt(double age, double mai, double bm, double sd=1.);
-    double gSdopt2Sdnat(double u, double mai, double sdOpt); //returns sdNat
-    double gMaiHi() {return(maiHi);}
-    double gMaiStep() {return(maiStep);}
-    double gTHi() {return(tHi);}
-    double gTStep() {return(tStep);}
-  private:
-    double ip(double u, double mai, double *tab);
-    incrementCurves ic;
-    double maiHi;
-    double maiStep;
-    double tHi;
-    double tStep;
-    int fillTables();
-    double *abm;      //average above ground biomass without thinning
-    double *abmt;     //average above ground biomass with thinning
-    double *bm;       //above ground biomass without thinning
-    double *bmt;      //above ground biomass with thinning
-    double *gwl;      //Gesamtwuchsleistung
-    double *dbh;      //Diameter
-    double *height;   //Height
-    double *sdNat; //Natuerlicher Bestockungsgrad wenn optimale Bestandesdichte
-    int *optTime;  //Optimal rotation time array
-    int nt;    //Number of time steps
-    int nmai;  //Number of mai steps
-    double timeframe; //Time steps for which the increment should be calculated
-  };
-  */
 
 }
 

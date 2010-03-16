@@ -1,31 +1,42 @@
-all:	 mi ic as
+#CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2
+CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2 -pg
 
+all:	ic mi as
 
-mi:	testMisc misc.o
+ic:	increment.o testIncrement
 
-testMisc:	testMisc.cc misc.o
-	g++ -Wall testMisc.cc -O2 -otestMisc misc.o
-	strip testMisc
-
-misc.o:	misc.cc misc.h
-	g++ -Wall misc.cc -c -O2
-
-
-as:	testAgeStruct ageStruct.o
-
-testAgeStruct:	testAgeStruct.cc ageStruct.o increment.o misc.o
-	g++ -Wall testAgeStruct.cc -O2 -otestAgeStruct ageStruct.o increment.o misc.o
-	strip testAgeStruct
-
-ageStruct.o:	ageStruct.cc ageStruct.h
-	g++ -Wall ageStruct.cc -c -O2
-
-
-ic:	testIncrement increment.o
+increment.o:	increment.cc increment.h misc.o
+	$(CC) increment.cc -c
 
 testIncrement:	testIncrement.cc increment.o
-	g++ -Wall testIncrement.cc -O2 -otestIncrement increment.o
+	$(CC) testIncrement.cc -otestIncrement increment.o misc.o
 	strip testIncrement
 
-increment.o:	increment.cc increment.h
-	g++ -Wall increment.cc -c -O2
+mi:	misc.o testMisc
+
+misc.o:	misc.cc misc.h
+	$(CC) misc.cc -c
+
+testMisc:	testMisc.cc misc.o
+	$(CC) testMisc.cc -otestMisc misc.o
+	strip testMisc
+
+as:	ageStruct.o testAgeStruct
+
+ageStruct.o:	ageStruct.cc ageStruct.h
+	$(CC) ageStruct.cc -c
+
+testAgeStruct:	testAgeStruct.cc ageStruct.o increment.o misc.o
+	$(CC) testAgeStruct.cc -otestAgeStruct ageStruct.o increment.o misc.o
+	strip testAgeStruct
+
+
+
+
+allold:	 mi ic as  co
+
+
+
+co:	mi ic as testConsistent.cc
+	g++ -Wall testConsistent.cc -O2 -otestConsistent ageStruct.o increment.o misc.o
+	strip testConsistent

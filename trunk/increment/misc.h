@@ -4,20 +4,32 @@
 #include <map>
 #include <vector>
 #include <cmath>
+#include <limits>
+
+#include <iostream>
 
 namespace g4m {
-
+  //Late binding with virtual class vipol needs some cpu-time!
   template <class IDX, class VAL>
-    class ipol {  //Interpolate: IDX .. Index, VAL .. Value
+    class vipol { //Virtual interpol class
+  public:
+    virtual VAL g(const IDX &) = 0;
+    virtual VAL operator[](const IDX &) = 0;
+  };
+
+  template <class IDX, class VAL>  //Interpolate: IDX .. Index, VAL .. Value
+    class ipol : virtual public vipol<IDX, VAL> {
   public:
     void insert(IDX, VAL);
-    VAL g(const IDX);   //returns the value
+    VAL g(const IDX &);   //returns the value
     void clear();
-    VAL operator[](const IDX);
+    VAL operator[](const IDX &);
     void operator*=(const double x);
+    IDX min();  //returns the minimum index
+    IDX max();  //returns the maximum index
   private:
     std::map<IDX, VAL> aMap;
-    VAL ip(const IDX i, const IDX i0, const IDX i1, const VAL v0, const VAL v1);
+    VAL ip(const IDX &i, const IDX &i0, const IDX &i1, const VAL &v0, const VAL &v1);
   };
 
   template <class IDX, class VAL>
@@ -31,31 +43,24 @@ namespace g4m {
   }
   
   template <class IDX, class VAL>
-  VAL ipol<IDX, VAL>::ip(const IDX i, const IDX i0, const IDX i1, const VAL v0, const VAL v1) {
+  inline VAL ipol<IDX, VAL>::ip(const IDX &i, const IDX &i0, const IDX &i1, const VAL &v0, const VAL &v1) {
     //interpolate/extrapolate the value for index i
-    VAL y;
-    if(i0 == i1) {y = (v0 + v1)/2.;}
-    else {
-      y = v0 + (i-i0)/(i1-i0) * (v1-v0);
-    }
-    return(y);
+    //if(i0 == i1) {return((v0 + v1)/2.);}
+    return(v0 + (i-i0)/(i1-i0) * (v1-v0));
   }
 
   template <class IDX, class VAL>
-    VAL ipol<IDX, VAL>::g(const IDX i) {
-    typename std::map<IDX,VAL>::iterator lo, up;
-    VAL y = 0;
+    VAL ipol<IDX, VAL>::g(const IDX &i) {
     if(aMap.size() > 0) {
+      typename std::map<IDX,VAL>::iterator up;
       up = aMap.lower_bound(i);
-      if(up == aMap.end()) {--up; lo = up;}
-      else {
-	lo = up;
-	--lo;
-	if(up == aMap.begin()) {lo = aMap.begin();}
-      }
-      y = ip(i, lo->first, up->first, lo->second, up->second);
+      if(up == aMap.end()) {--up; return(up->second);}
+      if(up == aMap.begin()) {return(up->second);}
+      typename std::map<IDX,VAL>::iterator lo = up;
+      --lo;
+      return(ip(i, lo->first, up->first, lo->second, up->second));
     }
-    return(y);
+    return(std::numeric_limits<VAL>::quiet_NaN());
   }
 
   template <class IDX, class VAL>
@@ -69,22 +74,46 @@ namespace g4m {
   }
 
   template <class IDX, class VAL>
-    VAL ipol<IDX, VAL>::operator[](const IDX i) {
+    VAL ipol<IDX, VAL>::operator[](const IDX &i) {
     return(g(i));
+  }
+
+  template <class IDX, class VAL>
+    IDX ipol<IDX, VAL>::min() {
+    return(aMap.begin()->first);
+  }
+
+  template <class IDX, class VAL>
+    IDX ipol<IDX, VAL>::max() {
+    return(aMap.rbegin()->first);
   }
 
 
   //Multidimensional interpolation
   template <class IDX, class VAL>
-    class ipol<std::vector<IDX>, VAL> {
+    class ipol<std::vector<IDX>, VAL> :
+  virtual public vipol<std::vector<IDX>, VAL>{
   public:
     void insert(std::vector<IDX>, VAL);
-    VAL g(const std::vector<IDX>);   //returns the value
+    virtual VAL g(const std::vector<IDX> &);   //returns the value
     void clear();
-    VAL operator[](const std::vector<IDX> i);
+    virtual VAL operator[](const std::vector<IDX> &i);
+    void operator*=(const double x);
+    std::vector<IDX> min();  //returns the minimum index
+    std::vector<IDX> max();  //returns the maximum index
    private:
     std::map<std::vector<IDX>, VAL> aMap; //Data Map
   };
+
+  template <class IDX, class VAL>
+    void ipol<std::vector<IDX>, VAL>::operator*=(const double x) {
+    typename std::map<std::vector<IDX>,VAL>::iterator iter;
+    iter = aMap.begin();
+    while(iter != aMap.end() ) {
+      iter->second *= x;
+      ++iter;
+    }
+  }
 
   template <class IDX, class VAL>
   void ipol<std::vector<IDX>, VAL>::clear() {
@@ -97,17 +126,16 @@ namespace g4m {
   }
 
   template <class IDX, class VAL>
-    VAL ipol<std::vector<IDX>, VAL>::g(const std::vector<IDX> i) {
+    VAL ipol<std::vector<IDX>, VAL>::g(const std::vector<IDX> &i) {
     typename std::map<std::vector<IDX>, VAL>::iterator iter;
-    unsigned int regions = 1;
-    for(unsigned int j=0; j<i.size(); ++j) {regions *= 2;}
-    std::vector<VAL>* y = new std::vector<VAL>[regions];
+    unsigned int regions = 0.5 + pow(2,i.size());
+    std::vector<VAL>* y = new std::vector<VAL>[regions]; //Values of near points
     double* dist = new double[regions]; //shortest distance in region
     for(unsigned int j=0; j < regions; ++j) {dist[j] = -1.;}
     for(iter = aMap.begin(); iter != aMap.end(); ++iter) {
-      double d=0.;
-      int pos=0;
-      int mul=1;
+      double d=0.;  //Distance
+      int pos=0; //Memory where to save the minimum distance
+      int mul=1; //Multiplier to get right pos
       for(unsigned int j=0; j < iter->first.size() && j < i.size(); ++j) {
 	double tmp = iter->first[j] - i[j];
 	if(tmp > 0.) {pos += mul;}
@@ -120,12 +148,10 @@ namespace g4m {
 	y[pos].push_back(iter->second); 
       }
     }
-    for(unsigned int j=0; j < regions; ++j) {
-      if(dist[j] > 0.) {
-	//dist[j] = std::sqrt(dist[j]); //Geometric
-	dist[j] = dist[j]; //Manhaten distance
-      }
-    }
+    //for(unsigned int j=0; j < regions; ++j) {
+    //  if(dist[j] > 0.) {
+    //    dist[j] = std::sqrt(dist[j]); //Geometric distance
+    //}}
     double ip = 0.;
     double distsum = 0.;
     int n = 0;
@@ -144,18 +170,46 @@ namespace g4m {
 	}
       }
     }
-    if(n > 0) {ip /= n;}
-    else if(distsum > 0.) {ip /= distsum;}
-    else {ip = 0.;}
-    VAL ret = ip;
     delete[] y;
     delete[] dist;
+    if(n > 0) {ip /= n;}
+    else if(distsum > 0.) {ip /= distsum;}
+    else {ip = std::numeric_limits<double>::quiet_NaN();}
+    VAL ret = ip;
     return(ret);
   }
 
   template <class IDX, class VAL>
-    VAL ipol<std::vector<IDX>, VAL>::operator[](const std::vector<IDX> i) {
+    VAL ipol<std::vector<IDX>, VAL>::operator[](const std::vector<IDX> &i) {
     return(g(i));
+  }
+
+  template <class IDX, class VAL>
+    std::vector<IDX> ipol<std::vector<IDX>, VAL>::max() {
+    typename std::map<std::vector<IDX>, VAL>::iterator iter = aMap.begin();
+    std::vector<IDX> ret(iter->first);
+    ++iter;
+    while(iter != aMap.end()) {
+      for(unsigned int i=0; i<ret.size(); ++i) {
+	if(ret[i] < iter->first[i]) {ret[i] = iter->first[i];}
+      }
+      ++iter;
+    }
+    return(ret);
+  }
+
+  template <class IDX, class VAL>
+    std::vector<IDX> ipol<std::vector<IDX>, VAL>::min() {
+    typename std::map<std::vector<IDX>, VAL>::iterator iter = aMap.begin();
+    std::vector<IDX> ret(iter->first);
+    ++iter;
+    while(iter != aMap.end()) {
+      for(unsigned int i=0; i<ret.size(); ++i) {
+	if(ret[i] > iter->first[i]) {ret[i] = iter->first[i];}
+      }
+      ++iter;
+    }
+    return(ret);
   }
 
 
@@ -164,123 +218,337 @@ namespace g4m {
   //and complete filled with values
   //Interpolate: IDX .. Index, VAL .. Value
   template <class VAL>
-    class fipol {
+    class fipol : virtual public vipol<double, VAL> {
   public:
-    bool insert(unsigned int, VAL);
-    bool insert(unsigned int*, VAL);
-    bool insert(std::vector<unsigned int>, VAL);
-    VAL g(const double);   //returns the value
-    VAL g(double*);
-    VAL g(std::vector<double>);
-    void fill(VAL);
-    VAL operator[](const double);
-    void operator*=(const double x);
     fipol();
     fipol(unsigned int);
-    fipol(std::vector<unsigned int>);
-    fipol(const unsigned int*, const unsigned int dim);
+    fipol(ipol<double,VAL>, double zoom=1.);
     ~fipol();
+    bool insert(unsigned int, VAL);
+    VAL g(const double &);   //returns the value with interpolation
+    void fill(VAL);
+    VAL operator[](const double &);
+    void operator*=(const double x);
     void clear(unsigned int);
-    void clear(unsigned int*, unsigned int dim);
-    void clear(std::vector<unsigned int>);
-    unsigned int gs();
+    unsigned int gs();  //Get size of data array
   private:
     VAL* aMap;
-    unsigned int* n;
-    unsigned int dim;
-    VAL ip(const double i, const double i0, const double i1, const double v0, const double v1);
+    unsigned int n;  //Size of array
+    const double intercept;
+    const double zoom;
   };
 
   template <class VAL>
     unsigned int fipol<VAL>::gs() {
-    return(n[0]);
+    return(n);
   }
 
   template <class VAL>
-    fipol<VAL>::fipol() : dim(1) {
-    n = new unsigned int[1];
-    n[0] = 1;
-    aMap = new VAL[n[0]];
+    fipol<VAL>::fipol() : intercept(0.), zoom(0.) {
+    n = 1;
+    aMap = new VAL[n];
   }
 
   template <class VAL>
-    fipol<VAL>::fipol(unsigned int an) : dim(1) {
-    n = new unsigned int[dim];
-    n[0] = an;
-    aMap = new VAL[n[0]];
+    fipol<VAL>::fipol(unsigned int an) : intercept(0.), zoom(0.) {
+    n = an;
+    aMap = new VAL[n];
   }
 
   template <class VAL>
-    fipol<VAL>::fipol(const unsigned int* an, const unsigned int adim) {
-    dim = adim;
-    n = new unsigned int[dim];
-    unsigned int slots = n[0] = an[0];
-    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
-    aMap = new VAL[slots];
-  }
-
-  template <class VAL>
-    fipol<VAL>::fipol(std::vector<unsigned int> an) : dim(an.size()) {
-    n = new unsigned int[dim];
-    unsigned int slots = n[0] = an[0];
-    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
-    aMap = new VAL[slots];
+    fipol<VAL>::fipol(ipol<double,VAL> t, double zom) : intercept(zom*t.min()), zoom(zom) {
+    n = static_cast<int>(1 + zoom * (std::ceil(t.max()) - std::floor(t.min())));
+    aMap = new VAL[n];
+    for(unsigned int i=0; i<n; ++i) {
+      aMap[i] = t.g((intercept + i)/zoom);
+    }
   }
 
   template <class VAL>
     fipol<VAL>::~fipol() {
-    delete[] n;
     delete[] aMap;
   }
 
   template <class VAL>
     void fipol<VAL>::clear(unsigned int an) {
-    dim = 1;
-    delete[] n;
     delete[] aMap;
-    n = new unsigned int[dim];
-    n[0] = an;
-    aMap = new VAL[n[0]];
-  }
-
-  template <class VAL>
-    void fipol<VAL>::clear(unsigned int* an, unsigned int adim) {
-    dim = adim;
-    delete[] n;
-    delete[] aMap;
-    n = new unsigned int[dim];
-    unsigned int slots = n[0] = an[0];
-    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
-    aMap = new VAL[slots];
-  }
-
-  template <class VAL>
-    void fipol<VAL>::clear(std::vector<unsigned int> an) {
-    dim = an.size();
-    delete[] n;
-    delete[] aMap;
-    n = new unsigned int[dim];
-    unsigned int slots = n[0] = an[0];
-    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
-    aMap = new VAL[slots];
+    n = an;
+    aMap = new VAL[n];
   }
 
   template <class VAL>
   void fipol<VAL>::fill(VAL x) {
-    unsigned int slots = n[0];
-    for(unsigned int i=1; i<dim; ++i) {slots *= n[i];}
-    for(unsigned int i=0; i<slots; ++i) {aMap[i] = x;}
+    for(unsigned int i=0; i<n; ++i) {aMap[i] = x;}
   }
 
   template <class VAL>
   bool fipol<VAL>::insert(unsigned int i, VAL v) {
     bool ret = false;
-    if(i < n[0]) {aMap[i] = v; ret = true;}
+    if(i < n) {aMap[i] = v; ret = true;}
     return(ret);
   }
 
   template <class VAL>
-  bool fipol<VAL>::insert(unsigned int* i, VAL v) {
+    VAL fipol<VAL>::g(const double &i) {
+    if(n > 1) {
+      double zi = i*zoom + intercept;
+      int i0 = static_cast<int>(zi);
+      unsigned int i1 = i0+1;
+      if(i0 < 0) {return(aMap[0]);}
+      else if(i1 >= n) {return(aMap[n-1]);}
+      else {
+	return(aMap[i0] + (zi - static_cast<double>(i0)) * (aMap[i1] - aMap[i0]));
+      }
+    } else if(n == 1) {return(aMap[0]);}
+    return(std::numeric_limits<VAL>::quiet_NaN());
+  }
+
+  template <class VAL>
+    void fipol<VAL>::operator*=(const double x) {
+    for(unsigned int i=0; i<n; ++i) {
+      aMap[i] *= x;
+    }
+  }
+
+  template <class VAL>
+    VAL fipol<VAL>::operator[](const double &i) {
+    return(g(i));
+  }
+
+  //Without interpolation
+  template <class VAL>
+    class ffipol : virtual public vipol<double, VAL> {
+  public:
+    ffipol();
+    ffipol(unsigned int);
+    //Zoom .. factor to multipy scale
+    //Add .. Add this value to sclae to avoid bias caused by index roundind
+    ffipol(ipol<double,VAL>, double zoom=1., double add=0.5);
+    ~ffipol();
+    bool insert(unsigned int, VAL);
+    VAL g(const double &);   //returns the value
+    void fill(VAL);
+    VAL operator[](const double &);
+    void operator*=(const double x);
+    void clear(unsigned int);
+    unsigned int gs();  //Get size of data array
+  private:
+    VAL* aMap;
+    unsigned int n;  //Size of array
+    const double intercept;
+    const double zoom;
+  };
+
+  template <class VAL>
+    unsigned int ffipol<VAL>::gs() {
+    return(n);
+  }
+
+  template <class VAL>
+    ffipol<VAL>::ffipol() : intercept(0.), zoom(0.) {
+    n = 1;
+    aMap = new VAL[n];
+  }
+
+  template <class VAL>
+    ffipol<VAL>::ffipol(unsigned int an) : intercept(0.), zoom(0.) {
+    n = an;
+    aMap = new VAL[n];
+  }
+
+  template <class VAL>
+    ffipol<VAL>::ffipol(ipol<double,VAL> t, double zom, double add) : intercept(zom*t.min() + add), zoom(zom) {
+    n = static_cast<int>(1 + zoom * (std::ceil(t.max()) - std::floor(t.min())));
+    aMap = new VAL[n];
+    for(unsigned int i=0; i<n; ++i) {
+      aMap[i] = t.g((intercept + i)/zoom - add);
+    }
+  }
+
+  template <class VAL>
+    ffipol<VAL>::~fipol() {
+    delete[] aMap;
+  }
+
+  template <class VAL>
+    void ffipol<VAL>::clear(unsigned int an) {
+    delete[] aMap;
+    n = an;
+    aMap = new VAL[n];
+  }
+
+  template <class VAL>
+  void ffipol<VAL>::fill(VAL x) {
+    for(unsigned int i=0; i<n; ++i) {aMap[i] = x;}
+  }
+
+  template <class VAL>
+  bool ffipol<VAL>::insert(unsigned int i, VAL v) {
+    bool ret = false;
+    if(i < n) {aMap[i] = v; ret = true;}
+    return(ret);
+  }
+
+  template <class VAL>
+    VAL ffipol<VAL>::g(const double &i) {
+    if(n > 1) {
+      int i0 = static_cast<int>(i*zoom + intercept);
+      if(i0 <= 0) {return(aMap[0]);}
+      else if(i0 >= static_cast<int>(n)) {return(aMap[n-1]);}
+      else {
+	return(aMap[i0]);
+      }
+    } else if(n == 1) {return(aMap[0]);}
+    return(std::numeric_limits<VAL>::quiet_NaN());
+  }
+
+  template <class VAL>
+    void ffipol<VAL>::operator*=(const double x) {
+    for(unsigned int i=0; i<n; ++i) {
+      aMap[i] *= x;
+    }
+  }
+
+  template <class VAL>
+    VAL ffipol<VAL>::operator[](const double &i) {
+    return(g(i));
+  }
+
+
+  //Fast interpolation Multidimmensional (only aproximation is possible!)
+  template <class VAL>
+    class fipolm {
+  public:
+    fipolm(std::vector<unsigned int>);
+    fipolm(const unsigned int*, const unsigned int dim);
+    fipolm(ipol<std::vector<double>, VAL> &);
+    fipolm(ipol<std::vector<double>, VAL> &, std::vector<double> &zoom);
+    ~fipolm();
+    bool insert(unsigned int*, VAL);
+    bool insert(std::vector<unsigned int> &, VAL);
+    VAL g(double*);
+    VAL g(std::vector<double>);
+    void fill(VAL);
+    VAL operator[](double*);
+    VAL operator[](std::vector<double> &);
+    void operator*=(const double x);
+    void clear(unsigned int*, unsigned int dim);
+    void clear(std::vector<unsigned int> &);
+    std::vector<unsigned int> gs();  //Get size of array
+  private:
+    VAL* aMap;
+    unsigned int* n;  //Size of array
+    unsigned int dim;  //How many dimmensions does the index have
+    double* intercept; //If data range does not start from 0
+    double* zoom;
+    int fill(ipol<std::vector<double>, VAL> &, unsigned int idx, unsigned int adim, unsigned int mul, std::vector<double> key);
+    unsigned int sur; //n Surrounding points
+    unsigned int* idx; //Index for surrounding points
+    double* dist;  //Distance of surrounding points
+  };
+
+  template <class VAL>
+    fipolm<VAL>::fipolm(const unsigned int* an, const unsigned int adim) {
+    dim = adim;
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];
+      intercept[i]=0.; zoom[i] = 1.;}
+    aMap = new VAL[slots];
+    sur = std::ceil(std::pow(2,dim));
+    idx = new unsigned int[sur];
+    dist = new double[sur];
+  }
+
+  template <class VAL>
+    fipolm<VAL>::fipolm(std::vector<unsigned int> an) : dim(an.size()) {
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];
+      intercept[i]=0.; zoom[i] = 1.;}
+    aMap = new VAL[slots];
+    sur = std::ceil(std::pow(2,dim));
+    idx = new unsigned int[sur];
+    dist = new double[sur];
+  }
+
+  template <class VAL>
+    fipolm<VAL>::fipolm(ipol<std::vector<double>, VAL> &t) {
+    std::vector<double> idxMin(t.min());
+    std::vector<double> idxMax(t.max());
+    dim = idxMin.size();
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    zoom[0] = 1.;
+    intercept[0]=zoom[0] * idxMin[0]; 
+    unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
+    for(unsigned int i=1; i<dim; ++i) {
+      zoom[i] = 1.;
+      n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
+      slots *= n[i];
+      intercept[i]=zoom[i] * idxMin[i]; 
+    }
+    aMap = new VAL[slots];
+    std::vector<double> key;
+    fill(t, 0, 0, 1, key);
+    sur = std::ceil(std::pow(2,dim));
+    idx = new unsigned int[sur];
+    dist = new double[sur];
+  }
+
+  template <class VAL>
+    fipolm<VAL>::fipolm(ipol<std::vector<double>, VAL> &t, std::vector<double> &azoom) {
+     std::vector<double> idxMin(t.min());
+    std::vector<double> idxMax(t.max());
+    dim = idxMin.size();
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    zoom[0] = azoom[0];
+    intercept[0]=zoom[0] * idxMin[0]; 
+    unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
+    for(unsigned int i=1; i<dim; ++i) {
+      zoom[i] = azoom[i];
+      n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
+      slots *= n[i];
+      intercept[i]=zoom[i] * idxMin[i]; 
+    }
+    aMap = new VAL[slots];
+    std::vector<double> key;
+    fill(t, 0, 0, 1, key);
+    sur = std::ceil(std::pow(2,dim));
+    idx = new unsigned int[sur];
+    dist = new double[sur];
+  }
+
+  template <class VAL>
+    int fipolm<VAL>::fill(ipol<std::vector<double>, VAL> &t, unsigned int idx, unsigned int adim, unsigned int mul, std::vector<double> key) {
+    key.push_back(0.);
+    for(unsigned int i=0; i<n[adim]; ++i) {
+      key[adim] = (intercept[adim] + i)/zoom[adim];
+      if(adim+1 < dim) {fill(t, idx+i*mul, adim+1, mul*n[adim], key);}
+      else {aMap[idx+i*mul] = t.g(key);}
+    }
+    return(0);
+  }
+ 
+  template <class VAL>
+    fipolm<VAL>::~fipolm() {
+    delete[] n;
+    delete[] aMap;
+    delete[] intercept;
+    delete[] zoom;
+    delete[] idx;
+    delete[] dist;
+  }
+
+  template <class VAL>
+  bool fipolm<VAL>::insert(unsigned int* i, VAL v) {
     bool ret = true;
     unsigned int idx = i[0];
     unsigned int mul = n[0];
@@ -294,7 +562,7 @@ namespace g4m {
   }
 
   template <class VAL>
-    bool fipol<VAL>::insert(std::vector<unsigned int> i, VAL v) {
+    bool fipolm<VAL>::insert(std::vector<unsigned int> &i, VAL v) {
     bool ret = true;
     unsigned int idx = i[0];
     unsigned int mul = n[0];
@@ -308,57 +576,25 @@ namespace g4m {
   }
   
   template <class VAL>
-  VAL fipol<VAL>::ip(const double i, const double i0, const double i1, const double v0, const double v1) {
-    //interpolate/extrapolate the value for index i
-    VAL y;
-    if(i0 == i1) {y = (v0 + v1)/2.;}
-    else {
-      y = v0 + (i-i0)/(i1-i0) * (v1-v0);
-    }
-    return(y);
-  }
-
-  template <class VAL>
-    VAL fipol<VAL>::g(const double i) {
-    VAL y;
-    if(i >= n[0]) {y = aMap[n[0]-1];}
-    else if(i <= 0) {y = aMap[0];}
-    else {
-      unsigned int i0 = std::floor(i);
-      unsigned int i1 = std::ceil(i);
-      y = ip(i, i0, i1, aMap[i0], aMap[i1]);
-    }
-    return(y);
-  }
-
-  template <class VAL>
-    VAL fipol<VAL>::g(double* i) {
+    VAL fipolm<VAL>::g(double* i) {
     //Test if index is in the possible range
-    for(unsigned j = 1; j < dim; ++j) {
+    for(unsigned j = 0; j < dim; ++j) {
+      i[j] = i[j] * zoom[j] - intercept[j];
       if(i[j] >= n[j]) {i[j] = n[j]-1;}
       if(i[j] < 0) {i[j] = 0;}
     }
-    unsigned int sur = std::ceil(std::pow(2,dim));
-    unsigned int* idx = new unsigned int[sur];
-    double* dist = new double[sur];
-    for(unsigned j = 0; j < sur; ++j) {
-      idx[j] = -1; dist[j] = -1;
-    }
+    for(unsigned j = 0; j < sur; ++j) {idx[j] = -1;}
     idx[0] = std::floor(i[0]);
     idx[1] = std::ceil(i[0]);
-    //dist[0] = std::pow(i[0] - std::floor(i[0]), 2); //Geometric
-    //dist[1] = std::pow(i[0] - std::ceil(i[0]), 2);  //Geometric
-    dist[0] = std::fabs(i[0] - std::floor(i[0])); //Manhaten distance
-    dist[1] = 1. - dist[0];                       //Manhaten distance
-    unsigned int mul = n[0];
+    dist[0] = std::fabs(i[0] - idx[0]); //Manhaten distance
+    dist[1] = std::fabs(i[0] - idx[1]);
+    unsigned int mul = n[0];  //Array size in dimmension 0
     for(unsigned j = 1; j < dim; ++j) {
-      unsigned int t = std::ceil(std::pow(2,j));
-      unsigned int uc = std::ceil(i[j]) * mul;
+      unsigned int t = std::ceil(std::pow(2,j));  //n/2 points used in this dim
+      unsigned int uc = std::ceil(i[j]) * mul; //Index where of grid point
       unsigned int uf = std::floor(i[j]) * mul;
-      //double dc = std::pow(i[j] - std::ceil(i[j]), 2);  //Geometric
-      //double df = std::pow(i[j] - std::floor(i[j]), 2); //Geometric
-      double dc = std::fabs(i[j] - std::ceil(i[j]));  //Manhaten distance
-      double df = 1. - dc;                            //Manhaten distance
+      double dc = std::fabs(i[j] - std::ceil(i[j])); //Manhaten distance
+      double df = std::fabs(i[j] - std::floor(i[j]));
       for(unsigned int k=0; k<t; ++k) {
 	idx[k+t] = idx[k] + uc;
 	idx[k] += uf;
@@ -367,9 +603,6 @@ namespace g4m {
       }
       mul *= n[j];
     }
-    //for(unsigned j = 0; j < sur; ++j) { //Geometric
-    //  if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
-    //}
     double sdist = 0.;
     double sval = 0.;
     for(unsigned j=0; j<sur; ++j) {
@@ -384,41 +617,31 @@ namespace g4m {
 	}
       }
     }
-    VAL ret = 0.;
-    if(sdist > 0.) {ret = sval / sdist;}
-    delete[] idx;
-    delete[] dist;
-    return(ret);
+    if(sdist > 0.) {return(sval / sdist);}
+    return(std::numeric_limits<VAL>::quiet_NaN());
   }
 
   template <class VAL>
-    VAL fipol<VAL>::g(std::vector<double> i) {
+    VAL fipolm<VAL>::g(std::vector<double> i) {
     //Test if index is in the possible range
-    for(unsigned j = 1; j < dim && j < i.size(); ++j) {
+    if(i.size() != dim) {return(std::numeric_limits<VAL>::quiet_NaN());}
+    for(unsigned j = 0; j < dim; ++j) {
+      i[j] = i[j] * zoom[j] - intercept[j];
       if(i[j] >= n[j]) {i[j] = n[j]-1;}
       if(i[j] < 0) {i[j] = 0;}
     }
-    unsigned int sur = std::ceil(std::pow(2,dim));
-    unsigned int* idx = new unsigned int[sur];
-    double* dist = new double[sur];
-    for(unsigned j = 0; j < sur; ++j) {
-      idx[j] = -1; dist[j] = -1;
-    }
+    for(unsigned j = 0; j < sur; ++j) {idx[j] = -1;}
     idx[0] = std::floor(i[0]);
     idx[1] = std::ceil(i[0]);
-    //dist[0] = std::pow(i[0] - std::floor(i[0]), 2); //Geometric
-    //dist[1] = std::pow(i[0] - std::ceil(i[0]), 2);  //Geometric
-    dist[0] = std::fabs(i[0] - std::floor(i[0])); //Manhaten distance
-    dist[1] = 1. - dist[0];                       //Manhaten distance
-    unsigned int mul = n[0];
-    for(unsigned j = 1; j < dim && j < i.size(); ++j) {
-      unsigned int t = std::ceil(std::pow(2,j));
-      unsigned int uc = std::ceil(i[j]) * mul;
+    dist[0] = std::fabs(i[0] - idx[0]); //Manhaten distance
+    dist[1] = std::fabs(i[0] - idx[1]);
+    unsigned int mul = n[0];  //Array size in dimmension 0
+    for(unsigned j = 1; j < dim; ++j) {
+      unsigned int t = std::ceil(std::pow(2,j));  //n/2 points used in this dim
+      unsigned int uc = std::ceil(i[j]) * mul; //Index where of grid point
       unsigned int uf = std::floor(i[j]) * mul;
-      //double dc = std::pow(i[j] - std::ceil(i[j]), 2);  //Geometric
-      //double df = std::pow(i[j] - std::floor(i[j]), 2); //Geometric
-      double dc = std::fabs(i[j] - std::ceil(i[j]));  //Manhaten distance
-      double df = 1. - dc;                            //Manhaten distance
+      double dc = std::fabs(i[j] - std::ceil(i[j])); //Manhaten distance
+      double df = std::fabs(i[j] - std::floor(i[j]));
       for(unsigned int k=0; k<t; ++k) {
 	idx[k+t] = idx[k] + uc;
 	idx[k] += uf;
@@ -427,9 +650,6 @@ namespace g4m {
       }
       mul *= n[j];
     }
-    //for(unsigned j = 0; j < sur; ++j) { //Geometric
-    //  if(dist[j] > 0.) {dist[j] = std::sqrt(dist[j]);}
-    //}
     double sdist = 0.;
     double sval = 0.;
     for(unsigned j=0; j<sur; ++j) {
@@ -444,29 +664,291 @@ namespace g4m {
 	}
       }
     }
-    VAL ret = 0.;
-    if(sdist > 0.) {ret = sval / sdist;}
-    delete[] idx;
-    delete[] dist;
-    return(ret);
+    if(sdist > 0.) {return(sval / sdist);}
+    return(std::numeric_limits<VAL>::quiet_NaN());
   }
 
-  /*
-  template <class IDX, class VAL>
-    void ipol<IDX, VAL>::operator*=(const double x) {
-    typename std::map<IDX,VAL>::iterator iter;
-    iter = aMap.begin();
-    while(iter != aMap.end() ) {
-      iter->second *= x;
-      ++iter;
-    }
+  template <class VAL>
+  void fipolm<VAL>::fill(VAL x) {
+    unsigned int slots = n[0];
+    for(unsigned int i=1; i<dim; ++i) {slots *= n[i];}
+    for(unsigned int i=0; i<slots; ++i) {aMap[i] = x;}
   }
 
-  template <class IDX, class VAL>
-    VAL ipol<IDX, VAL>::operator[](const IDX i) {
+  template <class VAL>
+    VAL fipolm<VAL>::operator[](double *i) {
     return(g(i));
   }
-  */
+
+  template <class VAL>
+    VAL fipolm<VAL>::operator[](std::vector<double> &i) {
+    return(g(i));
+  }
+
+  template <class VAL>
+    void fipolm<VAL>::operator*=(const double x) {
+    unsigned int slots = n[0];
+    for(unsigned int i=1; i<dim; ++i) {slots *= n[i];}
+    for(unsigned int i=0; i<slots; ++i) {aMap[i] *= x;}
+  }
+
+  template <class VAL>
+    void fipolm<VAL>::clear(unsigned int* an, unsigned int adim) {
+    dim = adim;
+    delete[] n;
+    delete[] aMap;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    void fipolm<VAL>::clear(std::vector<unsigned int> &an) {
+    dim = an.size();
+    delete[] n;
+    delete[] aMap;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    std::vector<unsigned int> fipolm<VAL>::gs() {
+    std::vector<unsigned int> ret;
+    for(unsigned int i=0; i<dim; ++i) {ret.push_back(n[i]);}
+    return(ret);
+  }
+
+
+  //Without interpolation
+  template <class VAL>
+    class ffipolm {
+  public:
+    ffipolm(std::vector<unsigned int>);
+    ffipolm(const unsigned int*, const unsigned int dim);
+    ffipolm(ipol<std::vector<double>, VAL> &, double add=0.5);
+    ffipolm(ipol<std::vector<double>, VAL> &, std::vector<double> &zoom, double add=0.5);
+    ~ffipolm();
+    bool insert(unsigned int*, VAL);
+    bool insert(std::vector<unsigned int> &, VAL);
+    VAL g(double *);
+    VAL g(std::vector<double> &);
+    void fill(VAL);
+    VAL operator[](double *);
+    VAL operator[](std::vector<double> &);
+    void operator*=(const double x);
+    void clear(unsigned int*, unsigned int dim);
+    void clear(std::vector<unsigned int> &);
+    std::vector<unsigned int> gs();
+  private:
+    VAL* aMap;
+    unsigned int* n;  //Size of array
+    unsigned int dim;  //How many dimmensions does the index have
+    double* intercept; //If data range does not start from 0
+    double* zoom;
+    int fill(ipol<std::vector<double>, VAL> &, unsigned int idx, unsigned int adim, unsigned int mul, std::vector<double> key, double add);
+  };
+
+  template <class VAL>
+    ffipolm<VAL>::ffipolm(const unsigned int* an, const unsigned int adim) {
+    dim = adim;
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];
+      intercept[i]=0.; zoom[i] = 1.;}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    ffipolm<VAL>::ffipolm(std::vector<unsigned int> an) : dim(an.size()) {
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];
+      intercept[i]=0.; zoom[i] = 1.;}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    ffipolm<VAL>::ffipolm(ipol<std::vector<double>, VAL> &t, double add) {
+    std::vector<double> idxMin(t.min());
+    std::vector<double> idxMax(t.max());
+    dim = idxMin.size();
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    zoom[0] = 1.;
+    intercept[0]=zoom[0] * idxMin[0]; 
+    unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
+    for(unsigned int i=1; i<dim; ++i) {
+      zoom[i] = 1.;
+      n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
+      slots *= n[i];
+      intercept[i]=zoom[i] * idxMin[i]; 
+    }
+    aMap = new VAL[slots];
+    std::vector<double> key;
+    fill(t, 0, 0, 1, key, add);
+  }
+
+  template <class VAL>
+    ffipolm<VAL>::ffipolm(ipol<std::vector<double>, VAL> &t, std::vector<double> &azoom, double add) {
+     std::vector<double> idxMin(t.min());
+    std::vector<double> idxMax(t.max());
+    dim = idxMin.size();
+    intercept = new double[dim];
+    zoom = new double[dim];
+    n = new unsigned int[dim];
+    zoom[0] = azoom[0];
+    intercept[0]=zoom[0] * idxMin[0]; 
+    unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
+    for(unsigned int i=1; i<dim; ++i) {
+      zoom[i] = azoom[i];
+      n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
+      slots *= n[i];
+      intercept[i]=zoom[i] * idxMin[i]; 
+    }
+    aMap = new VAL[slots];
+    std::vector<double> key;
+    fill(t, 0, 0, 1, key, add);
+  }
+
+  template <class VAL>
+    int ffipolm<VAL>::fill(ipol<std::vector<double>, VAL> &t, unsigned int idx, unsigned int adim, unsigned int mul, std::vector<double> key, double add) {
+    key.push_back(0.);
+    for(unsigned int i=0; i<n[adim]; ++i) {
+      key[adim] = (intercept[adim] + i)/zoom[adim] + add;
+      if(adim+1 < dim) {fill(t, idx+i*mul, adim+1, mul*n[adim], key, add);}
+      else {aMap[idx+i*mul] = t.g(key);}
+    }
+    return(0);
+  }
+ 
+  template <class VAL>
+    ffipolm<VAL>::~ffipolm() {
+    delete[] n;
+    delete[] aMap;
+    delete[] intercept;
+    delete[] zoom;
+  }
+
+  template <class VAL>
+  bool ffipolm<VAL>::insert(unsigned int* i, VAL v) {
+    bool ret = true;
+    unsigned int idx = i[0];
+    unsigned int mul = n[0];
+    for(unsigned int j=1; j<dim; ++j) {
+      if(i[j] >= n[j]) {ret = false;}
+      idx += i[j] * mul;
+      mul *= n[j];
+    }
+    if(ret == true) {aMap[idx] = v;}
+    return(ret);
+  }
+
+  template <class VAL>
+    bool ffipolm<VAL>::insert(std::vector<unsigned int> &i, VAL v) {
+    bool ret = true;
+    unsigned int idx = i[0];
+    unsigned int mul = n[0];
+    for(unsigned int j=1; j<dim && j<i.size(); ++j) {
+      if(i[j] >= n[j]) {ret = false;}
+      idx += i[j] * mul;
+      mul *= n[j];
+    }
+    if(ret == true) {aMap[idx] = v;}
+    return(ret);
+  }
+
+  template <class VAL>
+    VAL ffipolm<VAL>::g(std::vector<double> &i) {
+    //Test if index is in the possible range
+    if(i.size() != dim) {return(std::numeric_limits<VAL>::quiet_NaN());}
+    unsigned int idx = 0;
+    unsigned int mul = 1;
+    for(unsigned j = 0; j < dim; ++j) {
+      int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      if(k < 0) {k = 0;}
+      if(static_cast<unsigned int>(k) >= n[j]) {k = n[j]-1;}
+      idx += k * mul;
+      mul *= n[j];
+    }
+    return(aMap[idx]);
+  }
+
+  template <class VAL>
+    VAL ffipolm<VAL>::g(double *i) {
+    //Test if index is in the possible range
+    unsigned int idx = 0;
+    unsigned int mul = 1;
+    for(unsigned j = 0; j < dim; ++j) {
+      int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      if(k < 0) {k = 0;}
+      if(static_cast<unsigned int>(k) >= n[j]) {k = n[j]-1;}
+      idx += k * mul;
+      mul *= n[j];
+    }
+    return(aMap[idx]);
+  }
+
+  template <class VAL>
+  void ffipolm<VAL>::fill(VAL x) {
+    unsigned int slots = n[0];
+    for(unsigned int i=1; i<dim; ++i) {slots *= n[i];}
+    for(unsigned int i=0; i<slots; ++i) {aMap[i] = x;}
+  }
+
+  template <class VAL>
+    VAL ffipolm<VAL>::operator[](double *i) {
+    return(g(i));
+  }
+
+  template <class VAL>
+    VAL ffipolm<VAL>::operator[](std::vector<double> &i) {
+    return(g(i));
+  }
+
+  template <class VAL>
+    void ffipolm<VAL>::operator*=(const double x) {
+    unsigned int slots = n[0];
+    for(unsigned int i=1; i<dim; ++i) {slots *= n[i];}
+    for(unsigned int i=0; i<slots; ++i) {aMap[i] *= x;}
+  }
+
+  template <class VAL>
+    void ffipolm<VAL>::clear(unsigned int* an, unsigned int adim) {
+    dim = adim;
+    delete[] n;
+    delete[] aMap;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    void ffipolm<VAL>::clear(std::vector<unsigned int> &an) {
+    dim = an.size();
+    delete[] n;
+    delete[] aMap;
+    n = new unsigned int[dim];
+    unsigned int slots = n[0] = an[0];
+    for(unsigned int i=1; i<dim; ++i) {n[i] = an[i]; slots *= n[i];}
+    aMap = new VAL[slots];
+  }
+
+  template <class VAL>
+    std::vector<unsigned int> ffipolm<VAL>::gs() {
+    std::vector<unsigned int> ret;
+    for(unsigned int i=0; i<dim; ++i) {ret.push_back(n[i]);}
+    return(ret);
+  }
+
 }
 
 #endif

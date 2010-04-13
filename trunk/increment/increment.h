@@ -144,7 +144,9 @@ namespace g4m {
     double gIncDbht(double age, double mai);
     double gIncDbhSdNat(double age, double mai, double sd);
     double gIncDbhSdTab(double age, double mai, double sd);
-    //Get Biomass which comes from mortality or thinning and can be used
+    //Get height increment
+    double gIncHeight(double age, double mai);
+      //Get Biomass which comes from mortality or thinning and can be used
     //If IncBm is also needed it will be faster to calculate by own
     double gRemBm(double age, double mai);
     double gRemBmt(double age, double mai);
@@ -176,8 +178,8 @@ namespace g4m {
     //Get average stocking degree with rotation time, mai, average biomass
     double gAvgSdNat(double u, double mai, double avgBm);
     double gAvgSdTab(double u, double mai, double avgBm);
-    //Get time step width
-    double gtimeframe();
+    double gtimeframe();  //Get time step width
+    double gTmax();  //Get the oldest age in the table
   private:
     //Optimal rotation time
     struct optRotTimes {
@@ -230,6 +232,7 @@ namespace g4m {
     double *incBmt;//Biomass change with thinning
     double *incDbh;//BHD-Increment without thinning
     double *incDbht;//BHD-Increment with thinning
+    double *incHeight;//Height incremnet
     double *incGwlSdNat; //Total increment change at specific Natural stocking degree
     double *incDbhSdNat;//BHD-Increment at specific Natural stocking degree
     double *incGwlSdTab; //Total increment change at specific yield table stocking degree

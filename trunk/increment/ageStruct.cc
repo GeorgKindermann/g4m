@@ -1,494 +1,600 @@
 #include "ageStruct.h"
 
 namespace g4m {
-
-  ageStruct::v::v() {
-    area=0.; enSw=0.; enRw=0.; vnSw=0.; vnRw=0.; dbEn=0.; dbVn=0.;
-  }
-
-  ageStruct::v::~v() {}
-  
-
-  double ageStruct::updateHarvestArea() {
-    if(targetRotationPeriod > 0.) {
-      tragetHarvestArea = getArea()/targetRotationPeriod;
-    } else {tragetHarvestArea = 0.;}
-    return(tragetHarvestArea);
-  }
-
-  ageStruct::v ageStruct::deforest(double area, int type) {
-    v ret;
-    if(type == 0) { //Take from all age classes
-      double totArea = getArea();
-      if(totArea < area) {area = totArea;}
-      if(totArea > 0.) {
-	double mul = 1. - area/totArea;
-	for(int i=0; i<activeAge; ++i) {
-	  double sdEt = it->gSd(i, mai, dat[i].bm, 2);
-	  double dbm= it->gLfz(i, mai, sdEt)/2.;
-	  double id = it->gDi(i, mai, sdEt)/2.;
-	  //double ih = it->gH(i, mai)/2.;
-	  double totalWood = dat[i].area * (1.-mul) * (dat[i].bm+dbm);
-	  ret.enSw += totalWood * sws->g(dat[i].d+id);
-	  ret.enRw += totalWood * hle->g(dat[i].d+id) - totalWood * sws->g(dat[i].d+id);
-	  ret.dbEn += totalWood * dbe->g(dat[i].d+id);
-	  dat[i].area *= mul;
-	}
-      }
-      ret.area=area;
-      divArea(ret, area);
-    } else { //Take from the old age classes
-      ret =  finalCut(area, false);
-    }
-    updateHarvestArea();
-    return(ret);
-  }
-
-  double ageStruct::afforest(double area) {
-    dat[0].area += area;
-    if(dat[0].area < 0.) {dat[0].area = 0.;}
-    updateHarvestArea();
-    return(dat[0].area);
-  }
-
-  double ageStruct::getBm() {
-    double sum=0.;
-    for(int i=0; i<activeAge; ++i) {
-      sum += dat[i].bm * dat[i].area;
-    }
-    return(sum);
-  }
-
-  double ageStruct::getArea() {
-    double sum=0.;
-    for(int i=0; i<activeAge; ++i) {
-      sum += dat[i].area;
-    }
-    return(sum);
-  }
-
-  double ageStruct::setStockingdegree(double sd) {
-    targetSd = sd;
-    return(targetSd);
-  }
-
-  double ageStruct::setRotPeriod(int rotPeriod) {
-    if(rotPeriod > 0) {targetRotationPeriod = rotPeriod;}
-    else {targetRotationPeriod = it->gTopt(mai, 0);} //Unmanaged Rotation time
-    updateHarvestArea();
-    return(targetRotationPeriod);
-  }
-
-  double ageStruct::setMai(double amai) {
-    if(ageClasses < it->gTopt(amai, 0)) {setAgeClasses(it->gTopt(mai, 0));}
+  ageStruct::ageStruct 
+  (incrementTab *ait
+   , ffipol<double> *asws
+   , ffipol<double> *ahlv, ffipol<double> *ahle
+   , ffipolm<double> *acov, ffipolm<double> *acoe
+   , ffipolm<bool> *adov, ffipolm<bool> *adoe
+   , double amai
+   , int aobjOfProd, double au
+   , double aminSw, double aminRw, double aminHarv
+   , double asdMin , double asdMax
+   , unsigned int amaiYears
+   , double aminRotVal, int aminRotRef
+   , double aflexSd)
+  {
+    it = ait;
+    sws = asws;
+    hlv = ahlv; hle = ahle;
+    cov = acov; coe = acoe; dov = adov; doe = adoe;
     mai = amai;
-    return(mai);
+    if(!qMai.empty()) {qMai.clear();}
+    qMai.resize(amaiYears, mai);
+    avgMai = mai;
+    objOfProd = aobjOfProd;
+    uRef = au;
+    u = setRotationTime();
+    minSw = aminSw; minRw = aminRw; minHarv = aminHarv;
+    sdMin = asdMin; sdMax = asdMax;
+    minRotVal = aminRotVal;
+    minRotRef = aminRotRef;
+    setMinRot();
+    flexSd=aflexSd;
+    timeStep = it->gtimeframe();
+    area = 0.;
   }
 
-  ageStruct::v ageStruct::finalCut(double area, bool eco) {
-    v ret;
-    if(area > 0.) {
-      int endYear = 0;
-      if(eco) {endYear = minRot * targetRotationPeriod;}
-      for(int i=activeAge; i>=endYear && ret.area<area; --i) {
-	//Halben Zuwachs fuer die Endnutzungsbestaende
-	double sdEt = it->gSd(i, mai, dat[i].bm, 2);
-	double dbm= it->gLfz(i, mai, sdEt)/2.;
-	double id = it->gDi(i, mai, sdEt)/2.;
-	//double ih = it->gH(i, mai)/2.;
-	if(dbe->g(dat[i].d+id) * (dat[i].bm+dbm) >= minDbEn || eco==false) {
-	  double totalWood = 0.;
-	  bool resetTreesize = false;
-	  if(ret.area+dat[i].area < area) {
-	    totalWood = dat[i].area * (dat[i].bm+dbm);
-	    ret.area += dat[i].area;
-	    dat[i].area = 0.; dat[i].bm = 0.;
-	    resetTreesize = true;
-	  } else {
-	    totalWood = (area - ret.area) * (dat[i].bm+dbm);
-	    dat[i].area -= area - ret.area;
-	    ret.area = area;
-	  }
-	  ret.enSw += totalWood * sws->g(dat[i].d+id);
-	  ret.enRw +=totalWood * (hle->g(dat[i].d+id) - sws->g(dat[i].d+id));
-	  ret.dbEn += totalWood * dbe->g(dat[i].d+id);
-	  if(resetTreesize) {dat[i].d = 0.; dat[i].h = 0.;}
-	}
+  double ageStruct::calcAvgMai() {
+    if(qMai.size() > 0) {
+      double product = 1.;
+      double sWeight = 0.;
+      double weight = 0.;
+      double step = 2./qMai.size();
+      std::deque<double>::iterator iter = qMai.begin();
+      while(iter != qMai.end()) {
+	weight += step;
+	product *= std::pow(*iter, weight);
+	sWeight += weight;
+	++iter;
       }
-      divArea(ret, getArea());
-    }
-    return(ret);
-  }
-
-  ageStruct::v ageStruct::aging() {
-    v ret;
-    //Endnutzung durchfuehren
-    ret = finalCut(tragetHarvestArea, true);
-    //Thinning
-    ret.vnSw = 0.;
-    ret.vnRw = 0.;
-    ret.dbVn = 0.;
-    for(int i=activeAge; i>=0; --i) {
-      double dbm=0.;
-      double thin=0.;
-      if(targetSd > 0.) {  //With thinning
-	std::pair<double,double> tmp = it->gDbmt(i, mai, dat[i].bm, targetSd);
-	dbm = tmp.first; thin = tmp.second;
-      } else {  //Without thinning
-	std::pair<double,double> tmp = it->gDbm(i, mai, dat[i].bm, 1);
-	dbm = tmp.first; thin = 0.;
-      }
-      double id = it->gDi(i, mai, it->gSd(i, mai, dat[i].bm, 2));
-      //double ih = it->gHi(i, mai);
-      dat[i].bm += dbm;
-      dat[i].d += id;
-      dat[i].h = it->gH(i+1, mai);
-      if(thin > 0. && dbv->g(dat[i].d+id) * thin >= minDbVn) {
-	double sawnWood = sws->g(dat[i].d-id/2.); //Possible Sawn wood
-	double restWood = hlv->g(dat[i].d-id/2.) - sawnWood;
-	double totalWood = dat[i].area * thin;
-	ret.vnSw += totalWood * sawnWood;
-	ret.vnRw += totalWood * restWood;
-	ret.dbVn += totalWood * dbv->g(dat[i].d-id/2);
-      }
-      dat[i+1] = dat[i];
-    }
-    double area=getArea();
-    if(area > 0.) {ret.vnSw /= area; ret.vnRw /= area; ret.dbVn /= area;}
-    //Aelteste Altersklasse verjuengen (sollte keine Biomasse mehr haben)
-    ret.area += dat[ageClasses].area;
-    dat[ageClasses].area = 0.; dat[ageClasses].bm = 0.; dat[ageClasses].d = 0.;
-    dat[ageClasses].h = 0.;
-    dat[0].area = ret.area; dat[0].bm = 0.; dat[0].d = 0.; dat[0].h = 0.;
-    fitActiveAge(0);
-    return(ret);
-  }
-
-  int ageStruct::fitActiveAge(int type) { //Adjust active Age
-    if(type==0) {
-      while(dat[activeAge].area-1 == 0 && activeAge>0) {--activeAge;}
-      while(dat[activeAge].area != 0 && activeAge<ageClasses-1) {++activeAge;}
+      if(sWeight > 0.) {avgMai = std::pow(product, 1./sWeight);}
+      else {avgMai = 0.;}
     } else {
-      for(activeAge=ageClasses; dat[activeAge].area == 0 && activeAge > 0; --activeAge) {;}
+      avgMai = mai;
     }
-    return(0);
+    return(avgMai);
+  }
+ 
+  double ageStruct::setRotationTime() {
+    if(objOfProd == 0) {u=uRef;}
+    else if(objOfProd == 1 || objOfProd == 2) {u=-1.;}
+    else if(objOfProd > 2 && objOfProd < 8) {
+      const int type = objOfProd - 3;
+      double sd = (sdMin + sdMax)/2.;
+      if(sd > 0) {
+	if(sd == 1.) {u = it->gToptt(avgMai, type);}
+	else {u = it->gToptSdTab(avgMai, sd, type);}
+      } else {
+	if(sd == -1.) {u = it->gTopt(avgMai, type);}
+	else {u = it->gToptSdNat(avgMai, -1. * sd , type);}
+      }
+    }
+    else {u=0.;}
+    return(u);
+  }
+
+  double ageStruct::setMinRot() {
+    if(minRotRef == 0) {minRot = minRotVal;}
+    else if(minRotRef == 1 && u > 0.) {minRot = minRotVal * u;}
+    else if(minRotRef < 7) {
+      const int type = minRotRef - 2;
+      double sd = (sdMin + sdMax)/2.;
+      if(sd > 0) {
+	if(sd == 1.) {minRot = minRotVal * it->gToptt(avgMai, type);}
+	else {minRot = minRotVal * it->gToptSdTab(avgMai, sd, type);}
+      } else {
+	if(sd == -1.) {minRot = minRotVal * it->gTopt(avgMai, type);}
+	else {minRot = minRotVal * it->gToptSdNat(avgMai, -sd , type);}
+      }
+    } else {minRot = -1.;}
+    return(minRot);
   }
 
   double ageStruct::createNormalForest
-  (int rotationPeriod, double area, double sd) {
-    if(rotationPeriod < 1) {rotationPeriod = 1;}
-    if(rotationPeriod >= ageClasses) {rotationPeriod = ageClasses-1;}
-    area /= rotationPeriod;
+  (double rotationPeriod, double aarea, double sd) {
+    if(aarea < 0.) {aarea = 0.;}
+    area = aarea;
+    if(rotationPeriod < 1.) {rotationPeriod = 1;}
+    if(rotationPeriod >= it->gTmax()) {rotationPeriod = it->gTmax()-1;}
+    unsigned int ageClasses = std::ceil(0.5 + rotationPeriod/timeStep);
+    if(dat.size() < ageClasses) {dat.resize(ageClasses);}
+    aarea /= rotationPeriod;
     cohort tmp;
-    tmp.area = area;
+    tmp.area = aarea*timeStep;
     tmp.bm = 0.; tmp.d = 0.; tmp.h = 0.;
-    double dbm=0.; double thin=0.;
-    for(int i=0; i<rotationPeriod; ++i) {
-      if(targetSd > 0.) {
-	tmp.bm = it->gHbmt(i, mai) * targetSd;
-	std::pair<double,double> tt = it->gDbmt(i, mai, tmp.bm, targetSd);
-	dbm=tt.first; thin=tt.second;
-	tmp.d =  it->gD(i, mai, targetSd);
-	tmp.h =  it->gH(i, mai);
+    for(unsigned int i=0; i<ageClasses; ++i) {
+      double age = i*timeStep;
+      if(sd > 0.) {
+	if(sd == 1.) {
+	  tmp.bm = it->gBmt(age, avgMai);
+	  tmp.d = it->gDbht(age, avgMai);
+	}
+	else {
+	  tmp.bm = it->gBmSdTab(age, avgMai, sd);
+	  tmp.d = it->gDbhSdTab(age, avgMai, sd);
+	}
+      } else {
+	if(sd == -1.) {
+	  tmp.bm = it->gBm(age, avgMai);
+	  tmp.d = it->gDbh(age, avgMai);
+	}
+	else {
+	  tmp.bm = it->gBmSdNat(age, avgMai, -sd);
+	  tmp.d = it->gDbhSdNat(age, avgMai, -sd);
+	}
       }
-      else {
-	tmp.bm = it->gHbm(i, mai);
-	std::pair<double,double> tt = it->gDbm(i, mai, tmp.bm, 1.);
-	dbm=tt.first; thin=tt.second;
-	tmp.d =  it->gD(i, mai, 999.);
-	tmp.h =  it->gH(i, mai);
-      }
+      tmp.h =  it->gHeight(age, avgMai);
       dat[i] = tmp;
     }
-    for(int i=rotationPeriod; i<ageClasses; ++i) {
+    dat[0].area /= 2.;
+    double share = 0.5 + rotationPeriod/timeStep - static_cast<int>(0.5 + rotationPeriod/timeStep);
+    if(share > 0.) {dat[ageClasses-1].area = aarea * timeStep * share;}
+    for(unsigned int i=ageClasses; i<dat.size(); ++i) {
       dat[i].area = 0.;
     }
-    activeAge = rotationPeriod;
-    updateHarvestArea();
     return(area);
   }
 
-  int ageStruct::setAgeClasses(int aageClasses) {
-    cohort *tmp = new cohort[aageClasses+1];
-    for(int i = 0; i<aageClasses && i <ageClasses; ++i) {
-      tmp[i] = dat[i];
+  double ageStruct::getD(double age) {
+    age /= timeStep;
+    unsigned int ageH = ceil(age);
+    if(ageH >= dat.size()) {return(dat[dat.size()-1].d);}
+    if(ageH < 1) {return(dat[0].d);}
+    --ageH;
+    return(dat[ageH].d + (dat[ageH+1].d - dat[ageH].d) * (age - ageH));
+  }
+
+  double ageStruct::getH(double age) {
+    age /= timeStep;
+    unsigned int ageH = ceil(age);
+    if(ageH >= dat.size()) {return(dat[dat.size()-1].h);}
+    if(ageH < 1) {return(dat[0].h);}
+    --ageH;
+    return(dat[ageH].h + (dat[ageH+1].h - dat[ageH].h) * (age - ageH));
+  }
+
+  double ageStruct::getBm(double age) {
+    age /= timeStep;
+    unsigned int ageH = ceil(age);
+    if(ageH >= dat.size()) {return(dat[dat.size()-1].bm);}
+    if(ageH < 1) {return(dat[0].bm);}
+    --ageH;
+    return(dat[ageH].bm + (dat[ageH+1].bm - dat[ageH].bm) * (age - ageH));
+  }
+
+  double ageStruct::getBm() {
+    double area=0.;
+    double bm=0.;
+    for(unsigned int i=0; i<dat.size(); ++i) {
+      area += dat[i].area;
+      bm += dat[i].area * dat[i].bm;
     }
-    delete[] dat;
-    dat = tmp;
-    ageClasses = aageClasses;    
-    return(ageClasses);
+    if(area > 0.) {return(bm/area);}
+    return(0.);
   }
 
-  double ageStruct::getD(int age) {
-    double ret = -1.;
-    if(age < ageClasses) {
-      ret = dat[age].d;
+  double ageStruct::getArea(double age) {
+    age /= timeStep;
+    unsigned int ageH = static_cast<int>(age+0.5);
+    if(ageH >= dat.size()) {return(0.);}
+    if(ageH <= 0) {return(2.*dat[ageH].area/timeStep);}
+    return(dat[ageH].area/timeStep);
+  }
+
+  double ageStruct::getArea() {
+    return(area);
+  }
+
+  double ageStruct::calcArea() { //Calculates the area
+    area = 0.;
+    for(unsigned int i=0; i<dat.size(); ++i) {
+      area += dat[i].area;
     }
-    return(ret);
+    return(area);
   }
 
-  double ageStruct::getBm(int age) {
-    double ret = -1.;
-    if(age < ageClasses) {
-      ret = dat[age].bm;
+  double ageStruct::setArea(unsigned int ageClass, double aarea) {
+    if(aarea < 0.) {return(0.);}
+    if(ageClass >= static_cast<unsigned int>(it->gTmax()/timeStep)) {
+      ageClass = static_cast<unsigned int>(it->gTmax()/timeStep)-1;
     }
-    return(ret);
-  }
-
-  double ageStruct::setBm(int age, double bm) {
-    double ret = -1.;
-    if(age < ageClasses) {
-      dat[age].bm = bm;
-      ret = dat[age].bm;
+    if(ageClass < dat.size()) {
+      area += aarea - dat[ageClass].area;
+      dat[ageClass].area = aarea;
+      return(dat[ageClass].area);
     }
-    return(ret);
+    area += aarea;
+    unsigned int oldSize = dat.size();
+    dat.resize(ageClass+1);
+    initCohort(oldSize, ageClass);
+    dat[ageClass].area = aarea;
+    return(dat[ageClass].area);
   }
 
-  double ageStruct::getArea(int age) {
-    double ret = -1.;
-    if(age < ageClasses) {
-      ret = dat[age].area;
+  double ageStruct::setBm(unsigned int ageClass, double biomass) {
+    if(biomass < 0.) {return(0.);}
+    if(ageClass >= static_cast<unsigned int>(it->gTmax()/timeStep)) {
+      ageClass = static_cast<unsigned int>(it->gTmax()/timeStep)-1;
     }
-    return(ret);
-  }
-
-  double ageStruct::setArea(int age, double area) {
-    double ret = -1.;
-    if(age < ageClasses) {
-      dat[age].area = area;
-      ret = dat[age].area;
-      if(age > activeAge) {activeAge = age;}
+    double maxBm = it->gBm(ageClass*timeStep, avgMai);
+    if(biomass > maxBm) {biomass = maxBm;}
+    if(ageClass < dat.size()) {
+      dat[ageClass].bm = biomass;
+      return(dat[ageClass].bm);
     }
-    return(ret);
+    unsigned int oldSize = dat.size();
+    dat.resize(ageClass+1);
+    initCohort(oldSize, ageClass);
+    dat[ageClass].bm = biomass;
+    return(dat[ageClass].bm);
   }
 
-  ageStruct::ageStruct
-  (incrementTab *ait, ipol<double,double> *asws
-   , ipol<double,double> *ahlv, ipol<double,double> *ahle
-   , ipol<double,double> *adbv, ipol<double,double> *adbe
-   , double aminDbVn
-   , double aminDbEn, double amai
-   , int arotationPeriod, double astockingDegree
-   , double aarea, double aminRot)
-  {
-    activeAge = 0;
-    it = ait;
-    sws = asws;
-    hlv = ahlv;
-    hle = ahle;
-    dbv = adbv;
-    dbe = adbe;
-    mai = amai;
-    ageClasses = it->gTopt(mai, 0);
-    if(ageClasses < 0) {ageClasses = 1;}
-    dat = new cohort[ageClasses+1];
-    setRotPeriod(arotationPeriod);
-    targetSd = astockingDegree;
-    updateHarvestArea();
-    createNormalForest(targetRotationPeriod, aarea, targetSd);
-    minDbVn = aminDbVn;
-    minDbEn = aminDbEn;
-    minRot = aminRot;
-  }
-
-  ageStruct::~ageStruct() {
-    delete[] dat;
-    it = NULL;
-    sws = NULL;
-    hlv = NULL;
-    hle = NULL;
-    dbv = NULL;
-    dbe = NULL;
-  }
-
-  ageStruct::v ageStruct::divArea(v& x, double area) {
-    if(area > 0.) {
-      x.enSw /= area;
-      x.enRw /= area;
-      x.vnSw /= area;
-      x.vnRw /= area;
-      x.dbEn /= area;
-      x.dbVn /= area;
-    } else {
-      x.enSw = 0.;
-      x.enRw = 0.;
-      x.vnSw = 0.;
-      x.vnRw = 0.;
-      x.dbEn = 0.;
-      x.dbVn = 0.;
-      x.area = 0.;
+  double ageStruct::setD(unsigned int ageClass, double dbh) {
+    if(ageClass >= static_cast<unsigned int>(it->gTmax()/timeStep)) {
+      ageClass = static_cast<unsigned int>(it->gTmax()/timeStep)-1;
     }
-    return(x);
+    double age = ageClass*timeStep;
+    double minD = it->gDbh(age, avgMai);
+    double maxD = it->gDbhSdNat(age, avgMai, 0.);
+    if(dbh < minD) {dbh = minD;}
+    if(dbh > maxD) {dbh = maxD;}
+    if(ageClass < dat.size()) {
+      dat[ageClass].d = dbh;
+      return(dat[ageClass].d);
+    }
+    unsigned int oldSize = dat.size();
+    dat.resize(ageClass+1);
+    initCohort(oldSize, ageClass);
+    dat[ageClass].d = dbh;
+    return(dat[ageClass].d);
   }
 
-
-  ageLUT::ageLUT(ageStruct *aas, double acPriceIncentive)
-    : cPriceIncentive(acPriceIncentive)
-    , maiStep(aas->it->gMaiStep())
-    , tStep(aas->it->gTStep()) {
-    as = aas;
-    if(maiStep <= 0.) {maiStep = 1.;}
-    maiHi = as->it->gMaiHi() / maiStep;
-    if(tStep <= 0.) {tStep = 1.;}
-    tHi = as->it->gTHi() / tStep;
-    fidx[0] = maiHi; fidx[1] = tHi;
-    tabBm = new g4m::fipol<double> (fidx, 2);
-    tabEnSw = new g4m::fipol<double> (fidx, 2);
-    tabEnRw = new g4m::fipol<double> (fidx, 2);
-    tabVnSw = new g4m::fipol<double> (fidx, 2);
-    tabVnRw = new g4m::fipol<double> (fidx, 2);
-    tabDbEn = new g4m::fipol<double> (fidx, 2);
-    tabDbVn = new g4m::fipol<double> (fidx, 2);
-    tabBmNT = new g4m::fipol<double> (fidx, 2);
-    tabEnSwNT = new g4m::fipol<double> (fidx, 2);
-    tabEnRwNT = new g4m::fipol<double> (fidx, 2);
-    tabDbEnNT = new g4m::fipol<double> (fidx, 2);
-    tabOptRot = new g4m::fipol<double>[8];
-    for(int i=0; i<8; ++i) {tabOptRot[i].clear(maiHi/maiStep);}
-    ageStruct::v asRet;
-    fidx[0] = 0; fidx[1] = 5;
-    tabBm->insert(fidx, 0.);
-    for(unsigned int i=0; i < maiHi; ++i) {
-      tabOptRot[1].insert(i,0); //1 .. Highest average harvest with thinning
-      tabOptRot[2].insert(i,0); //2 .. Maximum avarage Biomass
-      tabOptRot[3].insert(i,0); //3 .. Maximum average Biomass with thinning
-      tabOptRot[4].insert(i,0); //4 .. Maximum harvest at final cut
-      tabOptRot[5].insert(i,0); //5 .. Maximum average harvest with final cut
-      tabOptRot[6].insert(i,0); //6 .. Maximize Deckungsbeitrag
-      tabOptRot[7].insert(i,0); //7 .. Maximize Deckungsbeitrag with thining
-      double fidx0[] = {i, 0};
-      double fidx1[] = {i, 0};
-      for(unsigned int j=0; j < tHi; ++j) {
-	fidx1[1] = j;
- 	fidx[0] = i; fidx[1] = j;
-	as->setMai(i*maiStep);
-	as->setRotPeriod(double(j)*tStep);
-	as->setStockingdegree(1.);
-	as->createNormalForest(j*tStep, 1., 1.);
-	asRet = as->aging();
-	tabBm->insert(fidx, as->getBm());
-	tabEnSw->insert(fidx, asRet.enSw);
-	tabEnRw->insert(fidx, asRet.enRw);
-	tabVnSw->insert(fidx, asRet.vnSw);
-	tabVnRw->insert(fidx, asRet.vnRw);
-	tabDbEn->insert(fidx, asRet.dbEn);
-	tabDbVn->insert(fidx, asRet.dbVn);
-	as->setStockingdegree(-1.);
-	as->createNormalForest(j*tStep, 1., -1.);
-	asRet = as->aging();
-	tabBmNT->insert(fidx, as->getBm());
-	tabEnSwNT->insert(fidx, asRet.enSw);
-	tabEnRwNT->insert(fidx, asRet.enRw);
-	tabDbEnNT->insert(fidx, asRet.dbEn);
-	//Search optimal rotation times
-	fidx0[1] = tabOptRot[1].g(i);
-	if((tabEnSw->g(fidx1) + tabEnRw->g(fidx1)
-	    + tabVnSw->g(fidx1) + tabVnRw->g(fidx1)) > 
-	   (tabEnSw->g(fidx0) + tabEnRw->g(fidx0)
-	    + tabVnSw->g(fidx0) + tabVnRw->g(fidx0))) {
-	  tabOptRot[1].insert(i,j);
+  unsigned int ageStruct::initCohort(unsigned int ageClassL, unsigned int ageClassH) {
+    cohort tmp;
+    tmp.area = 0.;
+    double sd = (sdMin + sdMax)/2.;
+    for(unsigned int i = ageClassL; i <= ageClassH; ++i) {
+      double age = i*timeStep;
+      if(sd > 0.) {
+	if(sd == 1.) {
+	  tmp.bm = it->gBmt(age, avgMai);
+	  tmp.d = it->gDbh(age, avgMai);
 	}
-	fidx0[1] = tabOptRot[2].g(i);
-	if(tabBmNT->g(fidx1) > tabBmNT->g(fidx0)) {tabOptRot[2].insert(i,j);}
-	fidx0[1] = tabOptRot[3].g(i);
-	if(tabBm->g(fidx1) > tabBm->g(fidx0)) {tabOptRot[3].insert(i,j);}
- 	fidx0[1] = tabOptRot[4].g(i);
-	if((tabEnSwNT->g(fidx1) + tabEnRwNT->g(fidx1)) >
-	   (tabEnSwNT->g(fidx0) + tabEnRwNT->g(fidx0))) {
-	  tabOptRot[4].insert(i,j);
+	else {
+	  tmp.bm = it->gBmSdTab(age, avgMai, sd);
+	  tmp.d = it->gDbhSdTab(age, avgMai, sd);
 	}
- 	fidx0[1] = tabOptRot[5].g(i);
-	if((tabEnSwNT->g(fidx1) + tabEnRwNT->g(fidx1))*fidx1[1] >
-	   (tabEnSwNT->g(fidx0) + tabEnRwNT->g(fidx0))*fidx0[1]) {
-	  tabOptRot[5].insert(i,j);
+      } else {
+	if(sd == -1.) {
+	  tmp.bm = it->gBm(age, avgMai);
+	  tmp.d = it->gDbh(age, avgMai);
 	}
- 	fidx0[1] = tabOptRot[6].g(i);
-	if(tabDbEnNT->g(fidx1) > tabDbEnNT->g(fidx0)) {
-	  tabOptRot[6].insert(i,j);
+	else {
+	  tmp.bm = it->gBmSdNat(age, avgMai, -sd);
+	  tmp.d = it->gDbhSdNat(age, avgMai, -sd);
 	}
- 	fidx0[1] = tabOptRot[7].g(i);
-	if((tabDbEn->g(fidx1) + tabDbVn->g(fidx1)) > 
-	   (tabDbEn->g(fidx0) + tabDbVn->g(fidx0))) {
-	  tabOptRot[7].insert(i,j);
+      }
+      tmp.h =  it->gHeight(age, avgMai);
+      dat[i] = tmp;
+    }
+    return(ageClassH - ageClassL);
+  }
+
+  double ageStruct::setMai(double aMai) {
+    mai = aMai;
+    return(mai);
+  }
+
+  unsigned int ageStruct::setMaiYears(unsigned int maiYears) {
+    while(maiYears > qMai.size()) {qMai.push_front(avgMai);}
+    while(maiYears < qMai.size()) {qMai.pop_front();}
+    calcAvgMai();
+    setRotationTime();
+    setMinRot();
+    return(qMai.size());
+  }
+
+  double ageStruct::setAvgMai(double aavgMai) {
+    avgMai = aavgMai;
+    if(avgMai < 0.) {avgMai = 0.;}
+    std::deque<double>::iterator iter = qMai.begin();
+    while(iter != qMai.end()) {
+      *iter = avgMai;
+      ++iter;
+    }
+    setRotationTime();
+    setMinRot();
+    return(avgMai);
+  }
+
+  int ageStruct::setObjOfProd(int aobjOfProd) {
+    objOfProd = aobjOfProd;
+    return(objOfProd);
+  }
+
+  double ageStruct::setU(double au) {
+    uRef = au;
+    setRotationTime();
+    setMinRot();
+    return(u);
+  }
+
+  double ageStruct::setStockingdegreeMin(double sd) {
+    sdMin=sd;
+    return(sdMin);
+  }
+
+  double ageStruct::setStockingdegreeMax(double sd) {
+    sdMax=sd;
+    return(sdMax);
+  }
+
+  int ageStruct::setMinRotRef(int aminRotRef) {
+    minRotRef = aminRotRef;
+    return(minRotRef);
+  }
+
+  double ageStruct::setMinRotVal(double aminRotVal) {
+    minRotVal = aminRotVal;
+    setMinRot();
+    return(minRotVal);
+  }
+
+  double ageStruct::setFlexSd(double aflexSd) {
+    flexSd=aflexSd;
+    return(flexSd);
+  }
+
+  double ageStruct::afforest(double aarea) {
+    if(area > 0) {
+      dat[0].area += aarea;
+      area += aarea;
+    }
+    return(dat[0].area);
+  }
+
+  double ageStruct::reforest(double aarea) {
+    if(dat.size() < 2) {dat.resize(2);}
+    if(area > 0) {
+      dat[0].area += aarea/2.;
+      dat[1].area += aarea/2.;
+      area += aarea;
+    }
+    return(dat[0].area + dat[1].area);
+  }
+
+  ageStruct::v ageStruct::deforest(double aarea, int type) {
+    v ret = {0., 0., 0., 0., 0.};
+    if(type == 0) { //Take from all age classes
+      if(area < aarea) {aarea = area;}
+      if(area > 0.) {
+	double mul = 1. - aarea/area;
+	static std::vector<double> dbhBm(2,0); //Key of dbh and biomass
+	for(unsigned int i=0; i<dat.size(); ++i) {
+	  if(dat[i].area > 0.) {
+	    double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
+	    double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
+	    double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
+	    dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
+	    double totalWood = dat[i].area * (1.-mul) * dbhBm[1];
+	    ret.bm += totalWood;
+	    double harvestedWood = totalWood * hle->g(dbhBm[0]);
+	    double sawnWood = harvestedWood * sws->g(dbhBm[0]);
+	    ret.sw += sawnWood;
+	    ret.rw += harvestedWood - sawnWood;
+	    ret.co += totalWood * coe->g(dbhBm);
+	    area -= dat[i].area * (1. - mul);
+	    dat[i].area *= mul;
+	  }
+	}
+	ret.area=aarea;
+      }
+    } else { //Take from the old age classes
+      ret =  finalCut(area, false);
+    }
+    if(ret.area > 0.) { //Values per hectare
+      ret.sw /= area; ret.rw /= area; ret.co /= area; ret.bm /= area;}
+    return(ret);
+  }
+
+  ageStruct::v ageStruct::finalCut(double aarea, bool eco) {
+    v ret = {0., 0., 0., 0., 0.};
+    if(aarea > 0.) {
+      int endYear = 0;
+      if(eco) {endYear = minRot/timeStep;}
+      static std::vector<double> dbhBm(2,0); //Key to ask if harvest is economic
+      for(int i=dat.size(); i>=endYear && ret.area<aarea; --i) {
+	if(dat[i].area > 0.) {
+	  //The Stands get half increment of the next growing period
+	  double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
+	  double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
+	  double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
+	  dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
+	  if(doe->g(dbhBm) || eco==false) { //do harvest if it is economic
+	    double totalWood = 0.;
+	    if(ret.area+dat[i].area < aarea) { //Harvest all of this age class
+	      totalWood = dat[i].area * dbhBm[1];
+	      ret.area += dat[i].area;
+	      area -= dat[i].area;
+	      dat[i].area = 0.;
+	    } else {
+	      totalWood = (aarea - ret.area) * dbhBm[1];
+	      area -= aarea - ret.area;
+	      dat[i].area -= aarea - ret.area;
+	      ret.area = aarea;
+	    }
+	    ret.bm += totalWood;
+	    double harvestedWood = totalWood * hle->g(dbhBm[0]);
+	    double sawnWood = harvestedWood * sws->g(dbhBm[0]);
+	    ret.sw += sawnWood;
+	    ret.rw += harvestedWood - sawnWood;
+	    ret.co += totalWood * coe->g(dbhBm);
+	  }
 	}
       }
     }
+    if(ret.area > 0.) { //Values per hectare
+      ret.sw /= ret.area; ret.rw /= ret.area; ret.co /= ret.area; ret.bm /= ret.area;}
+    return(ret);
   }
 
-  ageLUT::~ageLUT() {
-    delete tabBm;
-    delete tabEnSw;
-    delete tabEnRw;
-    delete tabVnSw;
-    delete tabVnRw;
-    delete tabDbEn;
-    delete tabDbVn;
-    delete tabBmNT;
-    delete tabEnSwNT;
-    delete tabEnRwNT;
-    delete tabDbEnNT;
-    delete[] tabOptRot;
-    as = NULL;
-  }
-  
-  double ageLUT:: gTopt(double mai, int type) {
-    return(tabOptRot[type].g(mai/maiStep)*tStep);
+  std::pair<ageStruct::v, ageStruct::v> ageStruct::aging() {
+    return(aging(mai));
   }
 
-  double ageLUT::getBm(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabBm->g(idx));
+  std::pair<ageStruct::v, ageStruct::v> ageStruct::aging(double amai) {
+    v retThin = {0., 0., 0., 0., 0.};
+    v retHarvest = {0., 0., 0., 0., 0.};
+    mai = amai;
+    qMai.push_back(mai);
+    qMai.pop_front();
+    calcAvgMai();
+    setRotationTime();
+    setMinRot();
+    if(objOfProd == 1 || objOfProd == 2) { //Fulfill an amount of harvest
+      
+    } else { //We have a rotation time to fulfill
+      retHarvest = finalCut(area*timeStep/u, true); //do final cut
+      retThin = thinAndGrow();
+      //retThin = thinAndGrowS();
+    }
+    //Make reforestations on final harvested area
+    reforest(retHarvest.area); //Maybe include also reforestation costs
+    return(std::make_pair(retThin, retHarvest));
   }
 
-  double ageLUT::getEnSw(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabEnSw->g(idx));
+  ageStruct::v ageStruct::thinAndGrow() {
+    v ret = {0., 0., 0., 0., 0.};
+    bool constSd = (sdMin==sdMax) ? true : false;
+    for(int i = static_cast<int>(dat.size())-1; i>-1; --i) {
+      if(dat[i].area > 0.) {
+	double sdNat;
+	if(i > 0) {sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);}
+	else {  //Afforestations have a stocking degree of sdMin
+	  if(sdMin > 0.) {sdNat = sdMin * it->gSdNat(0, avgMai);
+	  } else {sdNat = -sdMin;}
+	}
+	double gwl = it->gIncGwlSdNat(i*timeStep, mai, sdNat);
+	double sd=0.;  //Stocking degree after growing period
+	if(sdMax > 0.) {sd = (gwl+dat[i].bm) / it->gBmt((i+1)*timeStep,avgMai);}
+	else {sd = (gwl+dat[i].bm) / it->gBm((i+1)*timeStep, avgMai);}
+	double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat);
+	//The oldest age class has no increment
+	if(i == static_cast<int>(dat.size())-1) {
+	  gwl = 0.;
+	  id = 0.;
+	} else {dat[i].h += it->gIncHeight(i*timeStep, avgMai);}
+	bool thinningWasDone = false;
+	//Key to ask if harvest is economic
+	static std::vector<double> dbhBmSh(3,0);
+ //Stocking degree to high or typical thinnigs are forced -> make thinning
+	if(sd > fabs(sdMax) || flexSd > 0.) {
+	  //Thinning caused by stand density
+	  double reduce = 0.;
+	  if(constSd) {
+	    reduce = fabs(sdMax) / sd;
+	  } else {
+	    if(sd > fabs(sdMax)) {
+	      if(sdMin > 0) {
+		reduce = sdMin / ((gwl/2.+dat[i].bm) / it->gBmt((i+1)*timeStep,avgMai));
+	      } else {
+		reduce = -sdMin / ((gwl/2.+dat[i].bm) / it->gBm((i+1)*timeStep, avgMai));
+	      }
+	    }
+	  }
+	  if(reduce < 0.) {reduce = 0.;}
+	  if(reduce > 1.) {reduce = 1.;}
+	  //Thinning caused by typical thinnigs
+	  double reduceB = 0.;
+	  if(flexSd > 0.) {
+	    double cutVol = gwl - it->gIncBmSdNat(i*timeStep, mai, sdNat);
+	    if(cutVol > 0.) {
+	      //A weighting by sd / sdMax is done to come sometime to sdMax
+	      double weight;
+	      if(sdMax > 0) {weight = it->gSdTab(i*timeStep, avgMai, dat[i].bm) / sdMax;}
+	      else {weight = sdNat / (-sdMax);}
+	      reduceB = 1. - (cutVol / (gwl/+dat[i].bm)) * weight;
+	    }
+	  }
+	  if(reduceB < 0.) {reduceB = 0.;}
+	  if(reduceB > 1.) {reduceB = 1.;}
+	  //Bring in the thinning fluctuation softener
+	  //flexSd > 0. && flexSd <= 1.
+	  reduce = reduce * (1. - flexSd) + reduceB * flexSd;
+	  dbhBmSh[0] = dat[i].d+id/2.;
+	  dbhBmSh[1] = dat[i].bm+gwl/2.;
+	  dbhBmSh[2] = (1. - reduce);
+	  if(reduce > 0. && dov->g(dbhBmSh)) { //Do Thinning if it is economic
+	    thinningWasDone = true;
+	    if(constSd) {
+	      dat[i].bm += gwl;
+	      dat[i].d += id;
+	    } else {
+	      //The Stands get half increment at high stand density
+	      dat[i].bm += gwl/2.;
+	      dat[i].d += id/2.;
+	    }
+	    double totalWood = dat[i].area * dat[i].bm * (1. - reduce);
+	    dat[i].bm *= reduce;
+	    double harvestedWood = totalWood * hlv->g(dat[i].d);
+	    double sawnWood = harvestedWood * sws->g(dat[i].d);
+	    ret.area += dat[i].area;
+	    ret.bm += totalWood;
+	    ret.sw += sawnWood;
+	    ret.rw += harvestedWood - sawnWood;
+	    ret.co += totalWood * cov->g(dbhBmSh);
+	    if(!constSd) {
+	      //The Stands get half increment at low stand density
+	      sdNat = it->gSdNat((i+.5)*timeStep, avgMai, dat[i].bm);
+	      dat[i].bm += it->gIncBmSdNat((i+.5)*timeStep, avgMai, sdNat)/2.;
+	      dat[i].d += it->gIncDbhSdNat((i+.5)*timeStep, avgMai, sdNat)/2.;
+	    }
+	  } else {  //No thinning
+	    dat[i].bm += gwl;
+	    dat[i].d += id;
+	  }
+	} else {  //No thinning
+	  dat[i].bm += gwl;
+	  dat[i].d += id;
+	}
+	//Check if Bm is not higher than maximum possible at end of period
+	double bmMax = it->gBm((i+1)*timeStep, avgMai);
+	if(dat[i].bm > bmMax) {
+	  if(constSd) {
+	    dat[i].bm = bmMax;
+	  } else {
+	    if(thinningWasDone) {
+	      double totalWood = dat[i].area * (dat[i].bm - bmMax);
+	      dat[i].bm = bmMax;
+	      double harvestedWood = totalWood * hlv->g(dat[i].d);
+	      double sawnWood = harvestedWood * sws->g(dat[i].d);
+	      ret.bm += totalWood;
+	      ret.sw += sawnWood;
+	      ret.rw += harvestedWood - sawnWood;
+	      ret.co += totalWood * cov->g(dbhBmSh);
+	    } else {
+	      dat[i].bm = bmMax;
+	    }
+	  }
+	}
+	//Bring the Data to the next age class
+	if(i < static_cast<int>(dat.size())-1) {
+	  dat[i+1] = dat[i];
+	} else {
+	  dat[i+1].d = (dat[i+1].d * dat[i+1].area + dat[i].d * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].h = (dat[i+1].h * dat[i+1].area + dat[i].h * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].bm = (dat[i+1].bm * dat[i+1].area + dat[i].bm * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].area += dat[i].area;
+	}
+	dat[i].area = 0.; dat[i].bm = 0.; dat[i].d = 0.; dat[i].h = 0.;
+      }
+    }
+    if(ret.area > 0.) { //Values per hectare
+      ret.sw /= ret.area; ret.rw /= ret.area; ret.co /= ret.area; ret.bm /= ret.area;}
+    return(ret);
   }
 
-  double ageLUT::getEnRw(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabEnRw->g(idx));
-  }
-
-  double ageLUT::getVnSw(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabVnSw->g(idx));
-  }
-
-  double ageLUT::getVnRw(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabVnRw->g(idx));
-  }
-
-  double ageLUT::getDbEn(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabDbEn->g(idx));
-  }
-
-  double ageLUT::getDbVn(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabDbVn->g(idx));
-  }
-
-  double ageLUT::getBmNT(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabBmNT->g(idx));
-  }
-
-  double ageLUT::getEnSwNT(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabEnSwNT->g(idx));
-  }
-
-  double ageLUT::getEnRwNT(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabEnRwNT->g(idx));
-  }
-
-  double ageLUT::getDbEnNT(double mai, double t) {
-    double idx[] = {mai/maiStep, t/tStep};
-    return(tabDbEnNT->g(idx));
-  }
 
 }
-

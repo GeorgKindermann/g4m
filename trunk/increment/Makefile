@@ -1,5 +1,5 @@
-#CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2
-CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2 -pg
+CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2
+#CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2 -pg
 
 all:	ic mi as
 

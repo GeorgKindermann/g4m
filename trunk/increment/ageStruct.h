@@ -5,135 +5,131 @@
 #include <cmath>
 #include "increment.h"
 #include "misc.h"
+#include <limits>
+#include <deque>
+#include <utility>
 
 namespace g4m {
-  
+
   class ageStruct {
-    friend class ageLUT;
   public:
-    //stockingDegree Ertragstafel if < 0 .. no thinning -> max Stocking degree
-    //sws ... sawnwood share (depending on d) bezogen auf Vorratsfestmeter
-    //hlv ... 1 - harvesting losses Vornutzung (depending on d) von Vorratsfestmetern
-    //hle ... 1 - harvesting losses Endnutzung (depending on d) von Vorratsfestmetern
-    //dbv .. Deckungsbeitrag (depending on d) Vornutzung (auf VFM bezogen)
-    //dbe .. Deckungsbeitrag (depending on d) Endnutzung (auf VFM bezogen)
- //minDbv .. Minimaler Deckungsbeitrag/Jahr/Ha damit Durchforstung gemacht wird
- //minDbe .. Minimaler Deckungsbeitrag/Jahr/Ha damit Endnutzung gemacht wird
-    //Minimal rotation time share of the target rotation time
-    ageStruct(incrementTab *it
-	      , ipol<double,double> *sws
-	      , ipol<double,double> *hlv, ipol<double,double> *hle
-	      , ipol<double,double> *dbv, ipol<double,double> *dbe
-	      , double minDbVn
-	      , double minDbEn, double mai, int rotationPeriod
-	      , double stockingDegree=1., double area=1., double minRot=0.75);
-    class v {
-    public:
-      double area;
-      double enSw;
-      double enRw;
-      double vnSw;
-      double vnRw;
-      double dbEn;
-      double dbVn;
-      v();
-      ~v();
+    ageStruct 
+      (incrementTab *it    //Increment table which will be used, the time step width (simulation period legth) of *it will also be used in ageStruct
+       , ffipol<double> *sws //Sawnwood share of harvested wood depending on dbh
+       , ffipol<double> *hlv //1-harvesting losses thinning (Vornutzung) (depending on d) in relation to standing timber (Vorratsfestmeter)
+       , ffipol<double> *hle //1-harvesting losses final felling (Endnutzung) (depending on d) in relation to standing timber (Vorratsfestmeter)
+       , ffipolm<double> *cov //Thinning costs depending on d and removed volume per hectare) in relation to standing timber (Vorratsfestmeter)
+       , ffipolm<double> *coe //Harvesting costs depending on d and vol
+       , ffipolm<bool> *dov //Do thinning (depending on d and removed volume per hectare) in relation to standing timber (Vorratsfestmeter)
+       , ffipolm<bool> *doe //Do final felling (depending on d and stocking volume per hectare)
+       , double mai  //mean annual increment in tC stemmwood per hectar and year at increment optimal rotation time
+       , int objOfProd=3 //objective of production: 0..Rotation time in years, 1..ammount of wood which need to beharvested every year, 2..like 1 but the ammount will not be fulfilled if rotation time will be shorter than for Highest average increment; >2 ignore Value of u and claculate it instead  3 .. Highest average increment, 4 . .Maximum average Biomass, 5 .. Highest possible age, 6 .. Maximum harvest at final cut, 7 .. Average Maximum harvest at final cut
+       , double u=0.  //Rotation time if objOfProd 0
+       , double minSw=0. //if objOfProd 1,2 ammount of sawnwood to harvest
+       , double minRw=0. //if objOfProd 1,2 ammount of restwood to harvest
+       , double minHarv=0. //if objOfProd 1,2 ammount of total harvest
+       //Stocking degree: if sd exceeds sdMax do thinning until sdMin. sd > 0 stockingDegree yield table, sd -1 to 0 natural stocking degree
+       //Maybe sdMin and sdMax can be made dependent on h/hmax and MAI
+       , double sdMin=1.
+       , double sdMax=1.
+       , unsigned int maiYears=30  //Years to calculate average mai
+       //Minimal rotation time in years or as share given in minRotRef which needs to be exceedes until final harvests are done
+       , double minRotVal=0.75
+       //meaning of minRotVal value 
+       //0..use it as years, 1..minRotVal*u (u>0), 2..*uMaxAvgIncrement, 3..*uMaxAvgBiomass, 4..*uMaxAge, 5..*uMaxHarvest, 6..*uAvgMaxHarvest
+       , int minRotRef=2 
+       //how fast should the stoking degree target be reached
+   //0..do only remove caused by stand density  to  1..do only typical removes 
+       , double flexSd=0.
+       );
+    std::deque<double> qMai;  //Queue to store the mai's of previous years (youngest mai is at the end of que)
+    double createNormalForest(double rotationPeriod, double area, double sd=1.);
+    double getBm(double age);    //get biomass per ha by age
+    double getBm();              //get average biomass per ha
+    double getArea(double age);  //get forest area by age
+    double getArea();            //get forest area
+    double getD(double age);     //get Diameter
+    double getH(double age);     //get Height
+    //Set area for a specific ageCLASS
+    double setArea(unsigned int ageClass, double area);
+    //Set biomass per hectare for a specific ageCLASS
+    double setBm(unsigned int ageClass, double biomass);
+    //Set bhd for a specific ageCLASS
+    double setD(unsigned int ageClass, double dbh);
+
+    double setMai(double mai); //Just set mai but don't influence avgMai
+    unsigned int setMaiYears(unsigned int maiYears);
+    double setAvgMai(double avgMai); //Set avgMai and all values in qMai
+
+    int setObjOfProd(int objOfProd);
+    double setU(double u);
+
+    double setStockingdegreeMin(double sd);
+    double setStockingdegreeMax(double sd);
+
+    int setMinRotRef(int minRotRef);
+    double setMinRotVal(double minRotVal);
+
+    double setFlexSd(double flexSd);
+
+    double afforest(double area); //Insert in youngest age class
+    double reforest(double area); //Make afforestations in age class 0 and 1
+
+    struct v {
+      double area;//Area where management was done
+      double sw;  //Sawnwood [tC/Ha]
+      double rw;  //Restwood [tC/Ha]
+      double co;  //Costs [Costs/Ha]
+      double bm;  //Total cut biomass including harvesting losses [tC/Ha]
     };
-    ~ageStruct();
-    double setArea(int age, double area);
-    double setBm(int age, double area);  //Biomass
-    double getArea(int age);  //Area
-    double getArea();
-    double getBm(int age);    //Biomass
-    double getBm();
-    double getD(int age);     //Diameter
-    double createNormalForest(int rotationPeriod, double area, double sd=1.);
-    v aging();
-    double setMai(double mai);
-    double setRotPeriod(int rotPeriod);
-    double setStockingdegree(double sd);
-    double afforest(double area);
+
     //type: 0..Take from all age classes, 1..Take from the eldest age classes
     //area is positive number, return the deforested biomass
     v deforest(double area, int type=0);
-  private:
-    int setAgeClasses(int ageClasses);
+
+    std::pair<v, v>  aging(); //pair.first = thinn, pair.second = harvest
+    std::pair<v, v> aging(double mai);
+
+    private:
     incrementTab *it;
+    ffipol<double> *sws;
+    ffipol<double> *hlv;
+    ffipol<double> *hle;
+    ffipolm<double> *cov;
+    ffipolm<double> *coe;
+    ffipolm<bool> *dov;
+    ffipolm<bool> *doe;
+    double mai;
+    double avgMai;
+    double u;       //Rotation time
+    int objOfProd;  //Objective of production
+    double minSw; //Min sawnwood to harvest
+    double minRw; //Min restwood to harvest
+    double minHarv; //Minimum total harvest
+    double setRotationTime();
+    double uRef;
+    double sdMin, sdMax;   //Target stocking degree (>0..Table, <0..natural)
+    double area;  //Total forest area (sum of dat.area)
+    double minRot;  //minimal age when final harvest will be done
+    double minRotVal;
+    int minRotRef;
+    double calcAvgMai();  //Calculate average mai with vector qMai
+    double setMinRot();   //Set the minimal rotation time "minRot"
+    double timeStep; //How long is one time step
+    double flexSd;
     struct cohort {
-      double area;
-      double bm;  //Biomass
+      double area; //Forest area
+      double bm;   //Biomass
       double d;
       double h;
     };
-    cohort *dat;
-    int ageClasses;  //Rotation time Unmanaged forests (depend on NPP)
-    int targetRotationPeriod;
-    double tragetHarvestArea;
-    double targetSd;  //if targetSd < 0. ... no thinning
-    double mai;
-    double updateHarvestArea();
+    std::vector<cohort> dat;
+    unsigned int initCohort(unsigned int ageClassL, unsigned int ageClassH);
+    double calcArea();     //Calculates the forest area with dat[].area
     v finalCut(double area, bool eco=true);
-    ipol<double,double> *sws;
-    ipol<double,double> *hlv;
-    ipol<double,double> *hle;
-    ipol<double,double> *dbv;
-    ipol<double,double> *dbe;
-    double winVn;
-    double winEn;
-    v divArea(v& x, double area);
-    double minDbVn;
-    double minDbEn;
-    double minRot;
-    int activeAge; //Currently used AgeClsses
-    int fitActiveAge(int type=0); //0..look around, 1..Full check
-  };
-  
-  class ageLUT { //Lookup table for the age struct if we have 1 ha normal forest
-  public:
-    ageLUT(ageStruct *as, double acPriceIncentive = 0.);
-    ~ageLUT();
-    double getBm(double mai, double t);
-    double getEnSw(double mai, double t);
-    double getEnRw(double mai, double t);
-    double getVnSw(double mai, double t);
-    double getVnRw(double mai, double t);
-    double getDbEn(double mai, double t);
-    double getDbVn(double mai, double t);
-    double getBmNT(double mai, double t); //Without thinning
-    double getEnSwNT(double mai, double t);
-    double getEnRwNT(double mai, double t);
-    double getDbEnNT(double mai, double t);
-    //Get optimal rotation time
-    //1 .. Highest average harvest with thinning
-    //2 .. Maximum avarage Biomass
-    //3 .. Maximum average Biomass with thinning
-    //4 .. Maximum harvest at final cut
-    //5 .. Maximum average harvest with final cut
-    //6 .. Maximize Deckungsbeitrag
-    //7 .. Maximize Deckungsbeitrag with thinning
-    double gTopt(double mai, int type);
-  private:
-    ageStruct *as;
-    double cPriceIncentive;
-    unsigned int maiHi;  //Highest Mai index 
-    unsigned int tHi;    //Highest Age index
-    double maiStep;      //Mai steps size
-    double tStep;        //Age step size
-    unsigned int fidx[2]; //fast interpol inde
-    g4m::fipol<double>* tabOptRot;  //optimal rotation times
-    g4m::fipol<double>* tabBm;  //Biomasstable  with thinning
-    g4m::fipol<double>* tabEnSw; //Endnutzung sawnwood
-    g4m::fipol<double>* tabEnRw; //Endnutzung restwood
-    g4m::fipol<double>* tabVnSw; //Vornutzung sawnwood
-    g4m::fipol<double>* tabVnRw; //Vornutzung restwood
-    g4m::fipol<double>* tabDbEn; //Deckungsbeitrag Endnutzung ohne C-Incentive
-    g4m::fipol<double>* tabDbVn; //Deckungsbeitrag Vornutzung ohne C-Incentive
-    g4m::fipol<double>* tabBmNT;  //The same but now without thinning
-    g4m::fipol<double>* tabEnSwNT;
-    g4m::fipol<double>* tabEnRwNT;
-    g4m::fipol<double>* tabDbEnNT;
+    v thinAndGrow();
   };
 
-  //Something like Costs/Income if Rotation time is changed if there is a C-Tax
 }
+
 #endif

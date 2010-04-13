@@ -304,6 +304,7 @@ namespace g4m {
     incBmt = new double[nt*nmai];
     incDbh = new double[nt*nmai];
     incDbht = new double[nt*nmai];
+    incHeight = new double[nt*nmai];
     incGwlSdNat = new double[nt*nmai*nsdNat];
     incDbhSdNat = new double[nt*nmai*nsdNat];
     incGwlSdTab = new double[nt*nmai*nsdTab];
@@ -336,6 +337,7 @@ namespace g4m {
     delete[] incBmt;
     delete[] incDbh;
     delete[] incDbht;
+    delete[] incHeight;
     delete[] incGwlSdNat;
     delete[] incDbhSdNat;
     delete[] incGwlSdTab;
@@ -406,6 +408,10 @@ namespace g4m {
 	double sdNat1 = sdNat[ct + cmai*nt];
 	double t0=(ct-1)*tStep;
 	double t1=ct*tStep;
+	if(timeframe <= 0.) {incHeight[ct-1 + cmai*nt] = height[ct + cmai*nt] - height[ct-1 + cmai*nt];
+	} else {
+	  incHeight[ct-1 + cmai*nt] = ip(t0+timeframe, cmai*maiStep, height) - height[ct-1 + cmai*nt];
+	}
 	double incDbhMaxDens = dbh[ct + cmai*nt] - dbh[ct-1 + cmai*nt];
 	double incDbhMaxDensY = incDbhMaxDens;
 	if(timeframe <= 0.) {incDbh[ct-1 + cmai*nt] = incDbhMaxDens;
@@ -754,6 +760,9 @@ namespace g4m {
   double incrementTab::gIncDbhSdTab(double age, double mai, double sd) {
     return(ip(age, mai, sd, incDbhSdTab, false));}
 
+  double incrementTab::gIncHeight(double age, double mai) {
+    return(ip(age, mai, incHeight));}
+
   double incrementTab::gRemBm(double age, double mai) {
     return(gIncGwl(age, mai) - gIncBm(age, mai));}
   double incrementTab::gRemBmt(double age, double mai) {
@@ -900,6 +909,10 @@ namespace g4m {
   double incrementTab::gtimeframe() {
     if(timeframe <= 0.) {return(tStep);}
     return(timeframe);
+  }
+
+  double incrementTab::gTmax() {
+    return(tHi);
   }
 
 }

@@ -1,5 +1,6 @@
-CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2
-#CC = g++-4.4 -Wall -O3 -funroll-loops -march=core2 -pg
+CC = g++ -Wall -O3 -funroll-loops -march=core2
+##CC = g++ -Wall -O3 -funroll-loops -march=core2 -pg -g
+#CC = g++ -Wall -g
 
 all:	ic mi as
 
@@ -10,7 +11,6 @@ increment.o:	increment.cc increment.h misc.o
 
 testIncrement:	testIncrement.cc increment.o
 	$(CC) testIncrement.cc -otestIncrement increment.o misc.o
-	strip testIncrement
 
 mi:	misc.o testMisc
 
@@ -19,7 +19,6 @@ misc.o:	misc.cc misc.h
 
 testMisc:	testMisc.cc misc.o
 	$(CC) testMisc.cc -otestMisc misc.o
-	strip testMisc
 
 as:	ageStruct.o testAgeStruct
 
@@ -28,7 +27,6 @@ ageStruct.o:	ageStruct.cc ageStruct.h
 
 testAgeStruct:	testAgeStruct.cc ageStruct.o increment.o misc.o
 	$(CC) testAgeStruct.cc -otestAgeStruct ageStruct.o increment.o misc.o
-	strip testAgeStruct
 
 
 

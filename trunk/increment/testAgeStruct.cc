@@ -1,10 +1,13 @@
 #include <iostream>
 #include "ageStruct.h"
 
+#include <cstdlib>
+#include <ctime>
+
 using namespace std;
 
 int main(int argc, char **argv) {
-  g4m::incrementTab tabPine (-0.3835, -0.2416, -1.7576, 1.1638, 170, 114.343, -2.804, 1.044, 0.9, -0.8242, -0.4273, -0.4, -1.476, 4.283, -0.3, 3.610, -1.071, 0.1, -2.0670, -0.3028, 0.5, 1.5, 150, 0.01, 0.5, 0.5, 0.8, 1./500., 2., 0.01, 0.5, 22.09082, 0.62065, -0.01965, 1.50614, -0.25346, 22.70, 16.56, -0.01068, 0.24754, -1.81373, 1.0945, 0.0999, -1.6033, 1.6, 0.95, 5., 0.25, 600, 1, 0.25, 1.5, 0.25, 10.);
+    g4m::incrementTab tabPine (-0.3835, -0.2416, -1.7576, 1.1638, 170, 114.343, -2.804, 1.044, 0., 0.9, -0.8242, -0.4273, -0.4, -1.476, 4.283, -0.3, 3.610, -1.071, 0.1, 1., -2.0670, -0.3028, 0.5, 1.5, 150, 0.01, 0.5, 0.5, 0.8, 1./500., 2., 0.01, 0.5, 22.09082, 0.62065, -0.01965, 1.50614, -0.25346, 22.70, 16.56, -0.01068, 0.24754, -1.81373, 1.0945, 0.0999, -1.6033, 1.6, 0.95, 5., 0.25, 600, 1, 0.25, 1.5, 0.25, 10.);
   g4m::ipol<double,double> sws;  //Schnittholzanteil an Vfm
   g4m::ipol<double,double> hlv;   //1-Ernteverluste Vornutzung
   g4m::ipol<double,double> hle;   //1-Ernteverluste Endnutzung
@@ -12,6 +15,8 @@ int main(int argc, char **argv) {
   g4m::ipol<vector<double>,double> coe;  //Costs endnutzung
   g4m::ipol<vector<double>,bool> dov;  //Do vornutzung
   g4m::ipol<vector<double>,bool> doe;  //Do endnutzung
+  g4m::ipol<double,double> sdMaxH;  //sdMaxH
+  g4m::ipol<double,double> sdMinH;  //sdMinH
 
   sws.insert(10, .0);
   sws.insert(30, .6);
@@ -20,6 +25,9 @@ int main(int argc, char **argv) {
   hlv.insert(25, .7);
   hle.insert(0, .0);
   hle.insert(25, .75);
+
+  sdMaxH.insert(0.,1.);
+  sdMinH.insert(0.,1.);
 
   {
     vector<double> idx;
@@ -55,6 +63,8 @@ int main(int argc, char **argv) {
   g4m::ffipolm<double> ffcoe(coe);
   g4m::ffipolm<bool> ffdov(dov);
   g4m::ffipolm<bool> ffdoe(doe);
+  g4m::ffipol<double> ffsdMaxH(sdMaxH);
+  g4m::ffipol<double> ffsdMinH(sdMinH);
 
   double mai=1.5;
   double u=100.;
@@ -70,20 +80,93 @@ int main(int argc, char **argv) {
      , 0  //What stands the value of u for
      , u  //Rotation time
      , minSw, minRw, minHarv
-     , sdMin, sdMax, maiYears, minRot
+     ,0 , sdMax, sdMin, maiYears, minRot
      , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
+     , &ffsdMaxH, &ffsdMinH
      );
+
+  {
+    g4m::ageStruct forestMaxInc
+      (&tabPine, &ffsws, &ffhlv, &ffhle, &ffcov, &ffcoe, &ffdov, &ffdoe, mai
+       , 3  //What stands the value of u for
+       , 100  //Rotation time
+       , minSw, minRw, minHarv
+       ,0 , sdMax, sdMin, maiYears, minRot
+       , 0  //reference of minrot
+       , 0. //Flexibility of stocking degree
+       , &ffsdMaxH, &ffsdMinH
+       );
+    forestMaxInc.createNormalForest(100, 500., 1.);
+    g4m::ageStruct forestMaxBm
+      (&tabPine, &ffsws, &ffhlv, &ffhle, &ffcov, &ffcoe, &ffdov, &ffdoe, mai
+       , 4  //What stands the value of u for
+       , 300  //Rotation time
+       , minSw, minRw, minHarv
+       ,0 , sdMax, sdMin, maiYears, minRot
+       , 0  //reference of minrot
+       , 0. //Flexibility of stocking degree
+       , &ffsdMaxH, &ffsdMinH
+       );
+    forestMaxBm.createNormalForest(100, 500., 1.);
+    forestMaxInc.setFlexSd(1); forestMaxBm.setFlexSd(1);
+    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret1;
+    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret2;
+    srand(1);
+    for(int i=0; i<20; ++i) {
+      double dmai = 0.5-static_cast<double>(rand())/RAND_MAX;
+      dmai = 0.;
+      cout << forestMaxInc.getBm() << "\t" << forestMaxBm.getBm() << "\t";
+      ret1 = forestMaxInc.aging(mai+dmai);
+      ret2 = forestMaxBm.aging(mai+dmai);
+      cout << ret1.first.bm << "\t" << ret1.second.bm << "\t" << ret2.first.bm << "\t" << ret2.second.bm// << "\t" << ret1.first.sw + ret1.second.sw << "\t" << ret2.first.sw + ret2.second.sw << "\t" << ret1.first.rw + ret1.second.rw << "\t" << ret2.first.rw + ret2.second.rw
+	   << endl;
+    }
+  }
+  return(0);
+
+  forest.setFlexSd(1);
+  forest.createNormalForest(100, 1., 1.);
+  {
+    srand(1);
+    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret;
+    for(int i=0; i<20; ++i) {
+      double dmai = 0.5-static_cast<double>(rand())/RAND_MAX;
+      cout << i
+	   << "\t" << mai+dmai
+	   << "\t" << forest.getArea()
+	   << "\t" << forest.getBm()
+	   << "\t" << forest.getAvgMai();
+      ret = forest.aging(mai+dmai);
+      cout << "\t" << forest.getBm()
+	   << "\t" << forest.getAvgMai()
+	   << "\t" << ret.first.area
+	   << "\t" << ret.first.sw
+	   << "\t" << ret.first.rw
+	   << "\t" << ret.first.co
+	   << "\t" << ret.first.bm
+	   << "\t" << ret.second.area
+	   << "\t" << ret.second.sw
+	   << "\t" << ret.second.rw
+	   << "\t" << ret.second.co
+	   << "\t" << ret.second.bm
+	   << endl;;
+    }
+  }
+
+  return(0);
 
   g4m::ageStruct forest2
     (&tabPine, &ffsws, &ffhlv, &ffhle, &ffcov, &ffcoe, &ffdov, &ffdoe, mai
      , 0  //What stands the value of u for
      , u  //Rotation time
      , minSw, minRw, minHarv
-     , sdMin, sdMax, maiYears, minRot
+     ,0 , sdMax, sdMin, maiYears, minRot
      , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
+     , &ffsdMaxH, &ffsdMinH
      );
+
 
   forest.createNormalForest(124.3, 1., 1.);
   forest.setBm(4, 38.);
@@ -138,7 +221,25 @@ int main(int argc, char **argv) {
 	 << endl;
   }
 
-
+  {
+    clock_t time0, time1;
+    double sum = 0.;
+    unsigned int count = 0;
+    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret;
+    srand(1);
+    time0 = clock();
+    for(int i=0; i<5000; ++i) {
+      forest.createNormalForest(50. + rand()*100/RAND_MAX, 1., 1.);
+      for(int j=0; j<100; ++j) {
+	ret = forest.aging();
+	++count;
+	sum += ret.first.bm + ret.second.bm;
+      }
+    }
+    time1 = clock();
+    cout << sum << "  n:" << count << "  Time: " << (time1 - time0)/double(CLOCKS_PER_SEC) << endl;
+  }
+  //4.00728e+07  n:500000  Time: 8.53
   return(0);
 }
 

@@ -9,6 +9,8 @@
 #include <deque>
 #include <utility>
 
+//objOfProd MISSING: Keep same biomass
+
 namespace g4m {
 
   class ageStruct {
@@ -28,10 +30,12 @@ namespace g4m {
        , double minSw=0. //if objOfProd 1,2 ammount of sawnwood to harvest
        , double minRw=0. //if objOfProd 1,2 ammount of restwood to harvest
        , double minHarv=0. //if objOfProd 1,2 ammount of total harvest
+       //Usage of stocking degree: 0..Keep all the time sdMax, 1..alternate between sdMin and sdMax, 3..alternate between sdMinH and sdMaxH
+       , int sdDef=0
        //Stocking degree: if sd exceeds sdMax do thinning until sdMin. sd > 0 stockingDegree yield table, sd -1 to 0 natural stocking degree
        //Maybe sdMin and sdMax can be made dependent on h/hmax and MAI
-       , double sdMin=1.
        , double sdMax=1.
+       , double sdMin=1.
        , unsigned int maiYears=30  //Years to calculate average mai
        //Minimal rotation time in years or as share given in minRotRef which needs to be exceedes until final harvests are done
        , double minRotVal=0.75
@@ -41,12 +45,16 @@ namespace g4m {
        //how fast should the stoking degree target be reached
    //0..do only remove caused by stand density  to  1..do only typical removes 
        , double flexSd=0.
+       , ffipol<double> *sdMaxH=NULL//Stockindegree depending on max tree height
+       , ffipol<double> *sdMinH=NULL//Stockindegree depending on max tree height
        );
+    ~ageStruct();
     std::deque<double> qMai;  //Queue to store the mai's of previous years (youngest mai is at the end of que)
     double createNormalForest(double rotationPeriod, double area, double sd=1.);
     double getBm(double age);    //get biomass per ha by age
     double getBm();              //get average biomass per ha
-    double getArea(double age);  //get forest area by age
+    double getArea(int age);//get forest area by ageclass
+    double getArea(double age);//get forest area by age (consider age class size
     double getArea();            //get forest area
     double getD(double age);     //get Diameter
     double getH(double age);     //get Height
@@ -60,6 +68,8 @@ namespace g4m {
     double setMai(double mai); //Just set mai but don't influence avgMai
     unsigned int setMaiYears(unsigned int maiYears);
     double setAvgMai(double avgMai); //Set avgMai and all values in qMai
+    double getMai();
+    double getAvgMai();
 
     int setObjOfProd(int objOfProd);
     double setU(double u);
@@ -81,6 +91,7 @@ namespace g4m {
       double rw;  //Restwood [tC/Ha]
       double co;  //Costs [Costs/Ha]
       double bm;  //Total cut biomass including harvesting losses [tC/Ha]
+      //For final harvest the values are per hectare for thinning they are total
     };
 
     //type: 0..Take from all age classes, 1..Take from the eldest age classes
@@ -90,6 +101,7 @@ namespace g4m {
     std::pair<v, v>  aging(); //pair.first = thinn, pair.second = harvest
     std::pair<v, v> aging(double mai);
 
+    double u;       //Rotation time
     private:
     incrementTab *it;
     ffipol<double> *sws;
@@ -101,13 +113,13 @@ namespace g4m {
     ffipolm<bool> *doe;
     double mai;
     double avgMai;
-    double u;       //Rotation time
     int objOfProd;  //Objective of production
     double minSw; //Min sawnwood to harvest
     double minRw; //Min restwood to harvest
     double minHarv; //Minimum total harvest
     double setRotationTime();
     double uRef;
+    int sdDef;
     double sdMin, sdMax;   //Target stocking degree (>0..Table, <0..natural)
     double area;  //Total forest area (sum of dat.area)
     double minRot;  //minimal age when final harvest will be done
@@ -126,8 +138,16 @@ namespace g4m {
     std::vector<cohort> dat;
     unsigned int initCohort(unsigned int ageClassL, unsigned int ageClassH);
     double calcArea();     //Calculates the forest area with dat[].area
-    v finalCut(double area, bool eco=true);
+    v finalCut(double area, bool eco=true); //Fulfill area
+    //Fulfill ammount
+    v finalCut(double minSw, double minRw, double minHarv, bool eco=true);
+    v finalCut(bool eco, double area, double minSw, double minRw, double minHarv);
     v thinAndGrow();
+    v thinAndGrowStatic();
+    v thinAndGrowOLD(); //Needs to be removed after new restructuring
+    int incStatic(int i, double &sd, double &iGwl, double &Bm, double &id);
+    double incCommon(int i, const double &sd, const double &iGwl);
+    int cohortShift();
   };
 
 }

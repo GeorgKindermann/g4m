@@ -25,7 +25,8 @@ namespace g4m {
     const double &a32, const double &a33, const double &a34, const double &a35,
     const double &a36, const double &a37, const double &a38, const double &a39,
     const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45, const double &amai);
+    const double &a44, const double &a45, const double &a46, const double &a47,
+    const double &amai);
     int setCoef
       (const double &a0, const double &a1, const double &a2, const double &a3,
        const double &a4, const double &a5, const double &a6, const double &a7,
@@ -38,7 +39,7 @@ namespace g4m {
     const double &a32, const double &a33, const double &a34, const double &a35,
     const double &a36, const double &a37, const double &a38, const double &a39,
     const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45);
+    const double &a44, const double &a45, const double &a46, const double &a47);
     int setMai(double amai);
     double gTOpt();   //increment optimal rotation time
     double gTcp(double t);//Total carbon production (at maximum stocking degree)
@@ -56,7 +57,7 @@ namespace g4m {
       double tMax[4];
       double h[5];
       double d[8];
-      double maxDens[13];
+      double maxDens[15];
       double dmul[1];
       double imul[10];
       double iCrit; //Critical stocking density (increment = 95% of full stoked)
@@ -88,7 +89,7 @@ namespace g4m {
     const double &a32, const double &a33, const double &a34, const double &a35,
     const double &a36, const double &a37, const double &a38, const double &a39,
     const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45,
+    const double &a44, const double &a45, const double &a46, const double &a47,
        const double amaiMax, const double amaiStep, const double atMax,
        const double atStep, const double asdNatStep, const double asdTabMax,
        const double asdTabStep, const double atimeframe=-1.);
@@ -104,7 +105,7 @@ namespace g4m {
     const double &a32, const double &a33, const double &a34, const double &a35,
     const double &a36, const double &a37, const double &a38, const double &a39,
     const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45);
+    const double &a44, const double &a45, const double &a46, const double &a47);
     //get Average biomass, u .. rotation time, mai .. Site index
     double gAvgBm(double u, double mai);
     double gAvgBmt(double u, double mai); //With thinning like yield table

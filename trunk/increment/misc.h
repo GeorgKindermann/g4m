@@ -366,7 +366,7 @@ namespace g4m {
   }
 
   template <class VAL>
-    ffipol<VAL>::~fipol() {
+    ffipol<VAL>::~ffipol() {
     delete[] aMap;
   }
 

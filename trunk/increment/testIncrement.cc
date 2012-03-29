@@ -9,9 +9,9 @@ int main(int argc, char **argv) {
   g4m::incrementCurves pine
     (-0.3835, -0.2416, -1.7576, 1.1638,         //k
      170, 114.343, -2.804, 1.044,               //tMax
-     0.9, -0.8242, -0.4273,                     //maxDens0
+     0., 0.9, -0.8242, -0.4273,                 //maxDens0
      -0.4, -1.476, 4.283, -0.3, 3.610, -1.071,  //maxDens1
-     0.1, -2.0670, -0.3028,                     //maxDens2
+     0.1, 1., -2.0670, -0.3028,                 //maxDens2
      0.5,                                       //maxDens3
      1.5, 150, 0.01, 0.5, 0.5,                  //imul0
      0.8, 1./500., 2., 0.01, 0.5,               //imul0
@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
      0.95,                                      //iCrit
      1.5);                                      //MAI
 
- 
   // for(int i=0; i<10; ++i) {
   //   for(int mai=0; mai<41; ++mai) {
   //     pine.setMai(mai/4.);
@@ -46,9 +45,9 @@ int main(int argc, char **argv) {
   g4m::incrementTab tabPine
     (-0.3835, -0.2416, -1.7576, 1.1638,         //k
      170, 114.343, -2.804, 1.044,               //tMax
-     0.9, -0.8242, -0.4273,                     //maxDens0
+     0., 0.9, -0.8242, -0.4273,                     //maxDens0
      -0.4, -1.476, 4.283, -0.3, 3.610, -1.071,  //maxDens1
-     0.1, -2.0670, -0.3028,                     //maxDens2
+     0.1, 1., -2.0670, -0.3028,                 //maxDens2
      0.5,                                       //maxDens3
      1.5, 150, 0.01, 0.5, 0.5,                  //imul0
      0.8, 1./500., 2., 0.01, 0.5,               //imul0
@@ -67,24 +66,36 @@ int main(int argc, char **argv) {
      0.25,   //sdTabStep
      10.);    //timeframe
 
-  // {
-  //   cout << "Test Average Biomass" << endl;
-  //   double mai = 1.5;
-  //   for(int i=0; i<20; ++i) {
-  //     cout << i*10
-  // 	   << "\t" << tabPine.gAvgBm(i*10, mai)
-  // 	   << "\t" << tabPine.gAvgBmt(i*10, mai)
-  // 	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 1.5)
-  // 	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 1.)
-  // 	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, .5)
-  // 	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 0.)
-  // 	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 1.5)
-  // 	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 1.)
-  // 	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, .5)
-  // 	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 0.)
-  // 	   << endl;
-  //   }
-  // }
+  {
+    double mai = 1.5;
+    pine.setMai(mai);
+    for(int i=0; i<16; ++i) {
+      //cout << i*10 <<"\t"<< pine.gTcp(i*10.) <<"\t"<< pine.gMaxDens(i*10.) <<"\t"<< pine.gManDens(i*10.) <<"\t"<< pine.gMaxDens(i*10.)*pine.gManDens(i*10.) << endl;
+      //cout << i*10 <<"\t"<< tabPine.gGwl(i*10.,mai) <<"\t"<< tabPine.gBm(i*10.,mai)/tabPine.gGwl(i*10.,mai) <<"\t0\t"<< tabPine.gBmt(i*10.,mai)/tabPine.gGwl(i*10.,mai) << endl;
+      //cout << i*10 <<"\t"<< tabPine.gGwl(i*10.,mai) <<"\t"<< tabPine.gIncGwl(i*10.,mai) <<"\t"<< tabPine.gBm(i*10.,mai) <<"\t"<< tabPine.gIncBm(i*10.,mai) << endl;
+      cout << i*10 <<"\t"<< tabPine.gGwlt(i*10.,mai) <<"\t"<< tabPine.gIncGwlt(i*10.,mai) <<"\t"<< tabPine.gBmt(i*10.,mai) <<"\t"<< tabPine.gIncBmt(i*10.,mai) << endl;
+    }
+  }
+
+
+  {
+    cout << "Test Average Biomass" << endl;
+    double mai = 1.5;
+    for(int i=0; i<20; ++i) {
+      cout << i*10
+  	   << "\t" << tabPine.gAvgBm(i*10, mai)
+  	   << "\t" << tabPine.gAvgBmt(i*10, mai)
+  	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 1.5)
+  	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 1.)
+  	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, .5)
+  	   << "\t" << tabPine.gAvgBmSdNat(i*10, mai, 0.)
+  	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 1.5)
+  	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 1.)
+  	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, .5)
+  	   << "\t" << tabPine.gAvgBmSdTab(i*10, mai, 0.)
+  	   << endl;
+    }
+  }
 
   // {
   //   cout << "Test stocking Biomass" << endl;
@@ -125,24 +136,24 @@ int main(int argc, char **argv) {
   //   }
   // }
 
-  // {
-  //   cout << "Test GWL" << endl;
-  //   double mai = 1.5;
-  //   for(int i=0; i<20; ++i) {
-  //     cout << i*10
-  // 	   << "\t" << tabPine.gGwl(i*10, mai)
-  // 	   << "\t" << tabPine.gGwlt(i*10, mai)
-  // 	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 1.5)
-  // 	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 1.)
-  // 	   << "\t" << tabPine.gGwlSdNat(i*10, mai, .5)
-  // 	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 0.)
-  // 	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 1.5)
-  // 	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 1.)
-  // 	   << "\t" << tabPine.gGwlSdTab(i*10, mai, .5)
-  // 	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 0.)
-  // 	   << endl;
-  //   }
-  // }
+  {
+    cout << "Test GWL" << endl;
+    double mai = 1.5;
+    for(int i=0; i<20; ++i) {
+      cout << i*10
+  	   << "\t" << tabPine.gGwl(i*10, mai)
+  	   << "\t" << tabPine.gGwlt(i*10, mai)
+  	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 1.5)
+  	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 1.)
+  	   << "\t" << tabPine.gGwlSdNat(i*10, mai, .5)
+  	   << "\t" << tabPine.gGwlSdNat(i*10, mai, 0.)
+  	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 1.5)
+  	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 1.)
+  	   << "\t" << tabPine.gGwlSdTab(i*10, mai, .5)
+  	   << "\t" << tabPine.gGwlSdTab(i*10, mai, 0.)
+  	   << endl;
+    }
+  }
 
   // {
   //   cout << "Test Tree height" << endl;

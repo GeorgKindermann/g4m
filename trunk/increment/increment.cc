@@ -24,7 +24,8 @@ namespace g4m {
    const double &a32, const double &a33, const double &a34, const double &a35,
    const double &a36, const double &a37, const double &a38, const double &a39,
    const double &a40, const double &a41, const double &a42, const double &a43,
-   const double &a44, const double &a45, const double &amai)
+   const double &a44, const double &a45, const double &a46, const double &a47,
+   const double &amai)
   {
     coef.k[0] = a0; coef.k[1] = a1; coef.k[2] = a2; coef.k[3] = a3;
     coef.tMax[0] = a4; coef.tMax[1] = a5; coef.tMax[2] = a6; coef.tMax[3] = a7;
@@ -32,17 +33,17 @@ namespace g4m {
     coef.maxDens[3] = a11; coef.maxDens[4] = a12; coef.maxDens[5] = a13;
     coef.maxDens[6] = a14; coef.maxDens[7] = a15; coef.maxDens[8] = a16;
     coef.maxDens[9] = a17; coef.maxDens[10] = a18; coef.maxDens[11] = a19;
-    coef.maxDens[12] = a20;
-    coef.imul[0] = a21; coef.imul[1] = a22; coef.imul[2] = a23;
-    coef.imul[3] = a24; coef.imul[4] = a25; coef.imul[5] = a26;
-    coef.imul[6] = a27; coef.imul[7] = a28; coef.imul[8] = a29;
-    coef.imul[9] = a30;
-    coef.h[0] = a31; coef.h[1] = a32; coef.h[2] = a33; coef.h[3] = a34;
-    coef.h[4] = a35;
-    coef.d[0] = a36; coef.d[1] = a37; coef.d[2] = a38; coef.d[3] = a39;
-    coef.d[4] = a40; coef.d[5] = a41; coef.d[6] = a42; coef.d[7] = a43;
-    coef.dmul[0] = a44;
-    coef.iCrit = a45;
+    coef.maxDens[12] = a20; coef.maxDens[13] = a21; coef.maxDens[14] = a22;
+    coef.imul[0] = a23; coef.imul[1] = a24; coef.imul[2] = a25;
+    coef.imul[3] = a26; coef.imul[4] = a27; coef.imul[5] = a28;
+    coef.imul[6] = a29; coef.imul[7] = a30; coef.imul[8] = a31;
+    coef.imul[9] = a32;
+    coef.h[0] = a33; coef.h[1] = a34; coef.h[2] = a35; coef.h[3] = a36;
+    coef.h[4] = a37;
+    coef.d[0] = a38; coef.d[1] = a39; coef.d[2] = a40; coef.d[3] = a41;
+    coef.d[4] = a42; coef.d[5] = a43; coef.d[6] = a44; coef.d[7] = a45;
+    coef.dmul[0] = a46;
+    coef.iCrit = a47;
     mai = amai;
     calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcTh13();
   }
@@ -59,7 +60,7 @@ namespace g4m {
    const double &a32, const double &a33, const double &a34, const double &a35,
    const double &a36, const double &a37, const double &a38, const double &a39,
    const double &a40, const double &a41, const double &a42, const double &a43,
-   const double &a44, const double &a45)
+   const double &a44, const double &a45, const double &a46, const double &a47)
   {
     coef.k[0] = a0; coef.k[1] = a1; coef.k[2] = a2; coef.k[3] = a3;
     coef.tMax[0] = a4; coef.tMax[1] = a5; coef.tMax[2] = a6; coef.tMax[3] = a7;
@@ -67,17 +68,17 @@ namespace g4m {
     coef.maxDens[3] = a11; coef.maxDens[4] = a12; coef.maxDens[5] = a13;
     coef.maxDens[6] = a14; coef.maxDens[7] = a15; coef.maxDens[8] = a16;
     coef.maxDens[9] = a17; coef.maxDens[10] = a18; coef.maxDens[11] = a19;
-    coef.maxDens[12] = a20;
-    coef.imul[0] = a21; coef.imul[1] = a22; coef.imul[2] = a23;
-    coef.imul[3] = a24; coef.imul[4] = a25; coef.imul[5] = a26;
-    coef.imul[6] = a27; coef.imul[7] = a28; coef.imul[8] = a29;
-    coef.imul[9] = a30;
-    coef.h[0] = a31; coef.h[1] = a32; coef.h[2] = a33; coef.h[3] = a34;
-    coef.h[4] = a35;
-    coef.d[0] = a36; coef.d[1] = a37; coef.d[2] = a38; coef.d[3] = a39;
-    coef.d[4] = a40; coef.d[5] = a41; coef.d[6] = a42; coef.d[7] = a43;
-    coef.dmul[0] = a44;
-    coef.iCrit = a45;
+    coef.maxDens[12] = a20; coef.maxDens[13] = a21; coef.maxDens[14] = a22;
+    coef.imul[0] = a23; coef.imul[1] = a24; coef.imul[2] = a25;
+    coef.imul[3] = a26; coef.imul[4] = a27; coef.imul[5] = a28;
+    coef.imul[6] = a29; coef.imul[7] = a30; coef.imul[8] = a31;
+    coef.imul[9] = a32;
+    coef.h[0] = a33; coef.h[1] = a34; coef.h[2] = a35; coef.h[3] = a36;
+    coef.h[4] = a37;
+    coef.d[0] = a38; coef.d[1] = a39; coef.d[2] = a40; coef.d[3] = a41;
+    coef.d[4] = a42; coef.d[5] = a43; coef.d[6] = a44; coef.d[7] = a45;
+    coef.dmul[0] = a46;
+    coef.iCrit = a47;
     calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcTh13();
     return(0);
   }
@@ -145,10 +146,10 @@ namespace g4m {
     double ret=1.;
     double f[4];
     double *c = coef.maxDens;
-    f[0] = c[0]/(1 + exp(c[1]+c[2]*mai));
-    f[1] = c[3]/(1+exp(c[4] + c[5]*mai)) + c[6]/(1+exp(c[7] + c[8]*mai));
-    f[2] = c[9] + exp(c[10]+c[11]*mai);
-    f[3] = c[12];
+    f[0] = c[0] + c[1]/(1 + exp(c[2]+c[3]*mai));
+    f[1] = c[4]/(1+exp(c[5] + c[6]*mai)) + c[7]/(1+exp(c[8] + c[9]*mai));
+    f[2] = c[10] + c[11]*exp(c[12]+c[13]*mai);
+    f[3] = c[14];
     if(t > 0. && tOpt > 0.) {
       double tmp1 = f[2]*t/tOpt;
       if(tmp1 > 0) {
@@ -252,14 +253,14 @@ namespace g4m {
     const double &a32, const double &a33, const double &a34, const double &a35,
     const double &a36, const double &a37, const double &a38, const double &a39,
     const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45,
+    const double &a44, const double &a45, const double &a46, const double &a47,
        const double amaiMax, const double amaiStep, const double atMax,
        const double atStep, const double asdNatStep, const double asdTabMax,
        const double asdTabStep, const double atimeframe) :
      ic(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15
 	, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29
 	, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43
-	, a44, a45, 1.)
+	, a44, a45, a46, a47, 1.)
   {
     maiHi = amaiMax; maiStep = amaiStep;
     tHi = atMax; tStep = atStep;
@@ -374,8 +375,8 @@ namespace g4m {
 	sbm += bmMaxDens;
 	sbmt += bmSd95inc;
 	if(t > 0.) {
-	  abm[ct + cmai*nt] = sbm/t;
-	  abmt[ct + cmai*nt] = sbmt/t;
+	  abm[ct + cmai*nt] = sbm*tStep/t;
+	  abmt[ct + cmai*nt] = sbmt*tStep/t;
 	} else {
 	  abm[ct + cmai*nt] = 0.;
 	  abmt[ct + cmai*nt] = 0.;
@@ -387,7 +388,7 @@ namespace g4m {
 	  if(bmSd > bmMaxDens) {bmSd = bmMaxDens;}
 	  sbmSdTab[csd] += bmSd;
 	  if(t > 0.) {
-	    abmSdTab[ct + cmai*nt + csd*nt*nmai] = sbmSdTab[csd]/t;
+	    abmSdTab[ct + cmai*nt + csd*nt*nmai] = sbmSdTab[csd]*tStep/t;
 	  } else {
 	    abmSdTab[ct + cmai*nt + csd*nt*nmai] = 0.;
 	  }
@@ -398,8 +399,11 @@ namespace g4m {
       gwlt[0 + cmai*nt] = 0.;
       for(int csd=0; csd<nsdTab; ++csd) {
 	dbhSdTab[0 + cmai*nt + csd*nt*nmai] = 0.;
-	gwlSdNat[0 + cmai*nt + csd*nt*nmai] = 0.;
+	//gwlSdNat[0 + cmai*nt + csd*nt*nmai] = 0.;
 	gwlSdTab[0 + cmai*nt + csd*nt*nmai] = 0.;
+      }
+      for(int csd=0; csd<nsdNat; ++csd) {
+	gwlSdNat[0 + cmai*nt + csd*nt*nmai] = 0.;
       }
       for(int ct=1; ct<nt; ++ct) {
 	//Natural stocking degree at beginn (0) and end (1) of period of
@@ -659,10 +663,12 @@ namespace g4m {
     if(u < 0.) {u=0.;}
     int uh = ceil(u);
     int ul = floor(u);
+    int maxSd = nsdTab;
     if(sdNat == true) {
       sd /= sdNatStep;
       if(sd > nsdNat) {sd=nsdNat-1.;}
-    }
+      maxSd = nsdNat;
+   }
     else {
       sd /= sdTabStep;
       if(sd >= nsdTab) {sd=nsdTab-1.;}
@@ -670,6 +676,8 @@ namespace g4m {
     int sdh = ceil(sd);
     int sdl = floor(sd);
     if(sd < 0.) {sd = 0.;}
+    if(sdl < 0.) {sdl = 0.;}
+    if(sdh >= maxSd) {sdh = maxSd-1;}
     double t1 = interpol(tab[ul + mail*nt + sdl*nt*nmai], tab[uh + mail*nt + sdl*nt*nmai], ul, uh, u);
     double t2 = interpol(tab[ul + maih*nt + sdl*nt*nmai], tab[uh + maih*nt + sdl*nt*nmai], ul, uh, u);
     double t0 = interpol(t1, t2, mail, maih, mai);

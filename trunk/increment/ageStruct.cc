@@ -1,5 +1,7 @@
 #include "ageStruct.h"
 
+#include <iostream>
+
 namespace g4m {
   ageStruct::ageStruct 
   (incrementTab *ait
@@ -10,10 +12,11 @@ namespace g4m {
    , double amai
    , int aobjOfProd, double au
    , double aminSw, double aminRw, double aminHarv
-   , double asdMin , double asdMax
+   , int asdDef, double asdMax, double asdMin
    , unsigned int amaiYears
    , double aminRotVal, int aminRotRef
-   , double aflexSd)
+   , double aflexSd
+   , ffipol<double> *sdMaxH, ffipol<double> *sdMinH)
   {
     it = ait;
     sws = asws;
@@ -27,6 +30,7 @@ namespace g4m {
     uRef = au;
     u = setRotationTime();
     minSw = aminSw; minRw = aminRw; minHarv = aminHarv;
+    sdDef = asdDef;
     sdMin = asdMin; sdMax = asdMax;
     minRotVal = aminRotVal;
     minRotRef = aminRotRef;
@@ -34,6 +38,17 @@ namespace g4m {
     flexSd=aflexSd;
     timeStep = it->gtimeframe();
     area = 0.;
+  }
+
+  ageStruct::~ageStruct() {
+    it = NULL;
+    sws = NULL;
+    hlv = NULL;
+    hle = NULL;
+    cov = NULL;
+    coe = NULL;
+    dov = NULL;
+    doe = NULL;
   }
 
   double ageStruct::calcAvgMai() {
@@ -45,8 +60,13 @@ namespace g4m {
       std::deque<double>::iterator iter = qMai.begin();
       while(iter != qMai.end()) {
 	weight += step;
-	product *= std::pow(*iter, weight);
-	sWeight += weight;
+	if(*iter <= 0.) {   //The years before 0 are unimportant
+	  product = 1.;
+	  sWeight = 0.;
+	} else {
+	  product *= std::pow(*iter, weight);
+	  sWeight += weight;
+	}
 	++iter;
       }
       if(sWeight > 0.) {avgMai = std::pow(product, 1./sWeight);}
@@ -175,11 +195,18 @@ namespace g4m {
     return(0.);
   }
 
+  double ageStruct::getArea(int age) {
+    if(age >= static_cast<int>(dat.size())) {return(0.);}
+    return(dat[age].area);
+  }
+
   double ageStruct::getArea(double age) {
+    //return(dat[0].area);
+    //Here seems to be an error - Above just to allow some colculations
     age /= timeStep;
     unsigned int ageH = static_cast<int>(age+0.5);
     if(ageH >= dat.size()) {return(0.);}
-    if(ageH <= 0) {return(2.*dat[ageH].area/timeStep);}
+    if(ageH <= 0) {return(dat[0].area/timeStep);}
     return(dat[ageH].area/timeStep);
   }
 
@@ -196,7 +223,11 @@ namespace g4m {
   }
 
   double ageStruct::setArea(unsigned int ageClass, double aarea) {
-    if(aarea < 0.) {return(0.);}
+    //area += aarea - dat[0].area;
+    //dat[0].area = aarea;
+    //return(dat[0].area);
+    //Here seems to be an error - Above just to allow some colculations
+    if(aarea < 0.) {return(-1.);}
     if(ageClass >= static_cast<unsigned int>(it->gTmax()/timeStep)) {
       ageClass = static_cast<unsigned int>(it->gTmax()/timeStep)-1;
     }
@@ -309,6 +340,14 @@ namespace g4m {
     return(avgMai);
   }
 
+  double ageStruct::getMai() {
+    return(mai);
+  }
+
+  double ageStruct::getAvgMai() {
+    return(avgMai);
+  }
+
   int ageStruct::setObjOfProd(int aobjOfProd) {
     objOfProd = aobjOfProd;
     return(objOfProd);
@@ -391,21 +430,21 @@ namespace g4m {
 	}
 	ret.area=aarea;
       }
+      if(ret.area > 0.) { //Values per hectare
+	ret.sw /= area; ret.rw /= area; ret.co /= area; ret.bm /= area;}
     } else { //Take from the old age classes
-      ret =  finalCut(area, false);
+      ret =  finalCut(aarea, false);
     }
-    if(ret.area > 0.) { //Values per hectare
-      ret.sw /= area; ret.rw /= area; ret.co /= area; ret.bm /= area;}
     return(ret);
   }
 
-  ageStruct::v ageStruct::finalCut(double aarea, bool eco) {
+  ageStruct::v ageStruct::finalCut(bool eco, double aarea, double minSw, double minRw, double minHarv) {
     v ret = {0., 0., 0., 0., 0.};
     if(aarea > 0.) {
       int endYear = 0;
       if(eco) {endYear = minRot/timeStep;}
       static std::vector<double> dbhBm(2,0); //Key to ask if harvest is economic
-      for(int i=dat.size(); i>=endYear && ret.area<aarea; --i) {
+      for(int i=dat.size()-1; i>=endYear && (ret.area<aarea || (ret.sw<minSw || ret.rw<minRw || (ret.sw+ret.rw)<minHarv)); --i) {
 	if(dat[i].area > 0.) {
 	  //The Stands get half increment of the next growing period
 	  double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
@@ -440,6 +479,15 @@ namespace g4m {
     return(ret);
   }
 
+  ageStruct::v ageStruct::finalCut(double aarea, bool eco) {
+    return(finalCut(eco, aarea, -1., -1., -1.));
+  }
+
+  ageStruct::v ageStruct::finalCut(double minSw, double minRw, double minHarv
+				   , bool eco) {
+    return(finalCut(eco, -1., minSw, minRw, minHarv));
+  }
+
   std::pair<ageStruct::v, ageStruct::v> ageStruct::aging() {
     return(aging(mai));
   }
@@ -454,11 +502,12 @@ namespace g4m {
     setRotationTime();
     setMinRot();
     if(objOfProd == 1 || objOfProd == 2) { //Fulfill an amount of harvest
-      
+      retThin = thinAndGrow();
+      retHarvest = finalCut(minSw-retThin.sw, minRw-retThin.rw, minHarv-(retThin.sw+-retThin.rw), true);
     } else { //We have a rotation time to fulfill
       retHarvest = finalCut(area*timeStep/u, true); //do final cut
       retThin = thinAndGrow();
-      //retThin = thinAndGrowS();
+      //retThin = thinAndGrowOLD();
     }
     //Make reforestations on final harvested area
     reforest(retHarvest.area); //Maybe include also reforestation costs
@@ -466,8 +515,125 @@ namespace g4m {
   }
 
   ageStruct::v ageStruct::thinAndGrow() {
+    if(sdDef==0) { //Constant stocking degre
+      return(thinAndGrowStatic());
+    } else if(sdDef==1) { //Alternate between constant stocking degrees
+      return(thinAndGrowOLD());
+    }
+    //Alternate between varying stocking degrees
+    return(thinAndGrowOLD());
+  }
+
+  ageStruct::v ageStruct::thinAndGrowStatic() {
     v ret = {0., 0., 0., 0., 0.};
-    bool constSd = (sdMin==sdMax) ? true : false;
+    for(int i = static_cast<int>(dat.size())-2; i>-1; --i) {
+      if(dat[i].area > 0.) {
+	double sd, iGwl, bmT, id;
+	incStatic(i, sd, iGwl, bmT, id);
+	if(flexSd > 0.) { //The typical amount of harvest
+	  double bmTCom =  dat[i].bm + incCommon(i, sd, iGwl);
+	  bmT = bmT * (1. - flexSd) + bmTCom * flexSd;
+	}
+	double totalWood = dat[i].area * (iGwl - (bmT-dat[i].bm));
+	if(totalWood < 0.) {totalWood = 0.;}
+	static std::vector<double> dbhBmSh(3,0);
+	dbhBmSh[0] = dat[i].d+id/2.;
+	dbhBmSh[1] = dat[i].bm+iGwl/2.;
+	dbhBmSh[2] = totalWood/dbhBmSh[1];
+	if(dov->g(dbhBmSh)) { //Do Thinning if it is economic
+	  double harvestedWood = totalWood * hlv->g(dbhBmSh[0]);
+	  double sawnWood = harvestedWood * sws->g(dbhBmSh[0]);
+	  ret.area += dat[i].area;
+	  ret.bm += totalWood;
+	  ret.sw += sawnWood;
+	  ret.rw += harvestedWood - sawnWood;
+	  ret.co += totalWood * cov->g(dbhBmSh);
+	  dat[i].bm += iGwl - totalWood/dat[i].area;
+	} else {  //No thinning
+	  dat[i].bm += iGwl;
+	  double bmMax = it->gBm((i+1)*timeStep, avgMai);
+	  if(dat[i].bm > bmMax) {dat[i].bm = bmMax;}
+	}
+	dat[i].d += id;
+	dat[i].h += it->gIncHeight(i*timeStep, avgMai);
+      }
+    }
+    cohortShift();
+    return(ret);
+  }
+
+  int ageStruct::incStatic(int i, double &sd, double &iGwl, double &bm, double &id) {
+    if(sdMax > 0) {  //Yield table stocking degree
+      if(sdMax == 1.) {bm = it->gBmt((i+1)*timeStep, mai);}
+      else {bm = it->gBmSdTab((i+1)*timeStep, mai, sdMax);}
+      if(i) {sd = it->gSdTab(i*timeStep, avgMai, dat[i].bm);}
+      else {sd = 1.;} //New plantations have a stocking degree of 1
+      if(sd == 1.) {
+	iGwl = it->gIncGwlt(i*timeStep, mai);
+	id = it->gIncDbht(i*timeStep, mai);
+      } else {
+	iGwl = it->gIncGwlSdTab(i*timeStep, mai, sd);
+	id = it->gIncDbhSdTab(i*timeStep, mai, sd);
+      }
+    } else {  //Natural stocking degree
+      if(sdMax == -1.) {bm = it->gBm((i+1)*timeStep, mai);}
+      else {bm = it->gBmSdNat((i+1)*timeStep, mai, -sdMax);}
+      if(i) {sd = it->gSdNat(i*timeStep, avgMai, dat[i].bm);}
+      else {sd = 1.;} //New plantations have a stocking degree of 1
+      if(sd == 1.) {
+	iGwl = it->gIncGwl(i*timeStep, mai);
+	id = it->gIncDbh(i*timeStep, mai);
+      } else {
+	iGwl = it->gIncGwlSdNat(i*timeStep, mai, sd);
+	id = it->gIncDbhSdNat(i*timeStep, mai, sd);
+      }
+    }
+    return(0);
+  }
+
+  double ageStruct::incCommon(const int i, const double &sd, const double &iGwl) {
+    double sdTarget = fabs(sdMax);
+    double bmInc;
+    if(sd > 0.) {
+      if(sdMax > 0) {  //Yield table stocking degree
+	if(sd == 1.) {bmInc = it->gIncBmt((i+1)*timeStep, mai);}
+	else {bmInc = it->gIncBmSdTab((i+1)*timeStep, mai, sd);}
+      } else {  //Natural stocking degree
+	if(sd == 1.) {bmInc = it->gIncBm((i+1)*timeStep, mai);}
+	else {bmInc = it->gIncBmSdNat((i+1)*timeStep, mai, sd);}
+      }
+      if(bmInc > iGwl) {bmInc = iGwl;}
+      if(sd > sdTarget) {
+	bmInc *= sdTarget/sd;
+      } else {
+	bmInc += (iGwl - bmInc) * (1. - 1./(1. + sdTarget-sd));
+      }
+    } else { //Current stocking degree is 0
+      if(sdTarget > 0.) {
+	bmInc = iGwl;
+      } else {
+	bmInc = 0.;
+      }
+    }
+    return(bmInc);
+  }
+
+  int ageStruct::cohortShift() {
+    int i = static_cast<int>(dat.size())-1;
+    dat[i+1].d = (dat[i+1].d * dat[i+1].area + dat[i].d * dat[i].area) / (dat[i+1].area + dat[i].area);
+    dat[i+1].h = (dat[i+1].h * dat[i+1].area + dat[i].h * dat[i].area) / (dat[i+1].area + dat[i].area);
+    dat[i+1].bm = (dat[i+1].bm * dat[i+1].area + dat[i].bm * dat[i].area) / (dat[i+1].area + dat[i].area);
+    dat[i+1].area += dat[i].area;
+    for(i = static_cast<int>(dat.size())-2; i>-1; --i) {
+      dat[i+1] = dat[i];
+    }
+    dat[0].area=0; dat[0].bm=0; dat[0].d=0; dat[0].h=0;
+  return(0);
+  }
+
+  ageStruct::v ageStruct::thinAndGrowOLD() {
+    v ret = {0., 0., 0., 0., 0.};
+    bool constSd = (sdDef==0) ? true : false;
     for(int i = static_cast<int>(dat.size())-1; i>-1; --i) {
       if(dat[i].area > 0.) {
 	double sdNat;

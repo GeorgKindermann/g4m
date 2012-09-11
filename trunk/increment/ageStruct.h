@@ -25,7 +25,7 @@ namespace g4m {
        , ffipolm<bool> *dov //Do thinning (depending on d and removed volume per hectare) in relation to standing timber (Vorratsfestmeter)
        , ffipolm<bool> *doe //Do final felling (depending on d and stocking volume per hectare)
        , double mai  //mean annual increment in tC stemmwood per hectar and year at increment optimal rotation time
-       , int objOfProd=3 //objective of production: 0..Rotation time in years, 1..ammount of wood which need to beharvested every year, 2..like 1 but the ammount will not be fulfilled if rotation time will be shorter than for Highest average increment; >2 ignore Value of u and claculate it instead  3 .. Highest average increment, 4 . .Maximum average Biomass, 5 .. Highest possible age, 6 .. Maximum harvest at final cut, 7 .. Average Maximum harvest at final cut
+       , int objOfProd=3 //objective of production: 0..Rotation time in years, 1..ammount of wood which need to beharvested every year, 2..like 1 but the ammount will not be fulfilled if rotation time will be shorter than minRot; >2 ignore Value of u and claculate it instead  3 .. Highest average increment, 4 . .Maximum average Biomass, 5 .. Highest possible age, 6 .. Maximum harvest at final cut, 7 .. Average Maximum harvest at final cut
        , double u=0.  //Rotation time if objOfProd 0
        , double minSw=0. //if objOfProd 1,2 ammount of sawnwood to harvest
        , double minRw=0. //if objOfProd 1,2 ammount of restwood to harvest
@@ -47,6 +47,7 @@ namespace g4m {
        , double flexSd=0.
        , ffipol<double> *sdMaxH=NULL//Stockindegree depending on max tree height
        , ffipol<double> *sdMinH=NULL//Stockindegree depending on max tree height
+       , unsigned int maxAge=300
        );
     ~ageStruct();
     std::deque<double> qMai;  //Queue to store the mai's of previous years (youngest mai is at the end of que)
@@ -102,6 +103,8 @@ namespace g4m {
     std::pair<v, v> aging(double mai);
 
     double u;       //Rotation time
+    unsigned int getMaxAge();
+    unsigned int setMaxAge(unsigned int maxAge);
     private:
     incrementTab *it;
     ffipol<double> *sws;
@@ -140,14 +143,15 @@ namespace g4m {
     double calcArea();     //Calculates the forest area with dat[].area
     v finalCut(double area, bool eco=true); //Fulfill area
     //Fulfill ammount
-    v finalCut(double minSw, double minRw, double minHarv, bool eco=true);
-    v finalCut(bool eco, double area, double minSw, double minRw, double minHarv);
+    v finalCut(double minSw, double minRw, double minHarv, bool eco=true, bool sustainable=true);
+    v finalCut(bool eco, double area, double minSw, double minRw, double minHarv, bool sustainable=true);
     v thinAndGrow();
     v thinAndGrowStatic();
     v thinAndGrowOLD(); //Needs to be removed after new restructuring
     int incStatic(int i, double &sd, double &iGwl, double &Bm, double &id);
     double incCommon(int i, const double &sd, const double &iGwl);
     int cohortShift();
+    unsigned int maxNumberOfAgeClasses;
   };
 
 }

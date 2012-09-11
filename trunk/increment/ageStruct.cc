@@ -16,7 +16,8 @@ namespace g4m {
    , unsigned int amaiYears
    , double aminRotVal, int aminRotRef
    , double aflexSd
-   , ffipol<double> *sdMaxH, ffipol<double> *sdMinH)
+   , ffipol<double> *sdMaxH, ffipol<double> *sdMinH
+   , unsigned int amaxAge)
   {
     it = ait;
     sws = asws;
@@ -36,8 +37,9 @@ namespace g4m {
     minRotRef = aminRotRef;
     setMinRot();
     flexSd=aflexSd;
-    timeStep = it->gtimeframe();
+    timeStep = it->gtimeframe();  //Check if this should be tStep or timeframe
     area = 0.;
+    maxNumberOfAgeClasses = ceil(amaxAge/timeStep);
   }
 
   ageStruct::~ageStruct() {
@@ -120,6 +122,7 @@ namespace g4m {
     if(rotationPeriod >= it->gTmax()) {rotationPeriod = it->gTmax()-1;}
     unsigned int ageClasses = std::ceil(0.5 + rotationPeriod/timeStep);
     if(dat.size() < ageClasses) {dat.resize(ageClasses);}
+    if(maxNumberOfAgeClasses < ageClasses) {maxNumberOfAgeClasses = ageClasses;}
     aarea /= rotationPeriod;
     cohort tmp;
     tmp.area = aarea*timeStep;
@@ -188,8 +191,10 @@ namespace g4m {
     double area=0.;
     double bm=0.;
     for(unsigned int i=0; i<dat.size(); ++i) {
-      area += dat[i].area;
-      bm += dat[i].area * dat[i].bm;
+      if(dat[i].area==dat[i].area && dat[i].bm==dat[i].bm) { //Sould be Improved
+	area += dat[i].area;
+	bm += dat[i].area * dat[i].bm;
+      }
     }
     if(area > 0.) {return(bm/area);}
     return(0.);
@@ -286,7 +291,7 @@ namespace g4m {
     cohort tmp;
     tmp.area = 0.;
     double sd = (sdMin + sdMax)/2.;
-    for(unsigned int i = ageClassL; i <= ageClassH; ++i) {
+    for(unsigned int i = ageClassL; i < ageClassH; ++i) {
       double age = i*timeStep;
       if(sd > 0.) {
 	if(sd == 1.) {
@@ -395,7 +400,11 @@ namespace g4m {
   }
 
   double ageStruct::reforest(double aarea) {
-    if(dat.size() < 2) {dat.resize(2);}
+    if(dat.size() < 2) {
+      int oldSize=dat.size();
+      dat.resize(2); 
+      initCohort(oldSize, 2);
+    }
     if(area > 0) {
       dat[0].area += aarea/2.;
       dat[1].area += aarea/2.;
@@ -438,20 +447,20 @@ namespace g4m {
     return(ret);
   }
 
-  ageStruct::v ageStruct::finalCut(bool eco, double aarea, double minSw, double minRw, double minHarv) {
+  ageStruct::v ageStruct::finalCut(bool eco, double aarea, double minSw, double minRw, double minHarv, bool sustainable) {
     v ret = {0., 0., 0., 0., 0.};
-    if(aarea > 0.) {
-      int endYear = 0;
-      if(eco) {endYear = minRot/timeStep;}
-      static std::vector<double> dbhBm(2,0); //Key to ask if harvest is economic
-      for(int i=dat.size()-1; i>=endYear && (ret.area<aarea || (ret.sw<minSw || ret.rw<minRw || (ret.sw+ret.rw)<minHarv)); --i) {
-	if(dat[i].area > 0.) {
-	  //The Stands get half increment of the next growing period
-	  double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
-	  double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
-	  double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
-	  dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
-	  if(doe->g(dbhBm) || eco==false) { //do harvest if it is economic
+    int endYear = 0;
+    if(eco || sustainable) {endYear = minRot/timeStep;}
+    static std::vector<double> dbhBm(2,0); //Key to ask if harvest is economic
+    for(int i=dat.size()-1; i>=endYear && (ret.area<aarea || (ret.sw<minSw || ret.rw<minRw || (ret.sw+ret.rw)<minHarv)); --i) {
+      if(dat[i].area > 0.) {
+	//The Stands get half increment of the next growing period
+	double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
+	double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
+	double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
+	dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
+	if(doe->g(dbhBm) || eco==false) { //do harvest if it is economic
+	  if(aarea >=0) { //Given area to harvest
 	    double totalWood = 0.;
 	    if(ret.area+dat[i].area < aarea) { //Harvest all of this age class
 	      totalWood = dat[i].area * dbhBm[1];
@@ -470,6 +479,36 @@ namespace g4m {
 	    ret.sw += sawnWood;
 	    ret.rw += harvestedWood - sawnWood;
 	    ret.co += totalWood * coe->g(dbhBm);
+	  } else { //given amount of harvest
+	    double harvestShare = 1.;
+	    double totalWood = dat[i].area * dbhBm[1];
+	    double harvestedWood = totalWood * hle->g(dbhBm[0]);
+	    double sawnWood = harvestedWood * sws->g(dbhBm[0]);
+	    if((ret.sw+sawnWood) < minSw || (ret.rw+harvestedWood-sawnWood) < minRw || (ret.sw+ret.rw+harvestedWood) < minHarv) {//Harvest all
+	      ret.area += dat[i].area;
+	      area -= dat[i].area;
+	      dat[i].area = 0.;
+	    } else {//Harvest part of ageclass
+	      harvestShare = 0.;
+	      double tmp = minSw - ret.sw;
+	      if(tmp > 0. && sawnWood>0.) {tmp /= sawnWood;
+		if(harvestShare < tmp) {harvestShare = tmp;}}
+	      tmp = minRw - ret.rw;
+	      if(tmp > 0. && (harvestedWood-sawnWood)>0.) {tmp /= harvestedWood-sawnWood;
+		if(harvestShare < tmp) {harvestShare = tmp;}}
+	      tmp = minHarv - (ret.sw+ret.rw);
+	      if(tmp > 0. && harvestedWood>0.) {tmp /= harvestedWood;
+		if(harvestShare < tmp) {harvestShare = tmp;}}
+	      if(harvestShare < 0.) {harvestShare = 0.;}
+	      if(harvestShare > 1.) {harvestShare = 1.;}
+	      ret.area += dat[i].area * harvestShare;
+	      area -= dat[i].area * harvestShare;
+	      dat[i].area *= 1. - harvestShare;
+	    }
+	    ret.bm += totalWood * harvestShare;
+	    ret.sw += sawnWood * harvestShare;
+	    ret.rw += (harvestedWood - sawnWood) * harvestShare;
+	    ret.co += (totalWood * coe->g(dbhBm)) * harvestShare;
 	  }
 	}
       }
@@ -484,8 +523,8 @@ namespace g4m {
   }
 
   ageStruct::v ageStruct::finalCut(double minSw, double minRw, double minHarv
-				   , bool eco) {
-    return(finalCut(eco, -1., minSw, minRw, minHarv));
+				   , bool eco, bool sustainable) {
+    return(finalCut(eco, -1., minSw, minRw, minHarv,sustainable));
   }
 
   std::pair<ageStruct::v, ageStruct::v> ageStruct::aging() {
@@ -503,7 +542,8 @@ namespace g4m {
     setMinRot();
     if(objOfProd == 1 || objOfProd == 2) { //Fulfill an amount of harvest
       retThin = thinAndGrow();
-      retHarvest = finalCut(minSw-retThin.sw, minRw-retThin.rw, minHarv-(retThin.sw+-retThin.rw), true);
+      if(objOfProd == 1) {retHarvest = finalCut(minSw-retThin.sw, minRw-retThin.rw, minHarv-(retThin.sw+retThin.rw), true, false);
+      } else {retHarvest = finalCut(minSw-retThin.sw, minRw-retThin.rw, minHarv-(retThin.sw+retThin.rw), true, true);}
     } else { //We have a rotation time to fulfill
       retHarvest = finalCut(area*timeStep/u, true); //do final cut
       retThin = thinAndGrow();
@@ -619,16 +659,41 @@ namespace g4m {
   }
 
   int ageStruct::cohortShift() {
-    int i = static_cast<int>(dat.size())-1;
-    dat[i+1].d = (dat[i+1].d * dat[i+1].area + dat[i].d * dat[i].area) / (dat[i+1].area + dat[i].area);
-    dat[i+1].h = (dat[i+1].h * dat[i+1].area + dat[i].h * dat[i].area) / (dat[i+1].area + dat[i].area);
-    dat[i+1].bm = (dat[i+1].bm * dat[i+1].area + dat[i].bm * dat[i].area) / (dat[i+1].area + dat[i].area);
-    dat[i+1].area += dat[i].area;
-    for(i = static_cast<int>(dat.size())-2; i>-1; --i) {
-      dat[i+1] = dat[i];
+    if(static_cast<int>(dat.size()) > 1) {
+      int i = static_cast<int>(dat.size())-2;
+      if(dat[i+1].area > 0.) {
+	if(static_cast<unsigned int>(i+2) < maxNumberOfAgeClasses) { //Add one more age class
+	  unsigned int oldSize = dat.size();
+	  dat.resize(i+3);
+	  initCohort(oldSize, i+2);
+	  dat[i+1] = dat[i];
+	} else { //It would be good to allow one more age class
+	  dat[i+1].d = (dat[i+1].d * dat[i+1].area + dat[i].d * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].h = (dat[i+1].h * dat[i+1].area + dat[i].h * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].bm = (dat[i+1].bm * dat[i+1].area + dat[i].bm * dat[i].area) / (dat[i+1].area + dat[i].area);
+	  dat[i+1].area += dat[i].area;
+	}
+      } else {
+	dat[i+1] = dat[i];
+      }
+      for(i = static_cast<int>(dat.size())-3; i>-1; --i) {
+	dat[i+1] = dat[i];
+      }
+      dat[0].area=0; dat[0].bm=0; dat[0].d=0; dat[0].h=0;
+    } else if(maxNumberOfAgeClasses > 1 && static_cast<int>(dat.size()) == 1) {
+      dat.resize(2);
+      initCohort(0, 1);
+      dat[1] = dat[0];
+      dat[0].area=0; dat[0].bm=0; dat[0].d=0; dat[0].h=0;
     }
-    dat[0].area=0; dat[0].bm=0; dat[0].d=0; dat[0].h=0;
   return(0);
+  }
+
+  unsigned int ageStruct::getMaxAge() {return(maxNumberOfAgeClasses*timeStep);}
+
+  unsigned int ageStruct::setMaxAge(unsigned int maxAge) {
+    maxNumberOfAgeClasses = ceil(maxAge/timeStep);
+    return(maxNumberOfAgeClasses*timeStep);
   }
 
   ageStruct::v ageStruct::thinAndGrowOLD() {

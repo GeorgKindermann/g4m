@@ -332,11 +332,14 @@ namespace g4m {
     void operator*=(const double x);
     void clear(unsigned int);
     unsigned int gs();  //Get size of data array
+    bool overwrite(ipol<double,VAL>, double zoom=1., double add=0.5);
   private:
     VAL* aMap;
     unsigned int n;  //Size of array
-    const double intercept;
-    const double zoom;
+    //const double intercept;
+    //const double zoom;
+    double intercept;
+    double zoom;
   };
 
   template <class VAL>
@@ -413,6 +416,21 @@ namespace g4m {
     VAL ffipol<VAL>::operator[](const double &i) {
     return(g(i));
   }
+
+  template <class VAL>
+    bool ffipol<VAL>::overwrite(ipol<double,VAL> t, double zom, double add) {
+    bool ret = true;
+    intercept = zom*t.min() + add;
+    zoom = zom;
+    n = static_cast<int>(1 + zoom * (std::ceil(t.max()) - std::floor(t.min())));
+    delete[] aMap;
+    aMap = new VAL[n];
+    for(unsigned int i=0; i<n; ++i) {
+      aMap[i] = t.g((intercept + i)/zoom - add);
+    }
+    return(ret);
+  }
+
 
 
   //Fast interpolation Multidimmensional (only aproximation is possible!)

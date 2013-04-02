@@ -392,7 +392,12 @@ namespace g4m {
   }
 
   double ageStruct::afforest(double aarea) {
-    if(area > 0) {
+    if(dat.size() < 1) {
+      int oldSize=dat.size();
+      dat.resize(1); 
+      initCohort(oldSize, 1);
+    }
+    if(aarea > 0) {
       dat[0].area += aarea;
       area += aarea;
     }
@@ -405,7 +410,7 @@ namespace g4m {
       dat.resize(2); 
       initCohort(oldSize, 2);
     }
-    if(area > 0) {
+    if(aarea > 0) {
       dat[0].area += aarea/2.;
       dat[1].area += aarea/2.;
       area += aarea;
@@ -811,15 +816,16 @@ namespace g4m {
 	  }
 	}
 	//Bring the Data to the next age class
-	if(i < static_cast<int>(dat.size())-1) {
+	if(i < static_cast<int>(dat.size())-2) {
 	  dat[i+1] = dat[i];
-	} else {
+	  dat[i].area = 0.; dat[i].bm = 0.; dat[i].d = 0.; dat[i].h = 0.;
+	} else if(i == static_cast<int>(dat.size())-2) {
 	  dat[i+1].d = (dat[i+1].d * dat[i+1].area + dat[i].d * dat[i].area) / (dat[i+1].area + dat[i].area);
 	  dat[i+1].h = (dat[i+1].h * dat[i+1].area + dat[i].h * dat[i].area) / (dat[i+1].area + dat[i].area);
 	  dat[i+1].bm = (dat[i+1].bm * dat[i+1].area + dat[i].bm * dat[i].area) / (dat[i+1].area + dat[i].area);
 	  dat[i+1].area += dat[i].area;
+	  dat[i].area = 0.; dat[i].bm = 0.; dat[i].d = 0.; dat[i].h = 0.;
 	}
-	dat[i].area = 0.; dat[i].bm = 0.; dat[i].d = 0.; dat[i].h = 0.;
       }
     }
     if(ret.area > 0.) { //Values per hectare

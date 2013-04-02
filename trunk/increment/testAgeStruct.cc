@@ -7,7 +7,7 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    g4m::incrementTab tabPine (-0.3835, -0.2416, -1.7576, 1.1638, 170, 114.343, -2.804, 1.044, 0., 0.9, -0.8242, -0.4273, -0.4, -1.476, 4.283, -0.3, 3.610, -1.071, 0.1, 1., -2.0670, -0.3028, 0.5, 1.5, 150, 0.01, 0.5, 0.5, 0.8, 1./500., 2., 0.01, 0.5, 22.09082, 0.62065, -0.01965, 1.50614, -0.25346, 22.70, 16.56, -0.01068, 0.24754, -1.81373, 1.0945, 0.0999, -1.6033, 1.6, 0.95, 5., 0.25, 600, 1, 0.25, 1.5, 0.25, 1.);
+    g4m::incrementTab tabPine (-0.3835, -0.2416, -1.7576, 1.1638, 170, 114.343, -2.804, 1.044, 0., 0.9, -0.8242, -0.4273, -0.4, -1.476, 4.283, -0.3, 3.610, -1.071, 0.1, 1., -2.0670, -0.3028, 0.5, 1.5, 150, 0.01, 0.5, 0.5, 0.8, 1./500., 2., 0.01, 0.5, 22.09082, 0.62065, -0.01965, 1.50614, -0.25346, 22.70, 16.56, -0.01068, 0.24754, -1.81373, 1.0945, 0.0999, -1.6033, 1.6, 0.95, 5., 0.25, 600, 1, 0.25, 1.5, 0.25, 5.);
   g4m::ipol<double,double> sws;  //Schnittholzanteil an Vfm
   g4m::ipol<double,double> hlv;   //1-Ernteverluste Vornutzung
   g4m::ipol<double,double> hle;   //1-Ernteverluste Endnutzung
@@ -79,15 +79,14 @@ int main(int argc, char **argv) {
   g4m::ffipol<double> ffsdMaxH(sdMaxH);
   g4m::ffipol<double> ffsdMinH(sdMinH);
 
-  double mai=3;
-  double u=50.;
-  double sdMin=1.;
-  double sdMax=1.;
+  double mai=4.;
+  double u=349.;
+  double sdMin=0.96;
+  double sdMax=0.96;
   unsigned int maiYears = 30;
-  double minRot = 1.;
+  double minRot = 58.;
   double minSw, minRw, minHarv;
   minSw = minRw = minHarv = 0.;
-  minHarv = 4.;
   int maxAge=300;
   g4m::ageStruct forest
     (&tabPine, &ffsws, &ffhlv, &ffhle, &ffcov, &ffcoe, &ffdov, &ffdoe, mai
@@ -95,27 +94,47 @@ int main(int argc, char **argv) {
      , u  //Rotation time
      , minSw, minRw, minHarv
      ,0 , sdMax, sdMin, maiYears, minRot
-     , 2  //reference of minrot
+     , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
      , &ffsdMaxH, &ffsdMinH
      , maxAge
      );
 
+  mai = 3.128;
+  double biomass = 79.1728;
+  int biomasRot = tabPine.gUt(biomass,mai);
+  forest.setMai(mai);
+  forest.setAvgMai(mai);
+  forest.createNormalForest(biomasRot + 2, 1., 1.);
+  cout << biomasRot << " " << forest.getBm() << endl;
+
+  return(0);
+
+  cout << u << endl;
   forest.createNormalForest(u, 1., 1.);
-  forest.setObjOfProd(2);
+  cout << forest.getArea() << endl;
+  double area = 0.;
+  for(int i=0; i<=u+7; ++i) {area += forest.getArea(static_cast<double>(i));}
+  cout << area << endl;
+  area = 0.;
+  for(int i=0; i<1+u/5; ++i) {area += forest.getArea(i);}
+  cout << area << endl;
+
+
+  //forest.createNormalForest(u, 1., 1.);
+  forest.createNormalForest(u, 0., 1.);
   double harvest=-1.;
+  pair<g4m::ageStruct::v, g4m::ageStruct::v> ret;
   for(int year=0; year<=300; ++year) {
-    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret;
     ret = forest.aging();
-    cerr << year;
+    harvest = ret.first.sw + ret.first.rw + ret.second.sw*ret.second.area + ret.second.rw*ret.second.area;
+    cout << "year=" << year << " mai=" << mai << " biomass=" << forest.getBm() << " harvest=" << harvest << " area=" << forest.getArea() << endl;
     //cerr << year << "\t" << mai << "\t" << u << "\t" << harvest;
     //harvest = ret.first.bm + ret.second.bm*ret.second.area;
-    harvest = ret.first.sw + ret.first.rw + ret.second.sw*ret.second.area + ret.second.rw*ret.second.area;
-    cerr << "\t" << harvest << "\t" << forest.getBm();
     //cerr << "\t" << ret.first.area << "\t" << ret.second.area;
     //cerr << "\t" << harvest << "\t" << forest.getBm() << "\t" << forest.getArea();// << endl;
     //cerr << "\t" << ret.second.sw << endl;
-    cerr << endl;
+    forest.afforest(1.);
   }
 
   

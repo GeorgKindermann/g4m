@@ -1,4 +1,4 @@
-CC = g++ -Wall -O3 -funroll-loops -march=core2
+CC = g++ -Wall -O3 -funroll-loops -march=native
 ##CC = g++ -Wall -O3 -funroll-loops -march=core2 -pg -g
 #CC = g++ -Wall -g
 

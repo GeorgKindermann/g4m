@@ -584,9 +584,10 @@ namespace g4m {
 
   double incrementTab::ip(double mai, optRotTimes const *tab, int const &type) {
     mai /= maiStep;
-    if(mai >= nmai) {mai=nmai-1;}
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
+    if(mai >= nmai) {mai=nmai-1; maih=mai;}
+    else if(maih >= nmai) {maih=mai;}
     int mail = floor(mai);
     int uh;
     int ul;
@@ -602,21 +603,24 @@ namespace g4m {
 
   double incrementTab::ip(double mai, double sd, optRotTimes const *tab, int const &type, bool const sdNat) {
     mai /= maiStep;
-    if(mai >= nmai) {mai=nmai-1;}
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
+    if(mai >= nmai) {mai=nmai-1; maih=mai;}
+    else if(maih >= nmai) {maih=mai;}
     int mail = floor(mai);
+    if(sd < 0.) {sd = 0.;}
+    int sdh = ceil(sd);
     if(sdNat == true) {
       sd /= sdNatStep;
-      if(sd > nsdNat) {sd=nsdNat-1.;}
+      if(sd >= nsdNat) {sd=nsdNat-1.; sdh=sd;}
+      else if(sdh >= nsdNat) {sdh=sd;}
     }
     else {
       sd /= sdTabStep;
-      if(sd >= nsdTab) {sd=nsdTab-1.;}
-    }
-    int sdh = ceil(sd);
+      if(sd >= nsdTab) {sd=nsdTab-1.; sdh=sd;}
+      else if(sdh >= nsdTab) {sdh=sd;}
+   }
     int sdl = floor(sd);
-    if(sd < 0.) {sd = 0.;}
     int mhsh, mhsl, mlsh, mlsl;
     switch (type) {
     case 1: mhsh=tab[maih + sdh*nmai].maxBm; mhsl=tab[maih + sdl*nmai].maxBm;
@@ -638,14 +642,16 @@ namespace g4m {
 
   double incrementTab::ip(double u, double mai, double const *tab) {
     mai /= maiStep;
-    if(mai >= nmai) {mai=nmai-1;}
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
+    if(mai >= nmai) {mai=nmai-1; maih=mai;}
+    else if(maih >= nmai) {maih=mai;}
     int mail = floor(mai);
     u /= tStep;
-    if(u >= nt) {u=nt-1.;}
     if(u < 0) {u=0.;}
     int uh = ceil(u);
+    if(u >= nt) {u=nt-1.; uh=u;}
+    else if(uh >= nt) {uh=u;}
     int ul = floor(u);
     double t1 = interpol(tab[ul + mail*nt], tab[uh + mail*nt], ul, uh, u);
     double t2 = interpol(tab[ul + maih*nt], tab[uh + maih*nt], ul, uh, u);
@@ -654,30 +660,32 @@ namespace g4m {
 
   double incrementTab::ip(double u, double mai, double sd, double const *tab, bool const sdNat) {
     mai /= maiStep;
-    if(mai >= nmai) {mai=nmai-1;}
-    if(mai < 0.) {mai=0.;}
+
+   if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
+    if(mai >= nmai) {mai=nmai-1; maih=mai;}
+    else if(maih >= nmai) {maih=mai;}
     int mail = floor(mai);
     u /= tStep;
-    if(u >= nt) {u=nt-1.;}
-    if(u < 0.) {u=0.;}
+    if(u < 0) {u=0.;}
     int uh = ceil(u);
+    if(u >= nt) {u=nt-1.; uh=u;}
+    else if(uh >= nt) {uh=u;}
     int ul = floor(u);
-    int maxSd = nsdTab;
+
+    if(sd < 0.) {sd = 0.;}
+    int sdh = ceil(sd);
     if(sdNat == true) {
       sd /= sdNatStep;
-      if(sd > nsdNat) {sd=nsdNat-1.;}
-      maxSd = nsdNat;
-   }
+      if(sd >= nsdNat) {sd=nsdNat-1.; sdh=sd;}
+      else if(sdh >= nsdNat) {sdh=sd;}
+    }
     else {
       sd /= sdTabStep;
-      if(sd >= nsdTab) {sd=nsdTab-1.;}
+      if(sd >= nsdTab) {sd=nsdTab-1.; sdh=sd;}
+      else if(sdh >= nsdTab) {sdh=sd;}
     }
-    int sdh = ceil(sd);
     int sdl = floor(sd);
-    if(sd < 0.) {sd = 0.;}
-    if(sdl < 0.) {sdl = 0.;}
-    if(sdh >= maxSd) {sdh = maxSd-1;}
     double t1 = interpol(tab[ul + mail*nt + sdl*nt*nmai], tab[uh + mail*nt + sdl*nt*nmai], ul, uh, u);
     double t2 = interpol(tab[ul + maih*nt + sdl*nt*nmai], tab[uh + maih*nt + sdl*nt*nmai], ul, uh, u);
     double t0 = interpol(t1, t2, mail, maih, mai);

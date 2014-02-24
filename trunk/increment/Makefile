@@ -1,8 +1,6 @@
-CC = g++ -Wall -O3 -funroll-loops -march=native
-##CC = g++ -Wall -O3 -funroll-loops -march=core2 -pg -g
-#CC = g++ -Wall -g
+CC = g++ -Wall -O3 -funroll-loops -march=native -std=c++0x -mtune=native
 
-all:	ic mi as
+all:	ic mi as ma
 
 ic:	increment.o testIncrement
 
@@ -28,10 +26,15 @@ ageStruct.o:	ageStruct.cc ageStruct.h
 testAgeStruct:	testAgeStruct.cc ageStruct.o increment.o misc.o
 	$(CC) testAgeStruct.cc -otestAgeStruct ageStruct.o increment.o misc.o
 
+ma:	mai.o testMai
+
+mai.o:	mai.cc mai.h
+	$(CC) mai.cc -c
+
+testMai: testMai.cc mai.o
+	$(CC) testMai.cc -otestMai mai.o
 
 
-
-allold:	 mi ic as  co
 
 
 

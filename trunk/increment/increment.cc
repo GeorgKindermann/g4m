@@ -586,8 +586,9 @@ namespace g4m {
     mai /= maiStep;
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
-    if(mai >= nmai) {mai=nmai-1; maih=mai;}
-    else if(maih >= nmai) {maih=mai;}
+    if(maih >= nmai) {maih=nmai-1;
+      if(mai >= nmai) {mai=nmai-1;}
+    }
     int mail = floor(mai);
     int uh;
     int ul;
@@ -605,21 +606,24 @@ namespace g4m {
     mai /= maiStep;
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
-    if(mai >= nmai) {mai=nmai-1; maih=mai;}
-    else if(maih >= nmai) {maih=mai;}
+    if(maih >= nmai) {maih=nmai-1;
+      if(mai >= nmai) {mai=nmai-1;}
+    }
     int mail = floor(mai);
     if(sd < 0.) {sd = 0.;}
     int sdh = ceil(sd);
     if(sdNat == true) {
       sd /= sdNatStep;
-      if(sd >= nsdNat) {sd=nsdNat-1.; sdh=sd;}
-      else if(sdh >= nsdNat) {sdh=sd;}
+      if(sdh >= nsdNat) {sdh=nsdNat-1;
+	if(sd >= nsdNat) {sd=nsdNat-1;}
+      }
     }
     else {
       sd /= sdTabStep;
-      if(sd >= nsdTab) {sd=nsdTab-1.; sdh=sd;}
-      else if(sdh >= nsdTab) {sdh=sd;}
-   }
+      if(sdh >= nsdTab) {sdh=nsdTab-1;
+	if(sd >= nsdTab) {sd=nsdTab-1;}
+      }
+    }
     int sdl = floor(sd);
     int mhsh, mhsl, mlsh, mlsl;
     switch (type) {
@@ -644,14 +648,16 @@ namespace g4m {
     mai /= maiStep;
     if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
-    if(mai >= nmai) {mai=nmai-1; maih=mai;}
-    else if(maih >= nmai) {maih=mai;}
+    if(maih >= nmai) {maih=nmai-1;
+      if(mai >= nmai) {mai=nmai-1;}
+    }
     int mail = floor(mai);
     u /= tStep;
     if(u < 0) {u=0.;}
     int uh = ceil(u);
-    if(u >= nt) {u=nt-1.; uh=u;}
-    else if(uh >= nt) {uh=u;}
+    if(uh >= nt) {uh=nt-1.;
+      if(u >= nt) {u=nt-1;}
+    }
     int ul = floor(u);
     double t1 = interpol(tab[ul + mail*nt], tab[uh + mail*nt], ul, uh, u);
     double t2 = interpol(tab[ul + maih*nt], tab[uh + maih*nt], ul, uh, u);
@@ -660,30 +666,32 @@ namespace g4m {
 
   double incrementTab::ip(double u, double mai, double sd, double const *tab, bool const sdNat) {
     mai /= maiStep;
-
-   if(mai < 0.) {mai=0.;}
+    if(mai < 0.) {mai=0.;}
     int maih = ceil(mai);
-    if(mai >= nmai) {mai=nmai-1; maih=mai;}
-    else if(maih >= nmai) {maih=mai;}
+    if(maih >= nmai) {maih=nmai-1;
+      if(mai >= nmai) {mai=nmai-1;}
+    }
     int mail = floor(mai);
     u /= tStep;
     if(u < 0) {u=0.;}
     int uh = ceil(u);
-    if(u >= nt) {u=nt-1.; uh=u;}
-    else if(uh >= nt) {uh=u;}
+    if(uh >= nt) {uh=nt-1.;
+      if(u >= nt) {u=nt-1.;}
+    }
     int ul = floor(u);
-
     if(sd < 0.) {sd = 0.;}
     int sdh = ceil(sd);
     if(sdNat == true) {
       sd /= sdNatStep;
-      if(sd >= nsdNat) {sd=nsdNat-1.; sdh=sd;}
-      else if(sdh >= nsdNat) {sdh=sd;}
+      if(sdh >= nsdNat) {sdh=nsdNat-1.;
+	if(sd >= nsdNat) {sd=nsdNat-1.;}
+      }
     }
     else {
       sd /= sdTabStep;
-      if(sd >= nsdTab) {sd=nsdTab-1.; sdh=sd;}
-      else if(sdh >= nsdTab) {sdh=sd;}
+      if(sdh >= nsdTab) {sdh=nsdTab-1.;
+	if(sd >= nsdTab) {sd=nsdTab-1.;}
+      }
     }
     int sdl = floor(sd);
     double t1 = interpol(tab[ul + mail*nt + sdl*nt*nmai], tab[uh + mail*nt + sdl*nt*nmai], ul, uh, u);

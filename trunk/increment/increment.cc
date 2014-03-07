@@ -12,7 +12,226 @@ namespace {
 }
 
 namespace g4m {
-  incrementCurves::incrementCurves
+
+  incrementCurvesHf::incrementCurvesHf
+  (const double &a0, const double &a1, const double &a2, const double &a3,
+   const double &a4,
+   const double &a8, const double &a9, const double &a10, const double &a11,
+   const double &a12, const double &a13, const double &a14, const double &a15,
+   const double &a16, const double &a17, const double &a18, const double &a19,
+   const double &a20, const double &a21, const double &a22, const double &a23,
+   const double &a24, const double &a25, const double &a26, const double &a27,
+   const double &a28, const double &a29, const double &a30, const double &a31,
+   const double &a32, const double &a33, const double &a34, const double &a35,
+   const double &a36, const double &a37, const double &a38, const double &a39,
+   const double &a40, const double &a41, const double &a42, const double &a43,
+   const double &a44, const double &a45, const double &a46, const double &a47,
+   const double &amai)
+  {
+    coef.c0 = a0; coef.c1[0] = a1; coef.c1[1] = a2; coef.c2[0] = a3;
+    coef.c2[1] = a4;
+    coef.maxDens[0] = a8; coef.maxDens[1] = a9; coef.maxDens[2] = a10;
+    coef.maxDens[3] = a11; coef.maxDens[4] = a12; coef.maxDens[5] = a13;
+    coef.maxDens[6] = a14; coef.maxDens[7] = a15; coef.maxDens[8] = a16;
+    coef.maxDens[9] = a17; coef.maxDens[10] = a18; coef.maxDens[11] = a19;
+    coef.maxDens[12] = a20; coef.maxDens[13] = a21; coef.maxDens[14] = a22;
+    coef.imul[0] = a23; coef.imul[1] = a24; coef.imul[2] = a25;
+    coef.imul[3] = a26; coef.imul[4] = a27; coef.imul[5] = a28;
+    coef.imul[6] = a29; coef.imul[7] = a30; coef.imul[8] = a31;
+    coef.imul[9] = a32;
+    coef.h[0] = a33; coef.h[1] = a34; coef.h[2] = a35; coef.h[3] = a36;
+    coef.h[4] = a37;
+    coef.d[0] = a38; coef.d[1] = a39; coef.d[2] = a40; coef.d[3] = a41;
+    coef.d[4] = a42; coef.d[5] = a43; coef.d[6] = a44; coef.d[7] = a45;
+    coef.dmul[0] = a46;
+    coef.iCrit = a47;
+    mai = amai;
+    calcC0(); calcC2(); calcC1(); calcTOpt(); calcCor(); calcTh13();
+  }
+
+  int incrementCurvesHf::setCoef
+  (const double &a0, const double &a1, const double &a2, const double &a3,
+   const double &a4,
+   const double &a8, const double &a9, const double &a10, const double &a11,
+   const double &a12, const double &a13, const double &a14, const double &a15,
+   const double &a16, const double &a17, const double &a18, const double &a19,
+   const double &a20, const double &a21, const double &a22, const double &a23,
+   const double &a24, const double &a25, const double &a26, const double &a27,
+   const double &a28, const double &a29, const double &a30, const double &a31,
+   const double &a32, const double &a33, const double &a34, const double &a35,
+   const double &a36, const double &a37, const double &a38, const double &a39,
+   const double &a40, const double &a41, const double &a42, const double &a43,
+   const double &a44, const double &a45, const double &a46, const double &a47)
+  {
+    coef.c0 = a0; coef.c1[0] = a1; coef.c1[1] = a2; coef.c2[0] = a3;
+    coef.c2[1] = a4;
+    coef.maxDens[0] = a8; coef.maxDens[1] = a9; coef.maxDens[2] = a10;
+    coef.maxDens[3] = a11; coef.maxDens[4] = a12; coef.maxDens[5] = a13;
+    coef.maxDens[6] = a14; coef.maxDens[7] = a15; coef.maxDens[8] = a16;
+    coef.maxDens[9] = a17; coef.maxDens[10] = a18; coef.maxDens[11] = a19;
+    coef.maxDens[12] = a20; coef.maxDens[13] = a21; coef.maxDens[14] = a22;
+    coef.imul[0] = a23; coef.imul[1] = a24; coef.imul[2] = a25;
+    coef.imul[3] = a26; coef.imul[4] = a27; coef.imul[5] = a28;
+    coef.imul[6] = a29; coef.imul[7] = a30; coef.imul[8] = a31;
+    coef.imul[9] = a32;
+    coef.h[0] = a33; coef.h[1] = a34; coef.h[2] = a35; coef.h[3] = a36;
+    coef.h[4] = a37;
+    coef.d[0] = a38; coef.d[1] = a39; coef.d[2] = a40; coef.d[3] = a41;
+    coef.d[4] = a42; coef.d[5] = a43; coef.d[6] = a44; coef.d[7] = a45;
+    coef.dmul[0] = a46;
+    coef.iCrit = a47;
+    calcC0(); calcC2(); calcC1(); calcTOpt(); calcCor(); calcTh13();
+    return(0);
+  }
+
+  double incrementCurvesHf::calcC0() {
+    c0 = coef.c0 * mai;
+    return(c0);
+  }
+
+  double incrementCurvesHf::calcC1() {
+    c1 = exp(-(coef.c1[1]*coef.c2[0])/coef.c2[1]+(coef.c1[1]*c2)/coef.c2[1]+coef.c1[0]);
+    return(c1);
+  }
+
+  double incrementCurvesHf::calcC2() {
+    double tmp = coef.c2[0]+ coef.c2[1] * log(mai);
+    if(tmp > -1.25) {tmp = -1.25;}
+    c2 = tmp;
+    return(c2);
+  }
+
+  double incrementCurvesHf::calcTOpt() {
+    tOpt = 1./pow(-c1*c2-c1,1./c2);
+    return(tOpt);
+  }
+
+  double incrementCurvesHf::calcCor() {
+    cor = mai / (c0/(1. + c1*pow(tOpt,c2))/tOpt);
+    return(cor);
+  }
+
+  double incrementCurvesHf::calcTh13() {
+    double t1 = coef.h[0] * pow(mai, coef.h[1]);
+    double t2 = coef.h[3] * pow(mai, coef.h[4]);
+    double res = log(1-pow(1.3/t1,1/t2))/coef.h[2];
+    if(res < 0.) {res = 0.;}
+    if(mai <= 0.) {res = INFINITY;}
+    th13=res;
+    return(res);
+  }
+  
+  double incrementCurvesHf::gTOpt() {
+    return(tOpt);
+  }
+  
+  double incrementCurvesHf::gTcp(double t) {
+    double tmp = cor*c0/(1. + c1*pow(t,c2));
+    return(tmp);
+  }
+
+  double incrementCurvesHf::gMaxDens(double t) {
+    double ret=1.;
+    double f[4];
+    double *c = coef.maxDens;
+    f[0] = c[0] + c[1]/(1 + exp(c[2]+c[3]*mai));
+    f[1] = c[4]/(1+exp(c[5] + c[6]*mai)) + c[7]/(1+exp(c[8] + c[9]*mai));
+    f[2] = c[10] + c[11]*exp(c[12]+c[13]*mai);
+    f[3] = c[14];
+    if(t > 0. && tOpt > 0.) {
+      double tmp1 = f[2]*t/tOpt;
+      if(tmp1 > 0) {
+	if(tmp1 < 1) {
+	  ret = (f[0] + f[1] * log(t/tOpt)) * pow(1. - tmp1, f[3]);
+	} else {ret = 0.;}
+      }
+    }
+    if(ret < 0.) {ret = 0.;}
+    if(ret > 1.) {ret = 1.;}
+    return(ret);
+  }
+
+  double incrementCurvesHf::gManDens(double t) {
+    //ipol<double, double> tmp;
+    //tmp.insert(0.,0.); tmp.insert(1.,1.);
+    //for(int i=1; i<10; ++i) {
+    //  tmp.insert(gImul(double(i)/10., t), double(i)/10.);
+    //}
+    //return(tmp.g(coef.iCrit));
+    int n=0;
+    double up=1.;
+    double lo=0.;
+    double x=0.8;
+    double vup=1.;
+    double vlo=0.;
+    double vx=gImul(x, t);
+    while(std::abs(vx - coef.iCrit) > 0.01 && n<10) {
+      if(vx > coef.iCrit) {up = x; vup = vx;}
+      else {lo = x; vlo = vx;}
+      x = lo + (coef.iCrit-vlo)*(up-lo)/(vup-vlo);
+      vx=gImul(x, t);
+      ++n;
+    }
+    return(x);
+  }  
+
+  double incrementCurvesHf::gH(double t) {
+    double tmp = 0.;
+    if(t>0) {
+      tmp = coef.h[0] * pow(mai, coef.h[1]) *
+	pow(1. - exp(coef.h[2] * t), coef.h[3] * pow(mai,coef.h[4]));
+    }     
+    if(tmp < 0) {tmp = 0.;}
+    return(tmp);
+  }
+
+  double incrementCurvesHf::gD(double t) {
+    double tmp = 0.;
+    if(t>th13 && mai>0.) {
+      double a = coef.d[0] + coef.d[1]*mai;
+      double b = coef.d[2] / (1. + coef.d[3] * pow(mai, coef.d[4]));
+      double c = coef.d[5] / (1. + coef.d[6] * pow(mai, coef.d[7]));
+      tmp = a * pow(1. - exp(b * (t - th13)), c);
+    }     
+    if(tmp < 0) {tmp = 0.;}
+    return(tmp);
+  }
+
+  int incrementCurvesHf::setMai(double amai) {
+    mai = amai;
+    calcC0(); calcC2(); calcC1(); calcTOpt(); calcCor(); calcTh13();
+    return(0);
+  }
+
+  double incrementCurvesHf::gDmul(double bg) {
+    double tmp = 1.;
+    if(bg > 1.) {bg = 1.;}
+    if(bg < 0.) {bg = 0.;}
+    tmp = 2 - pow(bg, coef.dmul[0]);
+    return(tmp);
+  }
+
+  double incrementCurvesHf::gImul(double bg, double t) {
+    double res = 1.;
+    double *c = coef.imul;
+    if(bg <= 0.) {res = 0.;}
+    else if(bg < 1. && t > 0.) {
+      double o0 = 1. + pow(t,c[0])/c[1] * 1./(c[2] + c[3]*pow(mai,c[4]));
+      double o1 = 1. + c[5] / (1. + c[6]*pow(t,c[7]) * 1./(c[8]+pow(mai,c[9])));
+      double p = pow(1./o0, 1./(o0-1.));
+      double p2 = p - pow(p, o0);
+      double p4 = p * o1;
+      double p3 = p;
+      if(p3 > bg*p4) {p3 = bg*p4;}
+      res = (p3 - pow(p3, o0)) / p2;
+    }
+    return(res);
+  }
+
+
+
+
+  incrementCurvesAs::incrementCurvesAs
   (const double &a0, const double &a1, const double &a2, const double &a3,
    const double &a4, const double &a5, const double &a6, const double &a7,
    const double &a8, const double &a9, const double &a10, const double &a11,
@@ -45,10 +264,10 @@ namespace g4m {
     coef.dmul[0] = a46;
     coef.iCrit = a47;
     mai = amai;
-    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcTh13();
+    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcCor(); calcTh13();
   }
 
-  int incrementCurves::setCoef
+  int incrementCurvesAs::setCoef
   (const double &a0, const double &a1, const double &a2, const double &a3,
    const double &a4, const double &a5, const double &a6, const double &a7,
    const double &a8, const double &a9, const double &a10, const double &a11,
@@ -79,18 +298,18 @@ namespace g4m {
     coef.d[4] = a42; coef.d[5] = a43; coef.d[6] = a44; coef.d[7] = a45;
     coef.dmul[0] = a46;
     coef.iCrit = a47;
-    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcTh13();
+    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcCor(); calcTh13();
     return(0);
   }
 
-  double incrementCurves::calcK() {
+  double incrementCurvesAs::calcK() {
     double tmp = coef.k[0] + coef.k[1] * exp(coef.k[2]*pow(mai,coef.k[3]));
     if(tmp > 0.) {tmp = 0.;}
     k = tmp;
     return(tmp);
   }
 
-  double incrementCurves::calcTMax() {
+  double incrementCurvesAs::calcTMax() {
     double tmp = coef.tMax[0] + coef.tMax[1]/
       (1 + exp(coef.tMax[2] + coef.tMax[3]*mai));
     if(tmp < 0.) {tmp = 0.;}
@@ -98,7 +317,7 @@ namespace g4m {
     return(tmp);
   }
 
-  double incrementCurves::calcTcpMax() {
+  double incrementCurvesAs::calcTcpMax() {
     double tmp = mai * tMax;
     if(k<0.) {tmp *= exp(0.25/k);}
     else {tmp = 0.;}
@@ -107,7 +326,7 @@ namespace g4m {
     return(tmp);
   }
 
-  double incrementCurves::calcTOpt() {
+  double incrementCurvesAs::calcTOpt() {
     double tmp = tMax;
     if(k<0.) {tmp *= exp(0.5/k);}
     else {tmp = 0.;}
@@ -116,7 +335,7 @@ namespace g4m {
     return(tmp);
   }
 
-  double incrementCurves::calcTh13() {
+  double incrementCurvesAs::calcTh13() {
     double t1 = coef.h[0] * pow(mai, coef.h[1]);
     double t2 = coef.h[3] * pow(mai, coef.h[4]);
     double res = log(1-pow(1.3/t1,1/t2))/coef.h[2];
@@ -126,11 +345,20 @@ namespace g4m {
     return(res);
   }
   
-  double incrementCurves::gTOpt() {
+  double incrementCurvesAs::gTOpt() {
     return(tOpt);
   }
-  
-  double incrementCurves::gTcp(double t) {
+ 
+  double incrementCurvesAs::calcCor() {
+    cor = mai/(gTcpUc(tOpt)/tOpt);
+    return(cor);
+  }
+ 
+  double incrementCurvesAs::gTcp(double t) {
+    return(cor*gTcpUc(t));
+  }
+
+  double incrementCurvesAs::gTcpUc(double t) {
     double tmp2 = 0.;
     if(t > 0. && tMax > 0.) {
       if(t < tMax) {
@@ -142,7 +370,7 @@ namespace g4m {
     return(tmp2);
   }
 
-  double incrementCurves::gMaxDens(double t) {
+  double incrementCurvesAs::gMaxDens(double t) {
     double ret=1.;
     double f[4];
     double *c = coef.maxDens;
@@ -163,7 +391,7 @@ namespace g4m {
     return(ret);
   }
 
-  double incrementCurves::gManDens(double t) {
+  double incrementCurvesAs::gManDens(double t) {
     //ipol<double, double> tmp;
     //tmp.insert(0.,0.); tmp.insert(1.,1.);
     //for(int i=1; i<10; ++i) {
@@ -187,7 +415,7 @@ namespace g4m {
     return(x);
   }  
 
-  double incrementCurves::gH(double t) {
+  double incrementCurvesAs::gH(double t) {
     double tmp = 0.;
     if(t>0) {
       tmp = coef.h[0] * pow(mai, coef.h[1]) *
@@ -197,7 +425,7 @@ namespace g4m {
     return(tmp);
   }
 
-  double incrementCurves::gD(double t) {
+  double incrementCurvesAs::gD(double t) {
     double tmp = 0.;
     if(t>th13 && mai>0.) {
       double a = coef.d[0] + coef.d[1]*mai;
@@ -209,13 +437,13 @@ namespace g4m {
     return(tmp);
   }
 
-  int incrementCurves::setMai(double amai) {
+  int incrementCurvesAs::setMai(double amai) {
     mai = amai;
-    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcTh13();
+    calcK(); calcTMax(); calcTcpMax(); calcTOpt(); calcCor(); calcTh13();
     return(0);
   }
 
-  double incrementCurves::gDmul(double bg) {
+  double incrementCurvesAs::gDmul(double bg) {
     double tmp = 1.;
     if(bg > 1.) {bg = 1.;}
     if(bg < 0.) {bg = 0.;}
@@ -223,7 +451,7 @@ namespace g4m {
     return(tmp);
   }
 
-  double incrementCurves::gImul(double bg, double t) {
+  double incrementCurvesAs::gImul(double bg, double t) {
     double res = 1.;
     double *c = coef.imul;
     if(bg <= 0.) {res = 0.;}
@@ -241,27 +469,67 @@ namespace g4m {
   }
 
 
+
   incrementTab::incrementTab
-      (const double &a0, const double &a1, const double &a2, const double &a3,
-       const double &a4, const double &a5, const double &a6, const double &a7,
-    const double &a8, const double &a9, const double &a10, const double &a11,
-    const double &a12, const double &a13, const double &a14, const double &a15,
-    const double &a16, const double &a17, const double &a18, const double &a19,
-    const double &a20, const double &a21, const double &a22, const double &a23,
-    const double &a24, const double &a25, const double &a26, const double &a27,
-    const double &a28, const double &a29, const double &a30, const double &a31,
-    const double &a32, const double &a33, const double &a34, const double &a35,
-    const double &a36, const double &a37, const double &a38, const double &a39,
-    const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45, const double &a46, const double &a47,
+  (incrementCurves &aic,
        const double amaiMax, const double amaiStep, const double atMax,
        const double atStep, const double asdNatStep, const double asdTabMax,
-       const double asdTabStep, const double atimeframe) :
-     ic(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15
-	, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29
-	, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43
-	, a44, a45, a46, a47, 1.)
+       const double asdTabStep, const double atimeframe)
   {
+    init(aic, amaiMax, amaiStep, atMax, atStep, asdNatStep, asdTabMax,
+	  asdTabStep, atimeframe);
+  }
+
+  incrementTab::~incrementTab() {
+    clear();
+  }
+
+  void incrementTab::clear() {
+    delete[] abm;
+    delete[] abmt;
+    delete[] abmSdTab;
+    delete[] bm;
+    delete[] bmt;
+    delete[] gwl;
+    delete[] gwlt;
+    delete[] gwlSdNat;
+    delete[] gwlSdTab;
+    delete[] dbh;
+    delete[] dbht;
+    delete[] height;
+    delete[] sdNat;
+    delete[] incGwl;
+    delete[] incGwlt;
+    delete[] incBm;
+    delete[] incBmt;
+    delete[] incDbh;
+    delete[] incDbht;
+    delete[] incHeight;
+    delete[] incGwlSdNat;
+    delete[] incDbhSdNat;
+    delete[] incGwlSdTab;
+    delete[] incDbhSdTab;
+    delete[] dbhSdTab;
+    delete[] optTime;
+    delete[] optTimet;
+    delete[] optTimeSdNat;
+    delete[] optTimeSdTab;
+  }
+
+  void incrementTab::set(incrementCurves &aic,
+       const double amaiMax, const double amaiStep, const double atMax,
+       const double atStep, const double asdNatStep, const double asdTabMax,
+       const double asdTabStep, const double atimeframe) {
+    clear();
+    init(aic, amaiMax, amaiStep, atMax, atStep, asdNatStep, asdTabMax,
+	  asdTabStep, atimeframe);
+  }
+
+  void incrementTab::init(incrementCurves &aic,
+       const double amaiMax, const double amaiStep, const double atMax,
+       const double atStep, const double asdNatStep, const double asdTabMax,
+       const double asdTabStep, const double atimeframe) {
+    ic = &aic;
     maiHi = amaiMax; maiStep = amaiStep;
     tHi = atMax; tStep = atStep;
     if(tHi < 0.) {tHi = 0.;}
@@ -318,57 +586,25 @@ namespace g4m {
     fillTables();
   }
 
-  incrementTab::~incrementTab() {
-    delete[] abm;
-    delete[] abmt;
-    delete[] abmSdTab;
-    delete[] bm;
-    delete[] bmt;
-    delete[] gwl;
-    delete[] gwlt;
-    delete[] gwlSdNat;
-    delete[] gwlSdTab;
-    delete[] dbh;
-    delete[] dbht;
-    delete[] height;
-    delete[] sdNat;
-    delete[] incGwl;
-    delete[] incGwlt;
-    delete[] incBm;
-    delete[] incBmt;
-    delete[] incDbh;
-    delete[] incDbht;
-    delete[] incHeight;
-    delete[] incGwlSdNat;
-    delete[] incDbhSdNat;
-    delete[] incGwlSdTab;
-    delete[] incDbhSdTab;
-    delete[] dbhSdTab;
-    delete[] optTime;
-    delete[] optTimet;
-    delete[] optTimeSdNat;
-    delete[] optTimeSdTab;
-  }
-
   int incrementTab::fillTables() {
     double minMAI = 0.01;
     //Fill the arrays with gwl, biomass, ... for age/yield
     for(int cmai=0; cmai<nmai; ++cmai) {
-      if(cmai * maiStep > minMAI) {ic.setMai(cmai * maiStep);}
-      else {ic.setMai(minMAI);}
+      if(cmai * maiStep > minMAI) {ic->setMai(cmai * maiStep);}
+      else {ic->setMai(minMAI);}
       double sbm=0.; double sbmt=0.; //Sum of Biomass (with treatment)
       std::vector<double> sbmSdTab;
       sbmSdTab.resize(nsdTab, 0.);
       for(int ct=0; ct<nt; ++ct) {
 	double t=ct*tStep;
 //Stokcing degree where 95% of the increment of a full stocked forest is reaced
-	double sd95inc = ic.gManDens(t);
+	double sd95inc = ic->gManDens(t);
 	sdNat[ct + cmai*nt] = sd95inc;
-	dbh[ct + cmai*nt] = ic.gD(t);
-	height[ct + cmai*nt] = ic.gH(t);
-	double gwlMaxDens = ic.gTcp(t);
+	dbh[ct + cmai*nt] = ic->gD(t);
+	height[ct + cmai*nt] = ic->gH(t);
+	double gwlMaxDens = ic->gTcp(t);
 	gwl[ct + cmai*nt] = gwlMaxDens;
-	double bmMaxDens = gwlMaxDens * ic.gMaxDens(t);
+	double bmMaxDens = gwlMaxDens * ic->gMaxDens(t);
 	bm[ct + cmai*nt] = bmMaxDens;
 	double bmSd95inc = bmMaxDens * sd95inc;
 	bmt[ct + cmai*nt] = bmSd95inc;
@@ -421,18 +657,18 @@ namespace g4m {
 	if(timeframe <= 0.) {incDbh[ct-1 + cmai*nt] = incDbhMaxDens;
 	} else {incDbhMaxDensY = ip(t0+timeframe, cmai*maiStep, dbh) - dbh[ct-1 + cmai*nt];
 	  incDbh[ct-1 + cmai*nt] = incDbhMaxDensY;}
-	double incDbht0 = incDbhMaxDens*(ic.gDmul(sdNat1)+ic.gDmul(sdNat0))/2.;
+	double incDbht0 = incDbhMaxDens*(ic->gDmul(sdNat1)+ic->gDmul(sdNat0))/2.;
 	if(timeframe <= 0.) {incDbht[ct-1 + cmai*nt] = incDbht0;
-	} else {incDbht[ct-1 + cmai*nt] = incDbhMaxDensY*(ic.gDmul(ip(t0+timeframe,cmai*maiStep,sdNat))+ic.gDmul(sdNat0))/2.;}
+	} else {incDbht[ct-1 + cmai*nt] = incDbhMaxDensY*(ic->gDmul(ip(t0+timeframe,cmai*maiStep,sdNat))+ic->gDmul(sdNat0))/2.;}
 	dbht[ct +cmai*nt] = dbht[ct-1 +cmai*nt] + incDbht0;
 	double incGwlMaxDens = gwl[ct + cmai*nt] - gwl[ct-1 + cmai*nt];
 	double incGwlMaxDensY = incGwlMaxDens;
 	if(timeframe <= 0.) {incGwl[ct-1 + cmai*nt] = incGwlMaxDens;
 	} else {incGwlMaxDensY = ip(t0+timeframe, cmai*maiStep, gwl) - gwl[ct-1 + cmai*nt];
 	  incGwl[ct-1 + cmai*nt] = incGwlMaxDensY;}
-	double incGwlt0 = incGwlMaxDens * (ic.gImul(sdNat1, t1) + ic.gImul(sdNat0, t0)) / 2.;
+	double incGwlt0 = incGwlMaxDens * (ic->gImul(sdNat1, t1) + ic->gImul(sdNat0, t0)) / 2.;
 	if(timeframe <= 0.) {incGwlt[ct-1 + cmai*nt] = incGwlt0;
-	} else {incGwlt[ct-1 + cmai*nt] = incGwlMaxDensY * (ic.gImul(ip(t0+timeframe,cmai*maiStep,sdNat), t0+timeframe) + ic.gImul(sdNat0, t0)) / 2.;}
+	} else {incGwlt[ct-1 + cmai*nt] = incGwlMaxDensY * (ic->gImul(ip(t0+timeframe,cmai*maiStep,sdNat), t0+timeframe) + ic->gImul(sdNat0, t0)) / 2.;}
 	gwlt[ct + cmai*nt] = gwlt[ct-1 + cmai*nt] + incGwlt0;
 	if(timeframe <= 0.) {
 	  incBm[ct-1 + cmai*nt] = bm[ct + cmai*nt] - bm[ct-1 + cmai*nt];
@@ -443,19 +679,19 @@ namespace g4m {
 	//Go to all natural stocking degree steps
 	for(int csd=0; csd<nsdNat; ++csd) {
 	  double natSd = csd*sdNatStep;  //Natural stocking degree
-	  incDbhSdNat[ct-1 + cmai*nt + csd*nt*nmai] = incDbhMaxDensY * ic.gDmul(natSd);
-	  incGwlSdNat[ct-1 +cmai*nt +csd*nt*nmai] = incGwlMaxDensY * (ic.gImul(natSd,t0) + ic.gImul(natSd,t0+timeframe))/2.;
-	  gwlSdNat[ct +cmai*nt +csd*nt*nmai] = gwlSdNat[ct-1 +cmai*nt +csd*nt*nmai] + incGwlMaxDens * (ic.gImul(natSd,t0) + ic.gImul(natSd,t1))/2.;
+	  incDbhSdNat[ct-1 + cmai*nt + csd*nt*nmai] = incDbhMaxDensY * ic->gDmul(natSd);
+	  incGwlSdNat[ct-1 +cmai*nt +csd*nt*nmai] = incGwlMaxDensY * (ic->gImul(natSd,t0) + ic->gImul(natSd,t0+timeframe))/2.;
+	  gwlSdNat[ct +cmai*nt +csd*nt*nmai] = gwlSdNat[ct-1 +cmai*nt +csd*nt*nmai] + incGwlMaxDens * (ic->gImul(natSd,t0) + ic->gImul(natSd,t1))/2.;
 	}
 	//Go to all yield table stocking degree steps
 	for(int csd=0; csd<nsdTab; ++csd) {
 	  double tabSd = csd*sdTabStep;  //Yield table stocking degree
 	  double sdNat2 = ip(t0+timeframe,cmai*maiStep,sdNat);
-	  incDbhSdTab[ct-1 + cmai*nt + csd*nt*nmai] = incDbhMaxDensY * (ic.gDmul(tabSd*sdNat2)+ic.gDmul(tabSd*sdNat0))/2.;
-	  dbhSdTab[ct + cmai*nt + csd*nt*nmai] = dbhSdTab[ct-1 + cmai*nt + csd*nt*nmai] + incDbhMaxDens * (ic.gDmul(tabSd*sdNat1)+ic.gDmul(tabSd*sdNat0))/2.;
+	  incDbhSdTab[ct-1 + cmai*nt + csd*nt*nmai] = incDbhMaxDensY * (ic->gDmul(tabSd*sdNat2)+ic->gDmul(tabSd*sdNat0))/2.;
+	  dbhSdTab[ct + cmai*nt + csd*nt*nmai] = dbhSdTab[ct-1 + cmai*nt + csd*nt*nmai] + incDbhMaxDens * (ic->gDmul(tabSd*sdNat1)+ic->gDmul(tabSd*sdNat0))/2.;
 	  //in case "tabSd*sdNatX > 1" gImul returns 1 what is OK
-	  incGwlSdTab[ct-1 + cmai*nt + csd*nt*nmai] = incGwlMaxDensY * (ic.gImul(tabSd*sdNat2, t0+timeframe) + ic.gImul(tabSd*sdNat0, t0)) / 2.;
-	  gwlSdTab[ct + cmai*nt + csd*nt*nmai] = gwlSdTab[ct-1 + cmai*nt + csd*nt*nmai] + incGwlMaxDens * (ic.gImul(tabSd*sdNat1, t1) + ic.gImul(tabSd*sdNat0, t0)) / 2.;
+	  incGwlSdTab[ct-1 + cmai*nt + csd*nt*nmai] = incGwlMaxDensY * (ic->gImul(tabSd*sdNat2, t0+timeframe) + ic->gImul(tabSd*sdNat0, t0)) / 2.;
+	  gwlSdTab[ct + cmai*nt + csd*nt*nmai] = gwlSdTab[ct-1 + cmai*nt + csd*nt*nmai] + incGwlMaxDens * (ic->gImul(tabSd*sdNat1, t1) + ic->gImul(tabSd*sdNat0, t0)) / 2.;
 	}
       }
     }
@@ -734,7 +970,7 @@ namespace g4m {
   double incrementTab::gDbhSdNat(double age, double mai, double sd) {
     if(sd > 1.) {sd = 1.;}
     if(sd < 0.) {sd = 0.;}
-    return(ip(age, mai, dbh) * ic.gDmul(sd));}
+    return(ip(age, mai, dbh) * ic->gDmul(sd));}
   double incrementTab::gDbhSdTab(double age, double mai, double sd) {
     return(ip(age, mai, sd, dbhSdTab, false));}
 
@@ -938,5 +1174,6 @@ namespace g4m {
   double incrementTab::gTmax() {
     return(tHi);
   }
+
 
 }

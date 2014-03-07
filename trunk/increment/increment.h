@@ -13,7 +13,90 @@
 namespace g4m {
   class incrementCurves {
   public:
-    incrementCurves
+    virtual int setMai(double amai) = 0;
+    virtual double gTOpt() = 0;   //increment optimal rotation time
+    virtual double gTcp(double t) = 0;//Total carbon production (at maximum stocking degree)
+    //Reduction of total carbon production (TCP) to get maximum possible Volume
+    virtual double gMaxDens(double t) = 0;
+    virtual double gManDens(double t) = 0;  //Natural Stocking degree for managed forests
+    virtual double gH(double t) = 0;  //Tree height
+    virtual double gD(double t) = 0;  //Tree diameter at maximum stand density
+    virtual double gDmul(double sd) = 0;  //diameter multiplyer for stocking degree v/vMax
+    virtual double gImul(double sd, double t) = 0;  //increment multiplyer for stocking degree v/vMax
+  };
+
+  //Curves with the equation from Hossfeld 2
+  class incrementCurvesHf : virtual public incrementCurves {
+  public:
+    incrementCurvesHf
+      (const double &a0, const double &a1, const double &a2, const double &a3,
+       const double &a4,
+    const double &a8, const double &a9, const double &a10, const double &a11,
+    const double &a12, const double &a13, const double &a14, const double &a15,
+    const double &a16, const double &a17, const double &a18, const double &a19,
+    const double &a20, const double &a21, const double &a22, const double &a23,
+    const double &a24, const double &a25, const double &a26, const double &a27,
+    const double &a28, const double &a29, const double &a30, const double &a31,
+    const double &a32, const double &a33, const double &a34, const double &a35,
+    const double &a36, const double &a37, const double &a38, const double &a39,
+    const double &a40, const double &a41, const double &a42, const double &a43,
+    const double &a44, const double &a45, const double &a46, const double &a47,
+    const double &amai);
+    int setCoef
+      (const double &a0, const double &a1, const double &a2, const double &a3,
+       const double &a4,
+    const double &a8, const double &a9, const double &a10, const double &a11,
+    const double &a12, const double &a13, const double &a14, const double &a15,
+    const double &a16, const double &a17, const double &a18, const double &a19,
+    const double &a20, const double &a21, const double &a22, const double &a23,
+    const double &a24, const double &a25, const double &a26, const double &a27,
+    const double &a28, const double &a29, const double &a30, const double &a31,
+    const double &a32, const double &a33, const double &a34, const double &a35,
+    const double &a36, const double &a37, const double &a38, const double &a39,
+    const double &a40, const double &a41, const double &a42, const double &a43,
+    const double &a44, const double &a45, const double &a46, const double &a47);
+    int setMai(double amai);
+    double gTOpt();   //increment optimal rotation time
+    double gTcp(double t);//Total carbon production (at maximum stocking degree)
+    //Reduction of total carbon production (TCP) to get maximum possible Volume
+    double gMaxDens(double t);
+    double gManDens(double t);  //Natural Stocking degree for managed forests
+    double gH(double t);  //Tree height
+    double gD(double t);  //Tree diameter at maximum stand density
+    double gDmul(double sd);  //diameter multiplyer for stocking degree v/vMax
+    double gImul(double sd, double t);  //increment multiplyer for stocking degree v/vMax
+    double tcpMax;
+  private:
+    struct {
+      double c0;
+      double c1[2];
+      double c2[2];
+      double h[5];
+      double d[8];
+      double maxDens[15];
+      double dmul[1];
+      double imul[10];
+      double iCrit; //Critical stocking density (increment = 95% of full stoked)
+    } coef;
+    double mai;
+    double c0;
+    double c1;
+    double c2;
+    double tOpt;
+    double cor;
+    double th13;
+    double calcC0();
+    double calcC1();
+    double calcC2();
+    double calcCor();
+    double calcTOpt();
+    double calcTh13();
+  };
+
+  //Curves with the equation from Assmann
+  class incrementCurvesAs : virtual public incrementCurves {
+  public:
+    incrementCurvesAs
       (const double &a0, const double &a1, const double &a2, const double &a3,
        const double &a4, const double &a5, const double &a6, const double &a7,
     const double &a8, const double &a9, const double &a10, const double &a11,
@@ -66,46 +149,30 @@ namespace g4m {
     double k;
     double tOpt;
     double tMax;
+    double cor;
     double th13;
     double calcK();
     double calcTcpMax();
     double calcTMax();
     double calcTOpt();
+    double calcCor();
     double calcTh13();
+    double gTcpUc(double t);
   };
+
 
   class incrementTab {
   public:
     ~incrementTab();
     incrementTab
-      (const double &a0, const double &a1, const double &a2, const double &a3,
-       const double &a4, const double &a5, const double &a6, const double &a7,
-    const double &a8, const double &a9, const double &a10, const double &a11,
-    const double &a12, const double &a13, const double &a14, const double &a15,
-    const double &a16, const double &a17, const double &a18, const double &a19,
-    const double &a20, const double &a21, const double &a22, const double &a23,
-    const double &a24, const double &a25, const double &a26, const double &a27,
-    const double &a28, const double &a29, const double &a30, const double &a31,
-    const double &a32, const double &a33, const double &a34, const double &a35,
-    const double &a36, const double &a37, const double &a38, const double &a39,
-    const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45, const double &a46, const double &a47,
+      (incrementCurves &ic,
        const double amaiMax, const double amaiStep, const double atMax,
        const double atStep, const double asdNatStep, const double asdTabMax,
        const double asdTabStep, const double atimeframe=-1.);
-    int setCoef
-      (const double &a0, const double &a1, const double &a2, const double &a3,
-       const double &a4, const double &a5, const double &a6, const double &a7,
-    const double &a8, const double &a9, const double &a10, const double &a11,
-    const double &a12, const double &a13, const double &a14, const double &a15,
-    const double &a16, const double &a17, const double &a18, const double &a19,
-    const double &a20, const double &a21, const double &a22, const double &a23,
-    const double &a24, const double &a25, const double &a26, const double &a27,
-    const double &a28, const double &a29, const double &a30, const double &a31,
-    const double &a32, const double &a33, const double &a34, const double &a35,
-    const double &a36, const double &a37, const double &a38, const double &a39,
-    const double &a40, const double &a41, const double &a42, const double &a43,
-    const double &a44, const double &a45, const double &a46, const double &a47);
+    void set(incrementCurves &ic,
+       const double amaiMax, const double amaiStep, const double atMax,
+       const double atStep, const double asdNatStep, const double asdTabMax,
+       const double asdTabStep, const double atimeframe=-1.);
     //get Average biomass, u .. rotation time, mai .. Site index
     double gAvgBm(double u, double mai);
     double gAvgBmt(double u, double mai); //With thinning like yield table
@@ -182,6 +249,12 @@ namespace g4m {
     double gtimeframe();  //Get time step width
     double gTmax();  //Get the oldest age in the table
   private:
+    void clear();
+    void init(incrementCurves &ic,
+       const double amaiMax, const double amaiStep, const double atMax,
+       const double atStep, const double asdNatStep, const double asdTabMax,
+       const double asdTabStep, const double atimeframe);
+    incrementCurves *ic;  //Class of the increment curves
     //Optimal rotation time
     struct optRotTimes {
       int maxInc;       //Highest average increment
@@ -199,7 +272,6 @@ namespace g4m {
 //Interpolate between stocking degree, age and mai (sdNat: True..sdNat, false..sdTab)
     double ip(double u, double mai, double sd, double const *tab, bool const sdNat);
     int fillTables(); //Function to fill up the tables using incrementCurves ic
-    incrementCurves ic;  //Class of the increment curves
     double maiHi;   //Highest MAI until table should be created
     double maiStep; //Step width in MAI
     double tHi;     //Highest age until table should be created

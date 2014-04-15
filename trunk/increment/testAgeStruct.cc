@@ -110,6 +110,27 @@ int main(int argc, char **argv) {
   forest.createNormalForest(biomasRot + 2, 1., 1.);
   cout << biomasRot << " " << forest.getBm() << endl;
 
+  forest.createNormalForest(100, 1., 1.);
+  {
+    pair<g4m::ageStruct::v, g4m::ageStruct::v> ret;
+    for(int i=0; i<20; ++i) {
+      ret = forest.aging();
+      cout << i
+	   << "\t" << ret.first.area
+	   << "\t" << ret.first.sw
+	   << "\t" << ret.first.rw
+	   << "\t" << ret.first.co
+	   << "\t" << ret.first.bm
+	   << "\t" << ret.second.area
+	   << "\t" << ret.second.sw
+	   << "\t" << ret.second.rw
+	   << "\t" << ret.second.co
+	   << "\t" << ret.second.bm
+	   << endl;;
+    }
+  }
+
+
   return(0);
 
   cout << u << endl;

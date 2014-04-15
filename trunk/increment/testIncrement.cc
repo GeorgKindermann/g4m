@@ -265,5 +265,32 @@ int main(int argc, char **argv) {
     cout << endl;
   }
 
+  g4m::incrementTab iTabShort(rtShort,30.,0.25,600,1,0.25,1.5,0.25,10.);
+  g4m::incrementTab iTabNormal(rtNormal,30.,0.25,600,1,0.25,1.5,0.25,10.);
+  g4m::incrementTab iTabLong(rtLong,30.,0.25,600,1,0.25,1.5,0.25,10.);
+  g4m::incrementTab* iiTab[3];
+  iiTab[0] = &iTabShort;
+  iiTab[1] = &iTabNormal;
+  iiTab[2] = &iTabLong;
+  double bm=30.;
+  for(unsigned int j=0; j<mai.size(); ++j) {
+    double mmai = mai[j];
+    cout << mmai << "\t" << bm;
+    for(int scen=0; scen<3; ++scen) { //0..maxInc, 1..maxBm, 3..curBm
+      for(int tab=0; tab<3; ++tab) {
+	double uoptt = 0.;
+	if(scen<2) {uoptt = iiTab[tab]->gTopt(mmai, scen);}
+	else {uoptt = iiTab[tab]->gUt(bm, mmai);}
+	cout << "\t" << uoptt;
+	cout << "\t" << iiTab[tab]->gAvgBmt(uoptt, mmai);
+	cout << "\t" << iiTab[tab]->gMait(uoptt, mmai);
+	cout << "\t" << iiTab[tab]->gDbht(uoptt, mmai);
+      }
+    }
+    cout << endl;
+  }
+
+
+
   return(0);
 }

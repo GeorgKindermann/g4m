@@ -42,6 +42,12 @@ namespace g4m {
     double getMai(unsigned int type);
     std::valarray<double> getMai();
     std::valarray<double> getMai(std::valarray<bool> dontNeed);
+    double getNppB(unsigned int type); //The same like above but use also minNpp
+    std::valarray<double> getNppB();
+    std::valarray<double> getNppB(std::valarray<bool> dontNeed);
+    double getMaiB(unsigned int type);
+    std::valarray<double> getMaiB();
+    std::valarray<double> getMaiB(std::valarray<bool> dontNeed);
     std::size_t setCoef(unsigned int type, const std::valarray<double>& c);
     std::size_t setCoefC0(unsigned int type, const std::valarray<double>& c);
     bool setBoundaries(unsigned int type, const double& tMinJ, const double& tMaxJ, const double& pMinJ, const double& pMaxJ, const double& tMinM, const double& tMaxM, const double& pMinM, const double& pMaxM, const double& minNpp); 

@@ -190,6 +190,27 @@ namespace g4m {
     return(ret);
   }
 
+  double mai::getNppB(unsigned int type) {
+    double ret = getNpp(type);
+    if(ret < minNpp[type]) {ret = 0.;}
+    return(ret);
+  }
+
+  std::valarray<double> mai::getNppB() {
+    std::valarray<double> ret(outOfBoundaries.size());
+    for(unsigned int i=0; i<ret.size(); ++i) {ret[i] = getNppB(i);}
+    return(ret);
+  }
+
+  std::valarray<double> mai::getNppB(std::valarray<bool> dontNeed) {
+    std::valarray<double> ret(dontNeed.size());
+    for(unsigned int i=0; i<ret.size(); ++i) {
+      if(dontNeed[i]) {ret[i] = 0.;
+      } else {ret[i] = getNppB(i);}
+    }
+    return(ret);
+  }
+
   bool mai::testBoundaries(unsigned int type) {
     outOfBoundaries[type] = false;
     if(t.min() < tMinM[type]) {outOfBoundaries[type] = true; return(outOfBoundaries[type]);}
@@ -285,6 +306,32 @@ namespace g4m {
     for(unsigned int i=0; i<ret.size(); ++i) {
       if(dontNeed[i]) {ret[i] = 0.;
       } else {ret[i] = getMai(i);}
+    }
+    return(ret);
+  }
+
+  double mai::getMaiB(unsigned int type) {
+    double npp = getNppB(type);
+    double mai = npp;
+    if(fNpp2mai == 0) {
+      mai *= cNpp2mai[0];
+    } else {
+      mai *= 0.35;
+    }
+    return(mai);
+  }
+
+  std::valarray<double> mai::getMaiB() {
+    std::valarray<double> ret(outOfBoundaries.size());
+    for(unsigned int i=0; i<ret.size(); ++i) {ret[i] = getMaiB(i);}
+    return(ret);
+  }
+
+  std::valarray<double> mai::getMaiB(std::valarray<bool> dontNeed) {
+    std::valarray<double> ret(dontNeed.size());
+    for(unsigned int i=0; i<ret.size(); ++i) {
+      if(dontNeed[i]) {ret[i] = 0.;
+      } else {ret[i] = getMaiB(i);}
     }
     return(ret);
   }

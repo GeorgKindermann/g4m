@@ -1,7 +1,5 @@
 #include "ageStruct.h"
 
-#include <iostream>
-
 namespace g4m {
   ageStruct::ageStruct 
   (incrementTab *ait
@@ -428,6 +426,7 @@ namespace g4m {
 	for(unsigned int i=0; i<dat.size(); ++i) {
 	  if(dat[i].area > 0.) {
 	    double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
+	    if(sdNat != sdNat) {sdNat = 1.;}
 	    double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
 	    double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
 	    dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
@@ -461,8 +460,11 @@ namespace g4m {
       if(dat[i].area > 0.) {
 	//The Stands get half increment of the next growing period
 	double sdNat = it->gSdNat(i*timeStep, avgMai, dat[i].bm);
+	if(sdNat!=sdNat) {sdNat=1.;}
 	double dbm = it->gIncBmSdNat(i*timeStep, avgMai, sdNat)/2.;
+	if(dbm!=dbm) {dbm=0.;}
 	double id = it->gIncDbhSdNat(i*timeStep, avgMai, sdNat)/2.;
+	if(id!=id) {id=0.;}
 	dbhBm[0] = dat[i].d+id; dbhBm[1] = dat[i].bm+dbm;
 	if(doe->g(dbhBm) || eco==false) { //do harvest if it is economic
 	  if(aarea >=0) { //Given area to harvest

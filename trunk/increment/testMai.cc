@@ -8,6 +8,8 @@ using namespace std;
 int main() {
 
   g4m::mai mai;
+  mai.setSwr(0.8);
+  mai.setcNpp2mai({1./3.});
 
   //Forest
   mai.setCoef(0, {1.29460152,-0.09012495,0.17332495, 35, -1, 0.66170523, 2.8, 0.4138984, -54.4741443, -1.4, 1.155907e+00, 2.154028e-04, -3.733458e-01, 2.335792e-05});
@@ -121,7 +123,7 @@ int main() {
   mai.setSoilType(3);
   mai.setLatitude(45.*M_PI/180.);
 
-  std::valarray<double> rmai = mai.getMai(mai.testBoundaries());
+  std::valarray<double> rmai = mai.getMaiB(mai.testBoundaries());
   for(double m : rmai) {cout << m << " ";}
   cout << endl;
 

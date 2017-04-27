@@ -14,7 +14,7 @@ namespace g4m {
 	, const std::valarray<double>& c0 = {1.054684,1.099922,1.075196,0.980570,1.002155,1.044522,1.134524,1.073864,1.000548,1.070339,1.068615,1.086483,1.054495,1.036821,1.095323,1.008207,1.094867,1.031270,0.987843,1.035130,0.950606,1.074587,1.008381} //c0 Coefficients
 	, const std::valarray<double>& t = std::valarray<double>(10., 24)  //Temperature of each month [deg C]
 	, const std::valarray<double>& p = std::valarray<double>(70., 24)  //Precipitation [mm/30 Days]
-	, const std::valarray<double>& r = std::valarray<double>(180., 24) //Precipitation [mm/30 Days]
+	, const std::valarray<double>& r = std::valarray<double>(180., 24) //Radiation [Watt/m2]
 	, double whc=100.    //Water holding capacity [mm]
 	, double swr=0.  //Soil Water Regime, additional water from soil or irrigation [mm/month]
 	, double co2=0.038   //CO2 concentration [volume %]
@@ -36,10 +36,10 @@ namespace g4m {
 	);
     double getNpp(unsigned int type=0, bool useMinNpp=false);
     std::valarray<double> getNpp(bool minNpp=false);
-  std::valarray<double> getNpp(std::valarray<bool> dontNeed, bool useMinNpp=false);
+    std::valarray<double> getNpp(std::valarray<bool> dontNeed, bool useMinNpp=false);
     double getMai(unsigned int type=0, bool minNpp=false);
     std::valarray<double> getMai(bool minNpp=false);
-  std::valarray<double> getMai(std::valarray<bool> dontNeed, bool useMinNpp=false);
+    std::valarray<double> getMai(std::valarray<bool> dontNeed, bool useMinNpp=false);
     std::size_t setCoef(unsigned int type, const std::valarray<double>& c);
     std::size_t setCoefC0(unsigned int type, const std::valarray<double>& c);
     bool setBoundaries(unsigned int type, const double& tMinJ, const double& tMaxJ, const double& pMinJ, const double& pMaxJ, const double& tMinM, const double& tMaxM, const double& pMinM, const double& pMaxM, const double& minNpp); 
@@ -88,6 +88,7 @@ namespace g4m {
     std::valarray<double> sw; //Soil water content [12]
     std::valarray<double> tp; //Temperature for each month of previous year [12]
     std::valarray<double> pp; //Precipitation for each month of previous year [12]
+    std::valarray<double> rp; //Radiation for each month of previous year [12]
     bool weatherIsDynamic;
     double soilWaterDecayRate;
     double latitude;

@@ -35,13 +35,15 @@ namespace g4m {
     , weatherIsDynamic(aweatherIsDynamic)
     , fNpp2mai(afNpp2mai)
   {
-    numberOfTypes =ac.size() / nc;
+    numberOfTypes = ac.size() / nc;
     c = ac;
     c0 = ac0;
     t = at[std::slice(at.size()-12,12,1)];
     p = ap[std::slice(ap.size()-12,12,1)];
+    r = ar[std::slice(ar.size()-12,12,1)];
     tp = at[std::slice(0,12,1)];
     pp = ap[std::slice(0,12,1)];
+    rp = rp[std::slice(0,12,1)];
     cNpp2mai = acNpp2mai;
     tMinJ = atMinJ;
     tMaxJ = atMaxJ;
@@ -107,55 +109,9 @@ namespace g4m {
     return(testBoundaries(type));
   }
 
-  // void mai::calcWalterLieth() {
-  //   walterLieth = c14t17[0] / (c14t17[1] + 1./(1. + exp(c14t17[2] + c14t17[3]*co2)));
-  // }
-
- int mai::updateSoilWater() {
-    double tsw[15];
-    for(int i=0; i<4; ++i) { //The previous Years
-      double tmp;
-      if(weatherIsDynamic) {
-	tmp = tp[i+8];
-	if(tmp < 0) {tmp=0;}
-	tmp *= walterLieth;
-	tmp = pp[i+8] - tmp;
-      } else {
-	tmp = t[i+8];
-	if(tmp < 0) {tmp=0;}
-	tmp *= walterLieth;
-	tmp = p[i+8] - tmp;
-      }
-      tsw[i] = tmp;
-    }
-    for(int i=0; i<11; ++i) {
-      double tmp = t[i];
-      if(tmp < 0) {tmp=0;}
-      tmp *= walterLieth;
-      tmp = p[i] - tmp;
-      tsw[i+4] = tmp;
-    }
-    for(int i=0; i<12; ++i) {
-      double tmp = 0.;
-      for(int j=0; j<4; ++j) {
-	tmp += tsw[i+j];
-	if(tmp < 0) {tmp=0;}
-	tmp *= soilWaterDecayRate;
-	if(tmp > whc) {tmp = whc;}
-      }
-      sw[i] = tmp + swr;
-    }
-    return(0);
-  }
-
   double mai::getNpp(unsigned int type, bool useMinNpp) {
     double ret=0.;
     static const double days[12] = {31.,28.25,31.,30.,31.,30.,31.,31.,30.,31.,30.,31.};
-    if(inputWasChanged) {
-      //calcWalterLieth();
-      //updateSoilWater();
-      inputWasChanged = false;
-    }
     double bodenwasser = 0.;
     for(int month=0; month<12; ++month) {
       double niederschlag = p[month];
@@ -212,29 +168,6 @@ namespace g4m {
     return(ret);
   }
 
-  /*
-  double mai::getNppB(unsigned int type) {
-    double ret = getNpp(type);
-    if(ret < minNpp[type]) {ret = 0.;}
-    return(ret);
-  }
-
-  std::valarray<double> mai::getNppB() {
-    std::valarray<double> ret(outOfBoundaries.size());
-    for(unsigned int i=0; i<ret.size(); ++i) {ret[i] = getNppB(i);}
-    return(ret);
-  }
-
-  std::valarray<double> mai::getNppB(std::valarray<bool> dontNeed) {
-    std::valarray<double> ret(dontNeed.size());
-    for(unsigned int i=0; i<ret.size(); ++i) {
-      if(dontNeed[i]) {ret[i] = 0.;
-      } else {ret[i] = getNppB(i);}
-    }
-    return(ret);
-  }
-  */
-
   bool mai::testBoundaries(unsigned int type) {
     outOfBoundaries[type] = false;
     if(t.min() < tMinM[type]) {outOfBoundaries[type] = true; return(outOfBoundaries[type]);}
@@ -279,6 +212,12 @@ namespace g4m {
     p = ap;
   }
 
+  void mai::setRadiation(const std::valarray<double>& ar) {
+    inputWasChanged = true;
+    if(weatherIsDynamic) {rp = r;}
+    r = ar;
+  }
+
   void mai::setCo2(const double& aco2) {
     co2 = aco2;
     inputWasChanged = true;
@@ -303,13 +242,9 @@ namespace g4m {
     soilType = asoilType;
   }
 
-  // void mai::setLatitude(double alatitude) {
-  //   latitude = alatitude*2.;
-  //   inputWasChanged = true;
-  // }
-
   double mai::getMai(unsigned int type, bool minNpp) {
-    double npp = getNpp(type);
+    double npp = 0.;
+    if(!testBoundaries(type)) {npp = getNpp(type);}
     double mai = npp;
     if(fNpp2mai == 0) {
       mai *= cNpp2mai[0];
@@ -361,11 +296,6 @@ namespace g4m {
     return(ret);
   }
   */
-
-  // double mai::setSoilWaterDecayRate(double asoilWaterDecayRate) {
-  //   soilWaterDecayRate = asoilWaterDecayRate;
-  //   return(soilWaterDecayRate);
-  // }
 
   unsigned int mai::setcNpp2mai(const std::valarray<double>& acNpp2mai) {
     cNpp2mai = acNpp2mai;

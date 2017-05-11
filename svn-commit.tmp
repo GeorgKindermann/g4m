@@ -1,9 +1,0 @@
-Added MAI calculation
---This line, and those below, will be ignored--
-
-_M   increment
-M    increment/increment.cc
-A    increment/mai.cc
-A    increment/testMai.cc
-A    increment/mai.h
-M    increment/Makefile

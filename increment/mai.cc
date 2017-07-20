@@ -281,7 +281,7 @@ namespace g4m {
       if(bodenwasser > whc) {bodenwasser = whc;}
       if(bodenwasser < 0.) {bodenwasser = 0.;}
       ret += days[month]
-	* c[0+type*nc]*exp(-altitude/7990.)
+	* c0[soilType] * c[0+type*nc]*exp(-altitude/7990.)
 	* r[month]
 	* pow(fmax(0., (c[1+type*nc]+temperatur)), c[2+type*nc])
 	* pow(fmax(0, 1. - verdunstungPot/tanh(c[5+type*nc]*nutzbaresWasser)/c[3+type*nc]), c[4+type*nc]);

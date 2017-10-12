@@ -46,7 +46,7 @@ namespace g4m {
     r = ar[std::slice(ar.size()-12,12,1)];
     tp = at[std::slice(0,12,1)];
     pp = ap[std::slice(0,12,1)];
-    rp = rp[std::slice(0,12,1)];
+    rp = ar[std::slice(0,12,1)];
     cNpp2mai = acNpp2mai;
     tMinJ = atMinJ;
     tMaxJ = atMaxJ;

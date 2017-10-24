@@ -123,7 +123,7 @@ namespace g4m {
 
   template <class IDX, class VAL>
   void ipol<std::vector<IDX>, VAL>::insert(std::vector<IDX> i, VAL v) {
-    aMap.insert(make_pair(i, v));
+    aMap.insert(std::make_pair(i, v));
   }
 
   template <class IDX, class VAL>

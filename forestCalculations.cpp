@@ -1,11 +1,11 @@
 #ifndef FORESTCALCULATIONS_CPP
 #define FORESTCALCULATIONS_CPP
 
-#ifdef unix
-#include "./dima/dima.cpp"
-#else
-#include "dima\dima.cpp"
-#endif
+//#ifdef unix
+//#include "./dima/dima.cpp"
+//#else
+//#include "dima\dima.cpp"
+//#endif
 
 const double coeffAgr = 2;
 

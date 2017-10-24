@@ -1,5 +1,6 @@
 #ifndef FORESTCALCULATIONS_CPP
 #define FORESTCALCULATIONS_CPP
+#include "dima.cpp"
 
 //#ifdef unix
 //#include "./dima/dima.cpp"

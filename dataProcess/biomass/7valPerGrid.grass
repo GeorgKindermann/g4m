@@ -1,0 +1,18 @@
+#grass 30Sec
+
+r.in.gdal input=bmAg.tif output=del1
+r.in.gdal input=stock.tif output=del2
+
+r.mapcalc "del3 = round(10000*del1/gridarea)"
+r.mapcalc "del4 = round(10000*del2/gridarea)"
+
+r.colors -a map=del3 color=rainbow
+r.colors -a map=del4 color=rainbow
+
+r.info map=del3
+r.info map=del4
+
+r.out.gdal input=del3 format=GTiff type=Int16 output=/tmp/bmAg_haPi.tif createopt=COMPRESS=LZW,PREDICTOR=2
+
+r.out.gdal input=del4 format=GTiff type=Int16 output=/tmp/stock_haPi.tif createopt=COMPRESS=LZW,PREDICTOR=2
+

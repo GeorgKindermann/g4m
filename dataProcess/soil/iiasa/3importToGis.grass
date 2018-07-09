@@ -1,0 +1,50 @@
+#grass 30Sec
+
+r.in.bin input=/tmp/soilFAO90.bil output=soilIiasaFao90 bytes=1 north=90 south=-90 east=180 west=-180 rows=21600 cols=43200 --overwrite
+r.in.bin input=/tmp/soilAWC.bil output=soilIiasaAwc bytes=1 north=90 south=-90 east=180 west=-180 rows=21600 cols=43200 --overwrite
+r.in.bin input=/tmp/soilSWR.bil output=soilIiasaSwr bytes=1 north=90 south=-90 east=180 west=-180 rows=21600 cols=43200 --overwrite
+
+r.colors map=soilIiasaFao90 color=random
+echo "0 150:150:150
+1 0:0:150
+4 0:0:255
+5 255:0:255
+6 255:0:0
+7 150:0:0" | r.colors map=soilIiasaAwc rules=-
+echo "0 150:150:150
+1 0:200:0
+2 0:255:255
+3 0:0:255
+4 0:0:150" | r.colors map=soilIiasaSwr rules=-
+
+g.region rast=soilIiasaFao90
+r.out.gdal input=soilIiasaFao90 format=GTiff type=Byte output=soilFAO90.tif createopt=COMPRESS=LZMA,NUM_THREADS=7 --overwrite
+r.out.gdal input=soilIiasaAwc format=GTiff type=Byte output=soilAwc.tif createopt=COMPRESS=LZMA,NUM_THREADS=7 --overwrite
+r.out.gdal input=soilIiasaSwr format=GTiff type=Byte output=soilSwr.tif createopt=COMPRESS=LZMA,NUM_THREADS=7 --overwrite
+
+g.copy raster=soilIiasaFao90,del --overwrite
+r.null map=del setnull=0
+r.neighbors -c method=mode size=3 input=del output=del1 --overwrite
+r.neighbors -c method=mode size=5 input=del output=del2 --overwrite
+r.neighbors -c method=mode size=7 input=del output=del3 --overwrite
+
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+r.resamp.stats input=del output=del4 method=mode --overwrite
+r.grow input=del4 output=del5 radius=300 --overwrite
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+
+r.mapcalc "del6 = round(if(waterLandModis30Sec<16, if(isnull(del),if(isnull(del1),if(isnull(del2),if(isnull(del3),if(isnull(del4),del5,del4),del3),del2),del1),del), null()))" --overwrite
+
+r.colors map=del6 rast=soilIiasaFao90
+r.out.gdal input=del6 format=GTiff type=Byte output=soilFAO90G4m.tif createopt=COMPRESS=LZMA,NUM_THREADS=7 --overwrite
+g.rename rast=del6,soilIiasaFao90G4m --overwrite
+
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+r.surf.idw input=soilIiasaAwc output=del --overwrite
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+r.mapcalc "del2 = if(waterLandModis30Sec<16, if(isnull(soilIiasaAwc),del,soilIiasaAwc), null())" --overwrite
+r.colors map=del2 rast=soilIiasaAwc
+r.out.gdal input=del2 format=GTiff type=Byte output=soilAcwG4m.tif createopt=COMPRESS=LZW,predictor=2 --overwrite
+g.rename rast=del2,soilIiasaAwcG4m
+
+g.remove -f type=raste pattern="del*"

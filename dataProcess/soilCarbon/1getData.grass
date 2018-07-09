@@ -1,0 +1,84 @@
+#grass 30Sec
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#landarea
+r.mapcalc "del2 = round(gridarea * (16 - waterLandModis30Sec)/16.)"
+
+#Niederschlagssumme
+r.mapcalc "del3 = prec01 + prec02 + prec03 + prec04 + prec05 + prec06 + prec07 + prec08 + prec09 + prec10 + prec11 + prec12"
+
+#mittlere temperatur
+r.mapcalc "del4 = (tmean01 + tmean02 + tmean03 + tmean04 + tmean05 + tmean06 + tmean07 + tmean08 + tmean09 + tmean10 + tmean11 + tmean12)/120."
+
+#temperatur Amplitude
+r.mapcalc "del5 = (max(tmean01,tmean02,tmean03,tmean04,tmean05,tmean06,tmean07,tmean08,tmean09,tmean10,tmean11,tmean12) - min(tmean01,tmean02,tmean03,tmean04,tmean05,tmean06,tmean07,tmean08,tmean09,tmean10,tmean11,tmean12)) / 20."
+
+
+r.out.bin input=countryGadmV1G4m output=/tmp/country.bin bytes=1
+r.out.bin input=forestCoverG4mCalib2015 output=/tmp/forest.bin bytes=1
+r.out.bin input=forestCoverG4mIrri2015 output=/tmp/forestIrri.bin bytes=1
+r.out.bin input=managedForestG4M2015 output=/tmp/managedForest.bin bytes=1
+r.out.bin input=del2 output=/tmp/landarea.bin bytes=4
+r.out.bin input=nppG4mCurrent2010 output=/tmp/npp.bin bytes=4
+r.out.bin input=nppG4mCurrent2010irri output=/tmp/nppIrri.bin bytes=4
+r.out.bin input=del3 output=/tmp/precip.bin bytes=2
+r.out.bin input=del4 output=/tmp/tempMean.bin bytes=4
+r.out.bin input=del5 output=/tmp/tempAmpl.bin bytes=4
+
+
+
+./2calcSoilc >countrysum.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/tmp/soilcMan.hdr
+
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilcMan.bin /tmp/tif.tif
+
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+#r.mapcalc "del = if(del > 200, 200, del)"
+#r.colors map=del color=rules
+r.colors map=del color=rainbow
+
+cp /tmp/soilcMan.hdr /tmp/soilcManIrri.hdr
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilcManIrri.bin /tmp/tif.tif
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+
+cp /tmp/soilcMan.hdr /tmp/soilcUman.hdr
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilcUman.bin /tmp/tif.tif
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+
+cp /tmp/soilcMan.hdr /tmp/soilcUmanIrri.hdr
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilcUmanIrri.bin /tmp/tif.tif
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+
+cp /tmp/soilcMan.hdr /tmp/soilc.hdr
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilc.bin /tmp/tif.tif
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+
+
+#3calib.r ausfuehren
+#/tmp/calibFactor.txt nach ./ kopieren
+
+
+./4calcSoilcCal >countrysum2.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/tmp/soilc.hdr
+cp /tmp/soilc.hdr /tmp/soilc_ha.hdr
+
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilc.bin /tmp/tif.tif
+
+r.in.gdal -o input=/tmp/tif.tif output=del --overwrite
+r.colors map=del color=rainbow
+
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /tmp/soilc_ha.bin /tmp/tif2.tif
+r.in.gdal -o input=/tmp/tif2.tif output=del2 --overwrite
+r.colors map=del2 color=rainbow
+
+
+gdal_translate -ot Int16 -a_srs EPSG:4326 -co "TILED=YES" -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /tmp/soilc.bin /tmp/soilc.tif
+gdal_translate -ot Int16 -a_srs EPSG:4326 -co "TILED=YES" -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /tmp/soilc_ha.bin /tmp/soilc_ha.tif

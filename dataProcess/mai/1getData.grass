@@ -1,0 +1,26 @@
+#grass 30Sec
+
+#test
+g.region n=90n s=60s w=180w e=180e res=0:30:00
+r.mapcalc "del1 = row()" &
+r.mapcalc "del2 = col()" &
+r.mapcalc "del3 = if(isnull(demSrtmV41_30Sec), if(isnull(demGtopo30),0,demGtopo30), demSrtmV41_30Sec)" &
+r.mapcalc "del4 = if(waterLandModis30Sec == 16, null(), waterLandModis30Sec)" &
+
+r.out.xyz input=del1,del2,prec01,prec02,prec03,prec04,prec05,prec06,prec07,prec08,prec09,prec10,prec11,prec12,tmean01,tmean02,tmean03,tmean04,tmean05,tmean06,tmean07,tmean08,tmean09,tmean10,tmean11,tmean12,soilIiasaFao90G4m,soilIiasaAwcG4m,del3,del4 fs="\\t" >/tmp/modelData.txt
+g.remove rast=del1,del2,del3,del4
+
+
+#Daten fuer Modellanwendung hochaufloesend
+
+g.region n=90n s=60s w=180w e=180e res=0:00:30
+r.mapcalc "del1 = row()" &
+r.mapcalc "del2 = col()" &
+r.mapcalc "del3 = if(isnull(demSrtmV41_30Sec), if(isnull(demGtopo30),0,demGtopo30), demSrtmV41_30Sec)" &
+r.mapcalc "del4 = if(waterLandModis30Sec == 16, null(), waterLandModis30Sec)" &
+
+r.out.xyz input=del1,del2,prec01,prec02,prec03,prec04,prec05,prec06,prec07,prec08,prec09,prec10,prec11,prec12,tmean01,tmean02,tmean03,tmean04,tmean05,tmean06,tmean07,tmean08,tmean09,tmean10,tmean11,tmean12,soilIiasaFao90G4m,soilIiasaAwcG4m,del3,del4 fs="\\t" >/tmp/modelData.txt
+g.remove rast=del1,del2,del3,del4
+
+
+time ./2estimateNpp

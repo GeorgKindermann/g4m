@@ -1,0 +1,31 @@
+#grass 30sec
+
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#Basiskarten
+r.in.gdal input=/home/georg/13/g4mData/forestArea/forestCoverG4mBase.tif output=forestCoverG4mBase
+r.in.gdal input=/home/georg/13/g4mData/forestArea/forestCoverG4mCut.tif output=forestCoverG4mCut
+
+#Kalibrieren mit Fao/Fra
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+r.colors map=del color=rainbow
+g.region w=180w e=180e n=90n s=90s
+#Irrigated area
+r.mapcalc "del2=if(isnull(irrigation),0,irrigation)"
+#Daten fuer R herrausschreiben
+r.out.xyz input=forestCoverG4mBase,forestCoverG4mCut,countryGadmV1,del,waterLandModis30Sec,del2,nppG4m,nppG4mMaxIrri,g4mcol,g4mrow | cut -f 3- -d \| | grep -v '^0|' | sed 's/|/\t/g' >/tmp/forestShareCountryGridsizeLandshare.txt
+g.remove rast=del,del2
+
+#dateien auf einzelne laender aufteilen
+mkdir /tmp/t
+awk '{print > "/tmp/t/" $3 ".txt"}' /tmp/forestShareCountryGridsizeLandshare.txt
+
+
+
+
+

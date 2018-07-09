@@ -1,0 +1,5 @@
+wget http://data.biogeo.ucdavis.edu/data/gadm2.8/gadm28_levels.shp.zip
+unzip gadm28_levels.shp.zip "gadm28_adm0.*"
+gdal_rasterize -at -co "COMPRESS=LZMA" -co "NUM_THREADS=7" -te -180 -90 180 90 -ts 43200 21600 -a "id_0" -ot "Int16" -a_nodata 0 gadm28_adm0.shp gadm28_adm0.tif
+dbview -eo gadm28_adm0.dbf | awk -v ORS="," '{if(FNR>2 && FNR<9) print $1 $2}' | sed 's/.$/\n/' > countrynames.csv
+dbview -bt -d , gadm28_adm0.dbf | cut -d , -f '2-7' >> countrynames.csv

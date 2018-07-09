@@ -1,0 +1,661 @@
+#grass 30Sec
+
+#g.region w=4:00e e=19:00e n=51:00n s=41:30n res=0:00:30
+#g.region w=4:45e e=16:30e n=48:40n s=42:50n res=0:00:30
+g.region w=4:30e e=17:30e n=48:40n s=42:50n res=0:00:30
+
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,5' -d , | r.in.xyz input=- output=tmp1 x=1 y=2 z=3 fs=,  --overwrite #forest area m2
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,6' -d , | r.in.xyz input=- output=tmp2 x=1 y=2 z=3 fs=,  --overwrite #conif share
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,7' -d , | r.in.xyz input=- output=tmp3 x=1 y=2 z=3 fs=,  --overwrite #non conif share
+
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,18' -d , | r.in.xyz input=- output=tmp4 x=1 y=2 z=3 fs=,  --overwrite #conif_maxInc_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,27' -d , | r.in.xyz input=- output=tmp5 x=1 y=2 z=3 fs=,  --overwrite #nonconif_maxInc_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,19' -d , | r.in.xyz input=- output=tmp6 x=1 y=2 z=3 fs=,  --overwrite #conif_maxInc_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,28' -d , | r.in.xyz input=- output=tmp7 x=1 y=2 z=3 fs=,  --overwrite #nonconif_maxInc_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,20' -d , | r.in.xyz input=- output=tmp8 x=1 y=2 z=3 fs=,  --overwrite #conif_maxInc_rotationtime
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,29' -d , | r.in.xyz input=- output=tmp9 x=1 y=2 z=3 fs=,  --overwrite #nonconif_maxInc_rotationtime
+
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,21' -d , | r.in.xyz input=- output=tmp10 x=1 y=2 z=3 fs=,  --overwrite #conif_maxBm_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,30' -d , | r.in.xyz input=- output=tmp11 x=1 y=2 z=3 fs=,  --overwrite #nonconif_maxBm_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,22' -d , | r.in.xyz input=- output=tmp12 x=1 y=2 z=3 fs=,  --overwrite #conif_maxBm_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,31' -d , | r.in.xyz input=- output=tmp13 x=1 y=2 z=3 fs=,  --overwrite #nonconif_maxBm_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,23' -d , | r.in.xyz input=- output=tmp14 x=1 y=2 z=3 fs=,  --overwrite #conif_maxBm_rotationtime
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,32' -d , | r.in.xyz input=- output=tmp15 x=1 y=3 z=3 fs=,  --overwrite #nonconif_maxBm_rotationtime
+
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,24' -d , | r.in.xyz input=- output=tmp16 x=1 y=2 z=3 fs=,  --overwrite #conif_cur_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,33' -d , | r.in.xyz input=- output=tmp17 x=1 y=2 z=3 fs=,  --overwrite #nonconif_cur_increment
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,25' -d , | r.in.xyz input=- output=tmp18 x=1 y=2 z=3 fs=,  --overwrite #conif_cur_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,0,/g' | cut -f '3,4,34' -d , | r.in.xyz input=- output=tmp19 x=1 y=2 z=3 fs=,  --overwrite #nonconif_cur_stock
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,26' -d , | r.in.xyz input=- output=tmp20 x=1 y=2 z=3 fs=,  --overwrite #conif_cur_rotationtime
+tail -n+2 /tmp/g4mAlpsScen.csv | sed 's/,,/,-1,/g' | cut -f '3,4,35' -d , | r.in.xyz input=- output=tmp21 x=1 y=3 z=3 fs=,  --overwrite #nonconif_cur_rotationtime
+
+#d.monsize setmonitor=x0 setwidth=1800 setheight=1140
+#d.monsize setmonitor=x0 setwidth=900 setheight=570
+d.monsize setmonitor=x0 setwidth=1410 setheight=700
+
+#Wasserflaechen
+r.mapcalc "delWater = if(waterLandModis30Sec >= 16, 1, 0)"
+echo "1 70:80:200
+0 255:255:255" | r.colors map=delWater color=rules
+
+#Zuwachs maxMai [tc/ha/jahr] maxMai
+r.mapcalc "del1 = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp4 + tmp3*tmp5) / (tmp2+tmp3),0)"
+echo "0 255:255:255
+0.2 255:255:0
+1 0:255:0
+2 0:100:0
+3 0:20:0
+15 0:20:0" |r.colors map=del1 color=rules
+d.frame -e
+d.rast map=delWater
+d.rast map=del1 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/incrementMaxInc.png 
+
+#Zuwachs maxBm [tc/ha/jahr]
+r.mapcalc "del2 = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp10 + tmp3*tmp11) / (tmp2+tmp3),0)"
+r.colors map=del2 rast=del1
+d.frame -e
+d.rast map=delWater
+d.rast map=del2 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del2 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/incrementMaxBm.png 
+
+#Zuwachs cur [tc/ha/jahr]
+r.mapcalc "delCi = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp16 + tmp3*tmp17) / (tmp2+tmp3),0)"
+r.colors map=delCi rast=del1
+
+#Delta Zuwachs maxInc maxBm
+r.mapcalc "del3 = del2 - del1"
+echo "-10 80:0:0
+-2 80:0:0
+-1 255:0:0
+-0.5 255:255:0
+0 255:255:255" |r.colors map=del3 color=rules
+d.frame -e
+d.rast map=delWater
+d.rast map=del3 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del3 range=-2,0
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/incrementDeltaMaxBmMinusMaxInx.png 
+
+
+#Stock maxBm [tc/ha]
+r.mapcalc "del4 = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp12 + tmp3*tmp13) / (tmp2+tmp3),0)"
+echo "0 255:255:255
+2 255:255:0
+40 0:255:0
+80 0:100:0
+120 0:20:0
+600 0:20:0" |r.colors map=del4 color=rules
+d.frame -e
+d.rast map=delWater
+d.rast map=del4 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del4 range=0,120
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/stockMaxBm.png 
+
+#Stock maxInc [tc/ha]
+r.mapcalc "del5 = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp6 + tmp3*tmp7) / (tmp2+tmp3),0)"
+r.colors map=del5 rast=del4
+d.frame -e
+d.rast map=delWater
+d.rast map=del5 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del5 range=0,120
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/stockMaxInc.png 
+
+#Stock cur [tc/ha]
+r.mapcalc "delCs = if(tmp2+tmp3>0,tmp1/gridarea * (tmp2*tmp18 + tmp3*tmp19) / (tmp2+tmp3),0)"
+r.colors map=delCs rast=del4
+
+
+#Delta Stock maxInc maxBm
+r.mapcalc "del6 = del5 - del4"
+echo "-300 80:0:0
+-100 80:0:0
+-50 255:0:0
+-25 255:255:0
+0 255:255:255" |r.colors map=del6 color=rules
+d.frame -e
+d.rast map=delWater
+d.rast map=del6 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del6 range=-100,0
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/stockDeltaMaxBmMinusMaxInx.png 
+
+
+#Umtriebszeit maxBm [Years]
+r.mapcalc "del7 = if(tmp2+tmp3>0, (tmp2*tmp14 + tmp3*tmp15) / (tmp2+tmp3),0)"
+r.null map=del7 setnull=0
+r.colors map=del7 color=rainbow
+d.frame -e
+d.rast map=delWater
+d.rast map=del7 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del7
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/rottimeMaxBm.png
+ 
+#Umtriebszeit maxInc [Years]
+r.mapcalc "del8 = if(tmp2+tmp3>0, (tmp2*tmp8 + tmp3*tmp9) / (tmp2+tmp3),0)"
+r.null map=del8 setnull=0
+#r.colors map=del8 rast=del7
+r.colors map=del8 color=rainbow
+d.frame -e
+d.rast map=delWater
+d.rast map=del8 -o
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del8
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/rottimeMaxInc.png 
+
+
+#Summen fuer alpine Region bilden
+v.proj input=delAlps location=EuropeEqualArea output=delAlps --overwrite
+v.to.rast input=delAlps output=delAlps use=cat
+#increment maxInc 23027752 tC/Year
+r.mapcalc "del = if(tmp2+tmp3>0,delAlps * tmp1/10000 * (tmp2*tmp4 + tmp3*tmp5) / (tmp2+tmp3),0)"
+r.colors map=del color=rainbow
+r.sum rast=del
+#increment maxBm 11405959 tC/Year
+r.mapcalc "del = if(tmp2+tmp3>0,delAlps * tmp1/10000 * (tmp2*tmp10 + tmp3*tmp11) / (tmp2+tmp3),0)"
+r.sum rast=del
+#Stock maxBm 1056933468 tC
+r.mapcalc "del = if(tmp2+tmp3>0,delAlps * tmp1/10000 * (tmp2*tmp12 + tmp3*tmp13) / (tmp2+tmp3),0)"
+r.colors map=del color=rainbow
+r.sum rast=del
+#Stock maxInc 576641084 tC
+r.mapcalc "del = if(tmp2+tmp3>0,delAlps * tmp1/10000 * (tmp2*tmp6 + tmp3*tmp7) / (tmp2+tmp3),0)"
+r.sum rast=del
+#area 25767755 ha
+r.mapcalc "del = delAlps * gridarea / 10000"
+r.sum rast=del
+#forestArea 11460968 ha
+r.mapcalc "del = delAlps * tmp1 / 10000"
+r.sum rast=del
+
+
+
+
+#Fuer Eu waere andere Projektion eher besser
+#grass EuropeEqualArea
+g.region -d
+r.proj input=del1 location=30Sec output=del1 --overwrite
+g.region zoom=del1
+
+v.in.ogr dsn=./shp/AlpineConvention.shp output=delAlps 
+
+r.proj input=delWater location=30Sec output=delWater --overwrite
+r.proj input=del1 location=30Sec output=del1 --overwrite
+r.proj input=del2 location=30Sec output=del2 --overwrite
+r.proj input=del3 location=30Sec output=del3 --overwrite
+r.proj input=del4 location=30Sec output=del4 --overwrite
+r.proj input=del5 location=30Sec output=del5 --overwrite
+r.proj input=del6 location=30Sec output=del6 --overwrite
+r.proj input=del7 location=30Sec output=del7 --overwrite
+r.proj input=del8 location=30Sec output=del8 --overwrite
+r.proj input=delCi location=30Sec output=delCi --overwrite
+r.proj input=delCs location=30Sec output=delCs --overwrite
+
+#v.proj input=countryGadm location=30Sec output=delCountry --overwrite
+r.proj input=countryGadmV1 location=30Sec output=del9 --overwrite
+r.neighbors input=del9 output=tmp2 method=variance size=3 weight=weights.txt --overwrite
+r.mapcalc "tmp3 = if(tmp2 > 0, 1, null())"
+r.thin input=tmp3 output=tmp4 --overwrite
+r.to.vect input=tmp4 output=delCountry --overwrite
+echo "1 0:0:0" | r.colors map=tmp4 color=rules
+
+#d.monsize setmonitor=x0 setwidth=1229 setheight=1093
+#d.monsize setmonitor=x0 setwidth=615 setheight=547
+d.monsize setmonitor=x0 setwidth=1060 setheight=675
+
+tail -n+2 max_biomass_PlantPosition_3.txt | cut -f '2-4' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtBmP --overwrite
+tail -n+2 max_increment_PlantPosition_3.txt | cut -f '2-4' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtIncP --overwrite
+tail -n+2 Current_PlantPosition_3.txt | cut -f '2-4' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtCurP --overwrite
+
+
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del1 -o
+#d.vect map=delAlps type=boundary color=255:100:0 width=3
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtIncP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRincrementMaxInc.png
+r.out.gdal input=del1 format=GTiff type=Float32 output=/tmp/PRincrementMaxInc.tiff createopt="COMPRESS=LZW,PREDICTOR=3"
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del2 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtBmP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del2 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRincrementMaxBm.png 
+r.out.gdal input=del2 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRincrementMaxBm.tiff
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=delCi -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtCurP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del2 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRincrementCur.png 
+r.out.gdal input=delCi format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRincrementCur.tiff
+
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del3 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del3 range=-2,0
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRincrementDeltaMaxBmMinusMaxInx.png 
+r.out.gdal input=del3 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRincrementDeltaMaxBmMinusMaxInx.tiff
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del4 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtBmP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del4 range=0,120
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRstockMaxBm.png
+r.out.gdal input=del4 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRstockMaxBm.tiff
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del5 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtIncP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del5 range=0,120
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRstockMaxInc.png 
+r.out.gdal input=del5 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRstockMaxInc.tiff
+
+d.frame -e
+d.rast map=delWater
+d.rast map=delCs -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.rast map=tmp4 -o
+d.vect map=delPtCurP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del5 range=0,120
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRstockCur.png 
+r.out.gdal input=delCs format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRstockCur.tiff
+
+
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del6 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del6 range=-100,0
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRstockDeltaMaxBmMinusMaxInx.png 
+r.out.gdal input=del6 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRstockDeltaMaxBmMinusMaxInx.tiff
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del7 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del7
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRrottimeMaxBm.png
+r.out.gdal input=del7 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRrottimeMaxBm.tiff
+
+d.frame -e
+d.rast map=delWater
+d.rast map=del8 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del8
+d.out.png output=/tmp/tmpLeg.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert /tmp/a.png /tmp/tmpMap.png -gravity center +append /tmp/PRrottimeMaxInc.png 
+r.out.gdal input=del8 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/PRrottimeMaxInc.tiff
+
+tail -n+2 BiomassSelected_S2013-08-13-14-30-38.txt | cut -f '5 6 10' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtBm --overwrite
+tail -n+2 BiomassSelected_S2013-08-13-14-35-08.txt | cut -f '5 6 10' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtInc --overwrite
+
+tail -n+2 Max_biomass.txt | cut -f '3-5' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtBm --overwrite
+tail -n+2 Max_increment.txt | cut -f '3-5' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtInc --overwrite
+tail -n+2 current_increment.txt | cut -f '3-5' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtCur --overwrite
+
+
+v.db.addcol map=delPtBm columns="GRASSRGB varchar(11)"
+v.db.update map=delPtBm column=GRASSRGB value="255:255:255" where="dbl_3<=3"
+v.db.update map=delPtBm column=GRASSRGB value="255:209:191" where="dbl_3>3"
+v.db.update map=delPtBm column=GRASSRGB value="255:163:128" where="dbl_3>6"
+v.db.update map=delPtBm column=GRASSRGB value="255:118:64" where="dbl_3>9"
+v.db.update map=delPtBm column=GRASSRGB value="255:70:0" where="dbl_3>12"
+
+v.db.addcol map=delPtInc columns="GRASSRGB varchar(11)"
+v.db.update map=delPtInc column=GRASSRGB value="255:255:255" where="dbl_3<=3"
+v.db.update map=delPtInc column=GRASSRGB value="255:209:191" where="dbl_3>3"
+v.db.update map=delPtInc column=GRASSRGB value="255:163:128" where="dbl_3>6"
+v.db.update map=delPtInc column=GRASSRGB value="255:118:64" where="dbl_3>9"
+v.db.update map=delPtInc column=GRASSRGB value="255:70:0" where="dbl_3>12"
+
+v.db.addcol map=delPtCur columns="GRASSRGB varchar(11)"
+v.db.update map=delPtCur column=GRASSRGB value="255:255:255" where="dbl_3<=3"
+v.db.update map=delPtCur column=GRASSRGB value="255:209:191" where="dbl_3>3"
+v.db.update map=delPtCur column=GRASSRGB value="255:163:128" where="dbl_3>6"
+v.db.update map=delPtCur column=GRASSRGB value="255:118:64" where="dbl_3>9"
+v.db.update map=delPtCur column=GRASSRGB value="255:70:0" where="dbl_3>12"
+
+r.mapcalc "delColor = rand(0,5)"
+echo "0 255:255:255
+1 191:191:191
+2 128:128:128
+3 64:64:64
+4 0:0:0" |r.colors map=delColor color=rules
+d.frame -e
+d.legend map=delColor
+
+r.mapcalc "delColor = rand(0,13)"
+echo "0 255:255:255
+3 255:209:191
+6 255:163:128
+9 255:118:64
+12 255:70:0" |r.colors map=delColor color=rules
+d.frame -e
+d.legend map=delColor
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del1 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtInc type=point icon=basic/circle size=14
+d.vect -a map=delPtInc type=point icon=basic/box size=8 color=none
+d.vect map=delPtIncP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,40000
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxInc.png
+r.out.gdal input=del1 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/SyPRincrementMaxInc.tiff
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del2 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtBm type=point icon=basic/circle size=14
+d.vect -a map=delPtBm type=point icon=basic/box size=8 color=none
+d.vect map=delPtBmP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,40000
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxBm.png
+r.out.gdal input=del2 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/SyPRincrementMaxBm.tiff
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=delCi -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtBm type=point icon=basic/circle size=14
+d.vect -a map=delPtCur type=point icon=basic/box size=8 color=none
+d.vect map=delPtCurP type=point color=255:0:255 fcolor=255:0:255 icon=basic/point size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,40000
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementCur.png
+r.out.gdal input=delCi format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/SyPRincrementCur.tiff
+
+
+composite -blend 30 /tmp/PRincrementMaxBm.png /tmp/SyPRincrementMaxBm.png /tmp/BlBm.png
+composite -blend 30 /tmp/PRincrementMaxInc.png /tmp/SyPRincrementMaxInc.png /tmp/BlInc.png
+
+
+
+
+tail -n+2 BiomassSelected_S1_incrementScenario.txt | cut -f '5 6 11' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtInc --overwrite
+tail -n+2 BiomassSelected_S2_BiomassScenario.txt | cut -f '5 6 11' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | sed 's/[\t ]/|/g' | v.in.ascii output=delPtBm --overwrite
+
+v.db.addcol map=delPtBm columns="GRASSRGB varchar(11)"
+v.db.update map=delPtBm column=GRASSRGB value="255:255:255" where="dbl_3<=25"
+v.db.update map=delPtBm column=GRASSRGB value="255:209:191" where="dbl_3>25 and dbl_3<=50"
+v.db.update map=delPtBm column=GRASSRGB value="255:163:128" where="dbl_3>50 and dbl_3<=75"
+v.db.update map=delPtBm column=GRASSRGB value="255:118:64" where="dbl_3>75 and dbl_3<=100"
+v.db.update map=delPtBm column=GRASSRGB value="255:70:0" where="dbl_3>100"
+
+v.db.addcol map=delPtInc columns="GRASSRGB varchar(11)"
+v.db.update map=delPtInc column=GRASSRGB value="255:255:255" where="dbl_3<=25"
+v.db.update map=delPtInc column=GRASSRGB value="255:209:191" where="dbl_3>25 and dbl_3<=50"
+v.db.update map=delPtInc column=GRASSRGB value="255:163:128" where="dbl_3>50 and dbl_3<=75"
+v.db.update map=delPtInc column=GRASSRGB value="255:118:64" where="dbl_3>75 and dbl_3<=100"
+v.db.update map=delPtInc column=GRASSRGB value="255:70:0" where="dbl_3>100"
+
+r.mapcalc "delColor = rand(0,142000)/1000."
+echo "0 255:255:255
+25 255:209:191
+50 255:163:128
+75 255:118:64
+100 255:70:0
+145 255:70:0" |r.colors map=delColor color=rules
+d.frame -e
+d.legend map=delColor
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del1 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtInc type=point icon=basic/circle size=14
+d.vect -a map=delPtInc type=point icon=basic/box size=30
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,100
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxInc.png
+r.out.gdal input=del1 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/SyPRincrementMaxInc.tiff
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del2 -o
+d.vect map=delAlps type=boundary color=0:0:255 width=5
+d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtBm type=point icon=basic/circle size=14
+d.vect -a map=delPtBm type=point icon=basic/box size=14
+d.out.png output=/tmp/tmpMap.png res=1
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,100
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxBm.png
+r.out.gdal input=del1 format=GTiff type=Float32 createopt="COMPRESS=LZW,PREDICTOR=3" output=/tmp/SyPRincrementMaxInc.tiff
+
+composite -blend 30 /tmp/PRincrementMaxBm.png /tmp/SyPRincrementMaxBm.png /tmp/BlBm.png
+composite -blend 30 /tmp/PRincrementMaxInc.png /tmp/SyPRincrementMaxInc.png /tmp/BlInc.png
+
+
+
+
+tail -n+2 BiomassSelected_S1_incrementScenario.txt | cut -f '5 6 11' | awk '{print $1-0.12,$2-0.12,$3; print $1+0.12,$2-0.12,$3; print $1+0.12,$2+0.12,$3; print $1-0.12,$2+0.12,$3; print $1-0.12,$2-0.12,$3; print $1,$2,$3;}' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | ./verti.pl | v.in.ascii output=delPtInc format=standard --overwrite
+tail -n+2 BiomassSelected_S2_BiomassScenario.txt | cut -f '5 6 11' | awk '{print $1-0.12,$2-0.12,$3; print $1+0.12,$2-0.12,$3; print $1+0.12,$2+0.12,$3; print $1-0.12,$2+0.12,$3; print $1-0.12,$2-0.12,$3; print $1,$2,$3;}' | cs2cs +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +to +proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs | ./verti.pl | v.in.ascii output=delPtBm format=standard --overwrite
+
+v.db.addtable map=delPtBm
+v.db.addtable map=delPtInc
+
+v.db.addcol map=delPtBm columns="GRASSRGB varchar(11)"
+v.db.update map=delPtBm column=GRASSRGB value="255:255:255" where="cat<=25"
+v.db.update map=delPtBm column=GRASSRGB value="255:209:191" where="cat>25 and cat<=50"
+v.db.update map=delPtBm column=GRASSRGB value="255:163:128" where="cat>50 and cat<=75"
+v.db.update map=delPtBm column=GRASSRGB value="255:118:64" where="cat>75 and cat<=100"
+v.db.update map=delPtBm column=GRASSRGB value="255:70:0" where="cat>100"
+
+v.db.addcol map=delPtInc columns="GRASSRGB varchar(11)"
+v.db.update map=delPtInc column=GRASSRGB value="255:255:255" where="cat<=25"
+v.db.update map=delPtInc column=GRASSRGB value="255:209:191" where="cat>25 and cat<=50"
+v.db.update map=delPtInc column=GRASSRGB value="255:163:128" where="cat>50 and cat<=75"
+v.db.update map=delPtInc column=GRASSRGB value="255:118:64" where="cat>75 and cat<=100"
+v.db.update map=delPtInc column=GRASSRGB value="255:70:0" where="cat>100"
+
+r.mapcalc "delColor = rand(0,142000)/1000."
+echo "0 255:255:255
+25 255:209:191
+50 255:163:128
+75 255:118:64
+100 255:70:0
+145 255:70:0" |r.colors map=delColor color=rules
+d.frame -e
+d.legend map=delColor
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del1 -o
+#d.vect map=delAlps type=boundary color=0:0:255 width=5
+#d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtInc type=area
+#d.out.png output=/tmp/tmpMap.png res=1
+d.vect map=delAlps type=boundary color=0:0:255 width=20
+d.vect map=delCountry type=line color=0:0:0 width=8
+d.vect -a map=delPtInc type=area width=4
+d.out.png output=/tmp/tmpMapt.png res=4
+#convert /tmp/tmpMapt.png -resize 25% /tmp/tmpMap.png
+convert /tmp/tmpMapt.png -scale 25% /tmp/tmpMap.png
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,100
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxInc.png
+
+####
+d.frame -e
+d.rast map=delWater
+d.rast map=del2 -o
+#d.vect map=delAlps type=boundary color=0:0:255 width=5
+#d.vect map=delCountry type=line color=0:0:0 width=2
+#d.vect -a map=delPtBm type=point icon=basic/box size=14
+#d.out.png output=/tmp/tmpMap.png res=1
+d.vect map=delAlps type=boundary color=0:0:255 width=20
+d.vect map=delCountry type=line color=0:0:0 width=8
+d.vect -a map=delPtBm type=area  width=4
+d.out.png output=/tmp/tmpMapt.png res=4
+#convert /tmp/tmpMapt.png -resize 25% /tmp/tmpMap.png
+convert /tmp/tmpMapt.png -scale 25% /tmp/tmpMap.png
+d.frame -e
+d.legend map=del1 range=0,3
+d.out.png output=/tmp/tmpLeg.png res=1
+d.frame -e
+d.legend map=delColor range=0,100
+d.out.png output=/tmp/tmpLeg2.png res=1
+convert -trim /tmp/tmpLeg.png /tmp/a.png
+convert -trim /tmp/tmpLeg2.png /tmp/b.png
+convert /tmp/a.png /tmp/tmpMap.png /tmp/b.png -gravity center +append /tmp/SyPRincrementMaxBm.png
+
+composite -blend 10 /tmp/PRincrementMaxBm.png /tmp/SyPRincrementMaxBm.png /tmp/BlBm.png
+composite -blend 10 /tmp/PRincrementMaxInc.png /tmp/SyPRincrementMaxInc.png /tmp/BlInc.png

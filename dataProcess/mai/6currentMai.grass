@@ -1,0 +1,20 @@
+#grass 30Sec
+g.region n=90N s=90S w=180W e=180E res=0:00:30
+ 
+r.mapcalc "nppG4mCurrent2010 = (max(nppG4mBorealDeciduousBroadleaf,nppG4mSubtropicalDeciduousBroadleaf,nppG4mTropicalDeciduousBroadleaf,nppG4mTemperateDeciduousBroadleaf) * type_DeciduousBroadleafForest_g4m_cut + max(nppG4mBorealDeciduousNeedleleaf,nppG4mTemperateDeciduousNeedleleaf) * type_DeciduousNeedleleafForest_g4m_cut + max(nppG4mSubtropicalEvergreenBroadleaf,nppG4mTropicalEvergreenBroadleaf,nppG4mTemperateEvergreenBroadleaf) * type_EvergreenBroadleafForest_g4m_cut + max(nppG4mSubtropicalEvergreenNeedleleaf,nppG4mTropicalEvergreenNeedleleaf,nppG4mTemperateEvergreenNeedleleaf) * type_EvergreenNeedleleafForest_g4m_cut) / (type_DeciduousBroadleafForest_g4m_cut + type_DeciduousNeedleleafForest_g4m_cut + type_EvergreenBroadleafForest_g4m_cut + type_EvergreenNeedleleafForest_g4m_cut)"
+
+r.mapcalc "nppG4mCurrent2010irri = (max(nppG4mBorealDeciduousBroadleafIrri,nppG4mSubtropicalDeciduousBroadleafIrri,nppG4mTropicalDeciduousBroadleafIrri,nppG4mTemperateDeciduousBroadleafIrri) * type_DeciduousBroadleafForest_g4m_cut + max(nppG4mBorealDeciduousNeedleleafIrri,nppG4mTemperateDeciduousNeedleleafIrri) * type_DeciduousNeedleleafForest_g4m_cut + max(nppG4mSubtropicalEvergreenBroadleafIrri,nppG4mTropicalEvergreenBroadleafIrri,nppG4mTemperateEvergreenBroadleafIrri) * type_EvergreenBroadleafForest_g4m_cut + max(nppG4mSubtropicalEvergreenNeedleleafIrri,nppG4mTropicalEvergreenNeedleleafIrri,nppG4mTemperateEvergreenNeedleleafIrri) * type_EvergreenNeedleleafForest_g4m_cut) / (type_DeciduousBroadleafForest_g4m_cut + type_DeciduousNeedleleafForest_g4m_cut + type_EvergreenBroadleafForest_g4m_cut + type_EvergreenNeedleleafForest_g4m_cut)"
+
+r.mapcalc "nppG4mMax2010 = max(nppG4mBorealDeciduousBroadleaf,nppG4mSubtropicalDeciduousBroadleaf,nppG4mTropicalDeciduousBroadleaf,nppG4mTemperateDeciduousBroadleaf,nppG4mBorealDeciduousNeedleleaf,nppG4mTemperateDeciduousNeedleleaf,nppG4mSubtropicalEvergreenBroadleaf,nppG4mTropicalEvergreenBroadleaf,nppG4mTemperateEvergreenBroadleaf,nppG4mSubtropicalEvergreenNeedleleaf,nppG4mTropicalEvergreenNeedleleaf,nppG4mTemperateEvergreenNeedleleaf)"
+
+r.mapcalc "nppG4mMax2010irri = max(nppG4mBorealDeciduousBroadleafIrri,nppG4mSubtropicalDeciduousBroadleafIrri,nppG4mTropicalDeciduousBroadleafIrri,nppG4mTemperateDeciduousBroadleafIrri,nppG4mBorealDeciduousNeedleleafIrri,nppG4mTemperateDeciduousNeedleleafIrri,nppG4mSubtropicalEvergreenBroadleafIrri,nppG4mTropicalEvergreenBroadleafIrri,nppG4mTemperateEvergreenBroadleafIrri,nppG4mSubtropicalEvergreenNeedleleafIrri,nppG4mTropicalEvergreenNeedleleafIrri,nppG4mTemperateEvergreenNeedleleafIrri)" &
+
+r.mapcalc "maiG4mCurrent2010 = 0.35*nppG4mCurrent2010" &
+r.mapcalc "maiG4mCurrent2010irri = 0.35*nppG4mCurrent2010irri" &
+r.mapcalc "maiG4mMax2010 = 0.35*nppG4mMax2010" &
+r.mapcalc "maiG4mMax2010irri = 0.35*nppG4mMax2010irri" &
+
+r.out.gdal input=maiG4mCurrent2010 format=GTiff type=Float32 output=maiG4mCurrent2010.tif createopt=COMPRESS=LZW &
+r.out.gdal input=maiG4mCurrent2010irri format=GTiff type=Float32 output=maiG4mCurrent2010irri.tif createopt=COMPRESS=LZW &
+r.out.gdal input=maiG4mMax2010 format=GTiff type=Float32 output=maiG4mMax2010.tif createopt=COMPRESS=LZW &
+r.out.gdal input=maiG4mMax2010irri format=GTiff type=Float32 output=maiG4mMax2010irri.tif createopt=COMPRESS=LZW &

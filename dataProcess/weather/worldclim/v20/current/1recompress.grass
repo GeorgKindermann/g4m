@@ -1,0 +1,29 @@
+#grass 30Sec
+
+r.in.gdal input=/tmp/wc2.0_30s_prec_07.tif output=del --overwrite
+g.region zoom=del
+g.region s=60s
+
+month=(01 02 03 04 05 06 07 08 09 10 11 12)
+for mon in ${month[*]}; do
+  r.in.gdal input=/tmp/wc2.0_30s_prec_$mon.tif output=del --overwrite
+  g.region zoom=del
+  r.colors map=del color=precipitation_monthly
+  r.out.gdal input=del format=GTiff type=Int16 output=prec$mon.tif createopt=COMPRESS=DEFLATE,PREDICTOR=2
+done
+
+for mon in ${month[*]}; do
+  r.in.gdal input=/tmp/wc2.0_30s_tavg_$mon.tif output=del --overwrite
+  g.region zoom=del
+  r.colors map=del color=celsius
+  r.out.gdal input=del format=GTiff type=Float32 output=tavg$mon.tif createopt=COMPRESS=LZMA,NUM_THREADS=7
+done
+
+for mon in ${month[*]}; do
+  r.in.gdal input=/tmp/wc2.0_30s_srad_$mon.tif output=del --overwrite
+  g.region zoom=del
+  r.colors map=del color=grey
+  r.out.gdal input=del format=GTiff type=UInt16 output=srad$mon.tif createopt=COMPRESS=LZMA,NUM_THREADS=7
+done
+
+g.remove -f type=raste pattern="del*"

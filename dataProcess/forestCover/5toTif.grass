@@ -1,0 +1,74 @@
+#grass 30Sec
+
+r.in.ascii input=/tmp/area.asc output=forestCoverG4mCalib2015 --overwrite
+r.in.ascii input=/tmp/irri.asc output=forestCoverG4mIrri2015 --overwrite
+
+r.colors map=forestCoverG4mCalib2015 color=rainbow
+r.colors map=forestCoverG4mIrri2015 color=rainbow
+
+r.info map=forestCoverG4mCalib2015
+r.info map=forestCoverG4mIrri2015
+
+
+g.region rast=forestCoverG4mCalib2015
+r.mapcalc "tmp = gridarea * forestCoverG4mIrri2015 / 100."
+r.mapcalc "tmp = gridarea * forestCoverG4mCalib2015 / 100."
+r.sum rast=tmp
+g.remove rast=tmp
+
+3586596313 .. irri [m2]
+39724252093018 .. forest not irri [m2]
+39727838689331 .. forest [m2]
+
+#387468 .. irigated forest area
+#4041690912 .. forest area
+#51006562768 .. surface area
+#35080373495 .. water area
+
+g.region rast=forestCoverG4mCalib2010
+r.mapcalc "tmp = forestCoverG4mCalib2015+forestCoverG4mIrri2015 - 100.*(1. - waterLandModis30Sec/16.)"
+r.info map=tmp
+g.remove rast=tmp
+
+r.out.gdal input=forestCoverG4mCalib2015 format=GTiff type=Byte output=forestCoverG4mCalib2015.tif createopt=COMPRESS=LZW
+r.out.gdal input=forestCoverG4mIrri2015 format=GTiff type=Byte output=forestCoverG4mIrri2015.tif createopt=COMPRESS=LZW
+
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+r.colors map=del color=rainbow
+g.region w=180w e=180e n=90n s=90s
+r.mapcalc "del2 = forestCoverG4mCalib2010+forestCoverG4mIrri2010"
+
+r.out.xyz input=del2,countryGadmV1,del,waterLandModis30Sec,forestCoverG4mCalib2010,forestCoverG4mIrri2010 | cut -f 3- -d \| | grep -v '^0|' | cut -f 2- -d \| | sed 's/|/\t/g' >/tmp/testData.txt
+g.remove rast=del,del2
+
+
+
+### 2000 ###
+
+r.in.ascii input=/tmp/area.asc output=forestCoverG4mCalib2000 --overwrite
+r.in.ascii input=/tmp/irri.asc output=forestCoverG4mIrri2000 --overwrite
+
+r.colors map=forestCoverG4mCalib2000 color=rainbow
+r.colors map=forestCoverG4mIrri2000 color=rainbow
+
+r.info map=forestCoverG4mCalib2000
+r.info map=forestCoverG4mIrri2000
+
+g.region rast=forestCoverG4mCalib2000
+r.mapcalc "tmp = gridarea * forestCoverG4mIrri2000 / 100."
+r.mapcalc "tmp = gridarea * forestCoverG4mCalib2000 / 100."
+r.sum rast=tmp
+g.remove rast=tmp
+
+3445470750 .. irri [m2]
+40122593219672 .. forest not irri [m2]
+40126038690422 .. forest [m2]
+
+r.out.gdal input=forestCoverG4mCalib2000 format=GTiff type=Byte output=forestCoverG4mCalib2000.tif createopt=COMPRESS=LZW
+r.out.gdal input=forestCoverG4mIrri2000 format=GTiff type=Byte output=forestCoverG4mIrri2000.tif createopt=COMPRESS=LZW

@@ -1,0 +1,101 @@
+#grass 30Sec
+#bash <2arrangeData.grass
+
+for FILENAME in dat_gfdl-esm2m_rcp2p6.txt dat_ipsl-cm5a-lr_rcp2p6.txt dat_gfdl-esm2m_rcp8p5.txt dat_ipsl-cm5a-lr_rcp8p5.txt dat_hadgem2-es_rcp2p6.txt dat_miroc-esm-chem_rcp2p6.txt dat_hadgem2-es_rcp4p5.txt dat_miroc-esm-chem_rcp8p5.txt dat_hadgem2-es_rcp6p0.txt dat_noresm1-m_rcp2p6.txt dat_hadgem2-es_rcp8p5.txt dat_noresm1-m_rcp8p5.txt
+do
+
+cp $FILENAME dat.txt
+
+g.mremove -f rast=del*
+
+g.region -d
+g.region res=0:30
+d.monsize setmonitor=x0 setwidth=720 setheight=360
+
+i=3
+for monat in {01..12}; do
+  for jahr in 2000 2020 2050 2085 2100; do
+    cut -d ' ' -f "1 2 $i" dat.txt | awk '!/NA/' | r.in.xyz input=- output=del${monat}t${jahr} fs=' ' x=2 y=1 z=3 --overwrite #1t2000
+    r.mapcalc "del${monat}t${jahr} = del${monat}t${jahr} - 273.15"
+    r.colors map=del${monat}t${jahr} color=celsius
+    d.frame -e
+    d.rast bg=grey map=del${monat}t${jahr}
+    d.legend del${monat}t${jahr} at=1,75,0.5,3.5 color=black
+    echo Temperature Month:$monat Year:$jahr [C] | d.text at=12,2 color=black
+    #d.out.png output=/tmp/map${monat}t${jahr}.png res=1
+    cut -d ' ' -f "1 2 $[i+5]" dat.txt | awk '!/NA/' | r.in.xyz input=- output=del${monat}p${jahr} fs=' ' x=2 y=1 z=3 --overwrite #1t2000
+    r.colors map=del${monat}p${jahr} color=precipitation_monthly
+    d.frame -e
+    d.rast bg=grey map=del${monat}p${jahr}
+    d.legend del${monat}p${jahr} at=1,75,0.5,3.5 color=black
+    echo Precipitation Month:$monat Year:$jahr [mm/30 Days] | d.text at=12,2 color=black
+    #d.out.png output=/tmp/map${monat}p${jahr}.png res=1
+    ((i++))
+  done
+  i=$[i+5]
+done
+
+for monat in {01..12}; do
+  for jahr in 2020 2050 2085; do
+    r.mapcalc "del = del${monat}t${jahr} - del${monat}t2000"
+    r.colors map=del color=differences
+    d.frame -e
+    d.rast bg=grey map=del
+    d.legend del at=1,75,0.5,3.5 color=black
+    echo dTemperature Month:$monat Year:$jahr-2000 [C] | d.text at=12,2 color=black
+    #d.out.png output=/tmp/map${monat}dt${jahr}_2000.png res=1
+    r.mapcalc "del = del${monat}p${jahr} - del${monat}p2000"
+    r.colors map=del color=differences
+    d.frame -e
+    d.rast bg=grey map=del
+    d.legend del at=1,75,0.5,3.5 color=black
+    echo rPrecipitation Month:$monat Year:$jahr-2000 [mm/30 Days] | d.text at=12,2 color=black
+    #d.out.png output=/tmp/map${monat}dp${jahr}_2000.png res=1
+  done
+done
+
+#fill gaps
+for monat in {01..12}; do
+  for jahr in 2000 2020 2050 2085 2100; do
+    r.surf.idw input=del${monat}t${jahr} output=del${monat}t${jahr} --overwrite
+    r.surf.idw input=del${monat}p${jahr} output=del${monat}p${jahr} --overwrite
+  done
+done
+
+#Low res average of worldClim
+for monat in {01..12}; do
+   r.resamp.stats input=tmean${monat} output=delT${monat} method=average --overwrite &
+   r.resamp.stats input=prec${monat} output=delP${monat} method=average --overwrite
+done
+
+g.region -d
+
+r.mapcalc "delrow = row()" &
+r.mapcalc "delcol = col()" &
+
+for jahr in 2000 2020 2050 2085 2100; do
+for monat in {01..12}; do
+  r.mapcalc "tmpt${monat} = round((tmean${monat} - delT${monat} + 10*del${monat}t${jahr}))" &
+
+  r.mapcalc "tmpp${monat} = round(prec${monat} - delP${monat} + del${monat}p${jahr})"
+  r.mapcalc "tmpp${monat} = if(tmpp${monat} < 0, 0, tmpp${monat})" &
+done
+#
+wait
+r.out.xyz input=delrow,delcol,tmpt01,tmpt02,tmpt03,tmpt04,tmpt05,tmpt06,tmpt07,tmpt08,tmpt09,tmpt10,tmpt11,tmpt12,tmpp01,tmpp02,tmpp03,tmpp04,tmpp05,tmpp06,tmpp07,tmpp08,tmpp09,tmpp10,tmpp11,tmpp12 fs=' ' | cut -d ' ' -f '3-' >/data/tmp/w_dat_${jahr}.txt
+done
+
+g.mremove -f rast=del*
+g.mremove -f rast=tmp*
+
+/data/g4gm/data/1combine /data/tmp/w_dat.bin /data/g4gm/data/rest/r2010.txt /data/tmp/w_dat_2000.txt /data/tmp/w_dat_2020.txt /data/tmp/w_dat_2050.txt /data/tmp/w_dat_2085.txt /data/tmp/w_dat_2100.txt
+
+./4g4gm /data/tmp/w_dat.bin >/data/tmp/g4m_${FILENAME}.csv
+
+done
+
+#shutdown -h now
+
+#  r.mapcalc "tmpt${monat} = tmean${monat} + del${monat}t${jahr} - del${monat}t2000" &
+#  r.mapcalc "tmpp${monat} = prec${monat} * if(float(del${monat}p${jahr}) / del${monat}p2000 < 0.2, 0.2, if(float(del${monat}p${jahr}) / del${monat}p2000 > 3, 3, float(del${monat}p${jahr}) / del${monat}p2000))"
+#  r.mapcalc "tmpp${monat} = if(prec${monat} / del${monat}p${jahr} >= 1, prec${monat}, del${monat}p${jahr})

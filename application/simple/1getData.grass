@@ -1,0 +1,59 @@
+#grass 30Min
+
+#if you dont have bash, you can import it in python...(not tested)
+#python
+#import os
+#os.system ("bash")
+
+
+g.region n=90n s=90s w=180w e=180e res=0:30
+
+#Forestype-0
+r.in.gdal input=./data/type_DeciduousBroadleafForest_g4m_base30.tif output=del0_0 --overwrite
+r.in.gdal input=./data/type_DeciduousNeedleleafForest_g4m_base30.tif output=del0_1 --overwrite
+r.in.gdal input=./data/type_EvergreenBroadleafForest_g4m_base30.tif output=del0_2 --overwrite
+r.in.gdal input=./data/type_EvergreenNeedleleafForest_g4m_base30.tif output=del0_3 --overwrite
+
+#soilIiasaFao90-4
+r.in.gdal input=./data/soilFAO90G4m30.tif output=del4 --overwrite
+
+#soilIiasaSwr-5
+r.in.gdal input=./data/soilSwr30.tif output=del5 --overwrite
+r.null map=del5 null=-1
+
+#soilIiasaAwc-6
+r.in.gdal input=./data/soilAcwG4m30.tif output=del6 --overwrite
+r.null map=del6 null=-1
+
+#elevation-7
+r.in.gdal input=./data/demGtopo30.tif output=del7 --overwrite
+
+#prec8_1-12
+month=(01 02 03 04 05 06 07 08 09 10 11 12)
+for mon in ${month[*]}; do
+  r.in.gdal input=./data/prec${mon}30.tif output=del8_$mon --overwrite
+done
+
+#temp9_1-12
+for mon in ${month[*]}; do
+  r.in.gdal input=./data/tavg${mon}30.tif output=del9_$mon --overwrite
+done
+
+#radi10_1-12
+for mon in ${month[*]}; do
+  r.in.gdal input=./data/srad${mon}30.tif output=del10_$mon --overwrite
+done
+
+r.in.gdal input=./data/waterLandModis30Sec30.tif output=del0 --overwrite
+
+g.region n=90n s=60s w=180w e=180e res=0:30
+r.mapcalc "del1 = row()" --overwrite
+r.mapcalc "del2 = col()" --overwrite
+r.mapcalc "del3 = if(del0 == 16, null(), del0)" --overwrite
+r.out.xyz input=del1,del2,del3,del0_0,del0_1,del0_2,del0_3,del4,del5,del6,del7,del8_01,del8_02,del8_03,del8_04,del8_05,del8_06,del8_07,del8_08,del8_09,del8_10,del8_11,del8_12,del9_01,del9_02,del9_03,del9_04,del9_05,del9_06,del9_07,del9_08,del9_09,del9_10,del9_11,del9_12,del10_01,del10_02,del10_03,del10_04,del10_05,del10_06,del10_07,del10_08,del10_09,del10_10,del10_11,del10_12 separator="\\t" >./result/baseData30.txt
+
+g.remove -f type=raste pattern="del*"
+
+
+#if you dont have bash, you can import it in python...(not tested)
+#exit

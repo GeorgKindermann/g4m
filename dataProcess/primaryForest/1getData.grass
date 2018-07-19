@@ -1,0 +1,190 @@
+#grass 30Sec
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#landarea
+r.mapcalc "del2 = round(del * (16 - waterLandModis30Sec)/16.)"
+
+#forest share
+r.mapcalc "del3 = forestCoverG4mCalib2015 + forestCoverG4mIrri2015"
+
+
+r.info map=countryGadmV1G4m
+r.info map=del2
+r.info map=del3
+r.info map=ciesinHf
+r.in.gdal input=./Human_impact/human_impact_2.tif output=del4 --overwrite
+r.info map=del4
+r.null map=del4 setnull=128
+r.grow input=del4 output=del4 --overwrite
+r.mapcalc "del4 = if(isnull(del4), ciesinHf, del4)"
+
+
+r.out.bin input=countryGadmV1G4m output=/tmp/country.bin bytes=1 &
+r.out.bin input=del3 output=/tmp/forest.bin bytes=1 &
+#r.out.bin input=ciesinHf output=/tmp/humanFoot.bin bytes=1 &
+r.out.bin input=del4 output=/tmp/humanFoot.bin bytes=1 &
+r.out.bin input=del2 output=/tmp/landarea.bin bytes=4 &
+
+
+g.remove rast=del,del2,del3,del4
+
+
+./3manForest
+r.in.bin input=/tmp/manFor.bin output=del bytes=1 rows=21600 cols=43200 north=90N south=90S west=180W east=180E --overwrite
+r.null map=del null=0
+r.null map=del setnull=255
+r.info map=del
+r.colors map=del color=gyr
+#Mit Aufloesung herrunter und dann flaechig fuellen
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+#Flaechig fuellen
+r.surf.idw input=del output=del2 --overwrite
+#Und wieder auf hohe aufloesung smoothen
+g.region n=89n s=89s w=180w e=180w res=0:00:30
+r.resamp.interp input=del2 output=del3 method=bilinear --overwrite
+#In feiner Aufloesung einsetzen
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+r.mapcalc "managedForestG4M2015 = round(if(waterLandModis30Sec < 16, if(isnull(del), del3, del), null()))"
+r.info map=managedForestG4M2015
+r.colors map=managedForestG4M2015 color=gyr
+
+r.out.gdal input=managedForestG4M2015 format=GTiff type=Byte output=managedForestG4M2015.tif createopt=COMPRESS=LZW,PREDICTOR=2
+
+r.mapcalc "primaryForestG4M2015 = 100 - managedForestG4M2015"
+r.colors map=primaryForestG4M2015 color=ryg
+r.out.gdal input=primaryForestG4M2015 format=GTiff type=Byte output=primaryForestG4M2015.tif createopt=COMPRESS=LZW,PREDICTOR=2
+
+
+
+r.mapcalc "t1 = primaryForestG4M2015/100. * (forestCoverG4mCalib2015 + forestCoverG4mIrri2015)" &
+r.mapcalc "t2 = (100 - primaryForestG4M2015)/100. * (forestCoverG4mCalib2015 + forestCoverG4mIrri2015)" &
+
+echo "0 255:255:255
+70 0:255:0
+100 0:80:0" | r.colors map=t1 color=rules
+r.colors map=t2 rast=t1
+
+echo "0 0:0:0
+10 60:60:200
+16 60:60:200" | r.colors map=waterLandModis30Sec color=rules
+
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+r.resamp.stats input=t1 output=t3 method=average --overwrite &
+r.resamp.stats input=t2 output=t4 method=average --overwrite &
+g.region zoom=t3
+d.monsize setmonitor=x0 setwidth=719 setheight=296
+d.frame -e
+d.rast map=waterLandModis30Sec
+d.rast map=t3 -o
+d.out.png output=/tmp/primary.png res=1
+d.frame -e
+d.rast map=waterLandModis30Sec
+d.rast map=t4 -o
+d.out.png output=/tmp/notPrimary.png res=1
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+
+g.remove rast=t1,t2,t3,t4
+
+
+
+### 2000 ###
+#grass 30Sec
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#landarea
+r.mapcalc "del2 = round(del * (16 - waterLandModis30Sec)/16.)"
+
+#forest share
+r.mapcalc "del3 = forestCoverG4mCalib2000 + forestCoverG4mIrri2000"
+
+
+r.info map=countryGadmV1G4m
+r.info map=del2
+r.info map=del3
+r.info map=ciesinHf
+r.in.gdal input=./Human_impact/human_impact_2.tif output=del4 --overwrite
+r.info map=del4
+r.null map=del4 setnull=128
+r.grow input=del4 output=del4 --overwrite
+r.mapcalc "del4 = if(isnull(del4), ciesinHf, del4)"
+
+
+r.out.bin input=countryGadmV1G4m output=/tmp/country.bin bytes=1 &
+r.out.bin input=del3 output=/tmp/forest.bin bytes=1 &
+#r.out.bin input=ciesinHf output=/tmp/humanFoot.bin bytes=1 &
+r.out.bin input=del4 output=/tmp/humanFoot.bin bytes=1 &
+r.out.bin input=del2 output=/tmp/landarea.bin bytes=4 &
+
+
+g.remove rast=del,del2,del3,del4
+
+
+./3manForest
+r.in.bin input=/tmp/manFor.bin output=del bytes=1 rows=21600 cols=43200 north=90N south=90S west=180W east=180E --overwrite
+r.null map=del null=0
+r.null map=del setnull=255
+r.info map=del
+r.colors map=del color=gyr
+#Mit Aufloesung herrunter und dann flaechig fuellen
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+#Flaechig fuellen
+r.surf.idw input=del output=del2 --overwrite
+#Und wieder auf hohe aufloesung smoothen
+g.region n=89n s=89s w=180w e=180w res=0:00:30
+r.resamp.interp input=del2 output=del3 method=bilinear --overwrite
+#In feiner Aufloesung einsetzen
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+r.mapcalc "managedForestG4M2000 = round(if(waterLandModis30Sec < 16, if(isnull(del), del3, del), null()))"
+r.info map=managedForestG4M2000
+r.colors map=managedForestG4M2000 color=gyr
+
+r.out.gdal input=managedForestG4M2000 format=GTiff type=Byte output=managedForestG4M2000.tif createopt=COMPRESS=LZW,PREDICTOR=2
+
+r.mapcalc "primaryForestG4M2000 = 100 - managedForestG4M2000"
+r.colors map=primaryForestG4M2000 color=ryg
+r.out.gdal input=primaryForestG4M2000 format=GTiff type=Byte output=primaryForestG4M2000.tif createopt=COMPRESS=LZW,PREDICTOR=2
+
+
+
+r.mapcalc "t1 = primaryForestG4M2000/100. * (forestCoverG4mCalib2000 + forestCoverG4mIrri2000)" &
+r.mapcalc "t2 = (100 - primaryForestG4M2000)/100. * (forestCoverG4mCalib2000 + forestCoverG4mIrri2000)" &
+
+echo "0 255:255:255
+70 0:255:0
+100 0:80:0" | r.colors map=t1 color=rules
+r.colors map=t2 rast=t1
+
+echo "0 0:0:0
+10 60:60:200
+16 60:60:200" | r.colors map=waterLandModis30Sec color=rules
+
+g.region n=90n s=90s w=180w e=180w res=0:30:00
+r.resamp.stats input=t1 output=t3 method=average --overwrite &
+r.resamp.stats input=t2 output=t4 method=average --overwrite &
+g.region zoom=t3
+d.monsize setmonitor=x0 setwidth=719 setheight=296
+d.frame -e
+d.rast map=waterLandModis30Sec
+d.rast map=t3 -o
+d.out.png output=/tmp/primary.png res=1
+d.frame -e
+d.rast map=waterLandModis30Sec
+d.rast map=t4 -o
+d.out.png output=/tmp/notPrimary.png res=1
+g.region n=90n s=90s w=180w e=180w res=0:00:30
+
+g.remove rast=t1,t2,t3,t4

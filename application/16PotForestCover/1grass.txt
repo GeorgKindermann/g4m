@@ -1,0 +1,325 @@
+#grass 30sec
+g.region -d
+
+r.in.gdal input=/home/georg/13/g4mData/npp/maiG4mMax2010.tif output=tmp1 --overwrite &
+r.in.gdal input=/home/georg/13/g4mData/npp/maiG4mMax2010irri.tif output=tmp2 --overwrite
+
+wait
+
+r.out.xyz input=tmp1,tmp2 fs=' '| awk '{printf "%.4f %.4f %.3g %.3g\n", $1, $2, $3, $4}' >/data/tmp/g4mInData.txt
+
+g.mremove -f rast=tmp*
+
+
+#time ./2g4gm /data/tmp/g4mInData.txt >/data/tmp/g4mOutBm.txt
+
+
+#derzeitiger Waldanteil [%] = forestCoverG4mIrri2000 + forestCoverG4mCalib2010
+r.mapcalc "del0 = forestCoverG4mIrri2015 + forestCoverG4mCalib2015"
+r.mapcalc "del0 = if(waterLandModis30Sec<16, del0, null())"
+
+#derzeitige Waldflaeche [ha/grid]
+r.mapcalc "del = (forestCoverG4mIrri2015 + forestCoverG4mCalib2015) / 100. * gridsize /10000."
+r.sum rast=del  #3972783869
+
+#pottentieller Waldanteil [%]
+r.mapcalc "del = if(maiG4mMax2010>0., (16 - waterLandModis30Sec)/16. * 100, 0.)"
+r.mapcalc "del1 = if(del< (forestCoverG4mIrri2015 + forestCoverG4mCalib2015),(forestCoverG4mIrri2015 + forestCoverG4mCalib2015), del)"
+
+r.mapcalc "del = del1 / 100. * gridsize /10000."
+r.sum rast=del  #9948292641
+
+
+#estimated stem BM
+#pioneer species
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del2 fs=' ' x=1 y=2 z=3 --overwrite
+#average species
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del3 fs=' ' x=1 y=2 z=4 --overwrite
+#verl long rotation species
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del4 fs=' ' x=1 y=2 z=5 --overwrite
+#the same but with irrigation
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del5 fs=' ' x=1 y=2 z=6 --overwrite
+#average species
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del6 fs=' ' x=1 y=2 z=7 --overwrite
+#verl long rotation species
+tail -n+2 /data/tmp/g4mOutBm.txt | r.in.xyz input=- output=del7 fs=' ' x=1 y=2 z=8 --overwrite
+
+
+r.in.gdal input=~/16/g4m/biomassmap/cAg_ha.tif output=del8 --overwrite
+r.in.gdal input=~/16/g4m/biomassmap/cBg_ha.tif output=del9 --overwrite
+r.in.gdal input=~/16/g4m/primaryForest/primaryForestG4M2015.tif output=del10 --overwrite
+r.in.gdal input=~/16/g4m/csoil/2015/soilc_ha.tif output=del11 --overwrite
+
+
+g.region n=84 s=-64 res=0:15
+r.out.xyz input=del0 | sed 's/|/ /g' | cut -d ' ' -f 1,2 | r.what input=del0,del3,del8,del10 fs=, null=NA >/tmp/bmComp.csv
+
+
+
+#
+g.region -d
+g.region n=84 s=-64 res=0:15
+d.monsize setmonitor=x0 setwidth=1440 setheight=592
+
+#current forest share
+r.resamp.stats input=del0 output=tmp --overwrite
+
+echo "0 255:255:255
+50 0:255:0
+100 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,100 color=black
+echo Current Forest share [%] | d.text at=8,2 color=black
+d.out.png output=/tmp/pCurrentForestShare.png res=1
+
+#potential forest share
+r.resamp.stats input=del1 output=tmp --overwrite
+echo "0 255:255:255
+50 0:255:0
+100 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,100 color=black
+echo Potential Forest share [%] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialForestShare.png res=1
+
+#potential deforested area
+g.region -d
+r.mapcalc "del = del1 - del0"
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+50 0:255:0
+100 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,100 color=black
+echo Potential Deforested share [%] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialDeforestShare.png res=1
+
+#Current Above ground Biomass
+g.region -d
+r.mapcalc "del = del0 / 100. * gridsize /10000. * del8" 
+r.sum rast=del  #238074931715 tC
+r.mapcalc "del = del0 * del8 / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+20 0:255:0
+60 0:120:0
+200 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,200 color=black
+echo Current above ground forest biomass [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pCurrentForestBiomassAboveGround.png res=1
+
+
+#Current below ground Biomass
+g.region -d
+r.mapcalc "del = del0 / 100. * gridsize /10000. * del9" 
+r.sum rast=del  # 58864783261 tC
+r.mapcalc "del = del0 * del9 / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+10 0:255:0
+30 0:120:0
+50 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,50 color=black
+echo Current below ground forest biomass [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pCurrentForestBiomassBelowGround.png res=1
+
+
+#Current soil Carbon in Forests
+g.region -d
+r.mapcalc "del = del0 / 100. * gridsize /10000. * del11" 
+r.sum rast=del  # 251318504904 tC
+r.mapcalc "del = del0 * del11 / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+20 0:255:0
+60 0:120:0
+206 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,200 color=black
+echo Current forest soil carbon [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pCurrentForestSoilCarbon.png res=1
+
+
+#g4m Estimat for current above ground biomass of unmanaged forests
+g.region -d
+r.mapcalc "del = del0 / 100. * gridsize /10000. * del3"
+r.sum rast=del  #242998988121 tC
+r.mapcalc "del = del0 * del3 / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+20 0:255:0
+60 0:120:0
+200 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,200 color=black
+echo g4m estimate current above ground forest unmanaged biomass [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pCurrentForestBiomassG4mEstimateAboveGround.png res=1
+
+
+#difference managed unmanaged
+g.region -d
+r.mapcalc "del = del0 * (del3 - del8) / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "-140 80:0:0
+-40 255:0:0
+0 255:255:255
+20 0:255:0
+40 0:120:0
+61 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-140,60 color=black
+echo "Difference above ground forest biomass (g4m - FAO) [tC/ha]" | d.text at=8,2 color=black
+d.out.png output=/tmp/pDifferenceForestBiomassG4mFaoAboveGround.png res=1
+
+
+#Pottential above ground forest biomass
+g.region -d
+r.mapcalc "del = del1 / 100. * gridsize /10000. * del3"
+r.sum rast=del  #569304898821 tC
+r.mapcalc "del = del1 * del3 / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+20 0:255:0
+60 0:120:0
+200 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=0,100 color=black
+echo Estimate potential above ground forest unmanaged biomass [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialForestBiomassG4mEstimateAboveGround.png res=1
+
+
+#Difference Pottential Actual
+g.region -d
+r.mapcalc "del = (del1 * del3 - del0 * del8) / 100."
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "-140 80:0:0
+-40 255:0:0
+0 255:255:255
+20 0:255:0
+40 0:120:0
+91 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-130,90 color=black
+echo Potential - Actual  above ground forest biomass [tC/ha] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialMinusActualForestBiomassAboveGround.png res=1
+
+
+#Derzeitige Waldflaeche: 3972783869 ha
+#Pottentielle Waldflaeche: 9948292641 ha
+#Current Above ground Forest Biomass (FAO): 238074931715 tC
+#Current Above ground Forest Biomass (g4m): 242998988121 tC
+#Potential Above ground Forest Biomass (g4m): 569304898821 tC
+
+
+
+#jaehrliche Erntemenge
+#Potential harvests in current forests [tC/Ha/Year]
+g.region -d
+r.mapcalc "del = (forestCoverG4mCalib2015 * maiG4mMax2010 + forestCoverG4mIrri2015 * maiG4mMax2010irri) / 100."
+r.mapcalc "tmp = del * gridsize /10000."
+r.sum rast=tmp  #10471933570
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+1 0:255:0
+3 0:150:0
+7 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-130,90 color=black
+echo Potential harvests in current forests [tC/ha/year] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialHarvestCurrentForests.png res=1
+
+#Potential harvests in current human influenced forests [tC/Ha/Year]
+g.region -d
+r.mapcalc "del = del * managedForestG4M2015 / 100."
+r.mapcalc "tmp = del * gridsize /10000."
+r.sum rast=tmp  #7080903954
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+1 0:255:0
+3 0:150:0
+7 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-130,90 color=black
+echo Potential harvests in current human influenced forests [tC/ha/year] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialHarvestCurrentHumanInfluencedForests.png res=1
+
+#Potential harvests at potential forest area [tC/Ha/Year]
+g.region -d
+r.mapcalc "del = ((100. - forestCoverG4mIrri2015) * maiG4mMax2010 + forestCoverG4mIrri2015 * maiG4mMax2010irri) / 100."
+r.mapcalc "tmp = del * gridsize /10000."
+r.sum rast=tmp  #23586090260
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+1 0:255:0
+3 0:150:0
+7 0:80:0
+9 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-130,90 color=black
+echo Potential harvests at potential forest area [tC/ha/year] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialHarvestPotentialForests.png res=1
+
+#Potential harvests in human influenced forests [tC/Ha/Year]
+g.region -d
+r.mapcalc "del = ((100. - forestCoverG4mIrri2015) * maiG4mMax2010 + forestCoverG4mIrri2015 * maiG4mMax2010irri) / 100. - (forestCoverG4mCalib2015 * maiG4mMax2010 + forestCoverG4mIrri2015 * maiG4mMax2010irri) / 100. * (100 - managedForestG4M2015) / 100."
+r.mapcalc "tmp = del * gridsize /10000."
+r.sum rast=tmp  #20195060644
+g.region n=84 s=-64 res=0:15
+r.resamp.stats input=del output=tmp --overwrite
+echo "0 255:255:255
+1 0:255:0
+3 0:150:0
+7 0:80:0
+9 0:80:0" | r.colors map=tmp color=rules
+
+d.frame -e
+d.rast map=tmp bg=80:140:225
+d.legend tmp at=1,75,0.5,3.5 range=-130,90 color=black
+echo Potential harvests in human influenced forests [tC/ha/year] | d.text at=8,2 color=black
+d.out.png output=/tmp/pPotentialHarvestHumanInfluencedPotentialForests.png res=1
+
+
+Potential harvests in current forests: 10471933570 [tC/Ha/Year]
+Potential harvests in current human influenced forests: 7080903954 [tC/Ha/Year]
+Potential harvests at potential forest area: 23586090260 [tC/Ha/Year]
+Potential harvests in human influenced forests: 20195060644 [tC/Ha/Year]
+

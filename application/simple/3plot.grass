@@ -1,0 +1,12 @@
+#grass halfDeg
+
+g.region n=90n s=60s w=180w e=180e res=0:30
+
+for COLUMN in {3..38}; do
+  d.mon start=png width=720 height=300 output=./pic/pic$COLUMN.png --o
+  r.in.xyz input=./result/nppG4mTree30.asc output=del x=1 y=2 z=$COLUMN skip=1 separator=space --overwrite
+  r.colors map=del color=grey
+  d.rast map=del
+  d.mon stop=png
+done
+

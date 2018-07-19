@@ -1,0 +1,70 @@
+#grass 30Sec
+
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#Forestype-0
+#grids with forest and also type of forest
+#evergreen needleleaf forest:    1
+#evergreen broadleaf forest:    2
+#deciduous needleleaf forest:    3
+#deciduous broadleaf forest:    4
+#mixed forests:    5
+r.in.gdal input=/data/griddata/global/npp/runningSteve/MOD12Q1_UMD.tif output=del0 --overwrite
+r.mapcalc "del0 = if(del0>0 & del0<6, del0, null())" #only forest area
+
+#NPP/Jahr-1
+r.in.gdal input=/data/griddata/global/npp/runningSteve/years/nppMed2000to2015.tif output=del1 --overwrite
+
+#NPP/Monat2_01-12
+month=(01 02 03 04 05 06 07 08 09 10 11 12)
+for mon in ${month[*]}; do
+  r.in.gdal input=/data/griddata/global/npp/runningSteve/month/npp$mon.tif output=del2_$mon --overwrite
+done
+
+#Ecoregion-3
+r.in.gdal input=/data/griddata/global/ecoRegion/fra2000/ecoRegionFao4Regions.tif output=del3 --overwrite
+
+#soilIiasaFao90-4
+r.in.gdal input=/data/griddata/global/soil/IIASA/soilFAO90.tif output=del4 --overwrite
+
+#soilIiasaSwr-5
+r.in.gdal input=/data/griddata/global/soil/IIASA/soilSwr.tif output=del5 --overwrite
+r.info map=del5
+r.null map=del5 null=-1
+
+#soilIiasaAwc-6
+r.in.gdal input=/data/griddata/global/soil/IIASA/soilAwc.tif output=del6 --overwrite
+r.info map=del6
+r.null map=del6 null=-1
+
+#elevation-7
+r.in.gdal input=/data/griddata/global/topography/elevation/gtopo30/demGtopo30.tif output=del7 --overwrite
+
+#prec8_1-12
+for mon in ${month[*]}; do
+  r.in.gdal input=/data/griddata/global/weather/worldclimV2Beta20160601/wc2.0_30s_prec_$mon.tif output=del8_$mon --overwrite
+done
+
+#temp9_1-12
+for mon in ${month[*]}; do
+  r.in.gdal input=/data/griddata/global/weather/worldclimV2Beta20160601/wc2.0_30s_tavg_$mon.tif output=del9_$mon --overwrite
+done
+
+#radi10_1-12
+for mon in ${month[*]}; do
+  r.in.gdal input=/data/griddata/global/weather/worldclimV2Beta20160601/wc2.0_30s_srad_$mon.tif output=del10_$mon --overwrite
+done
+
+r.out.xyz input=del0,del1,del2_01,del2_02,del2_03,del2_04,del2_05,del2_06,del2_07,del2_08,del2_09,del2_10,del2_11,del2_12,del3,del4,del5,del6,del7,del8_01,del8_02,del8_03,del8_04,del8_05,del8_06,del8_07,del8_08,del8_09,del8_10,del8_11,del8_12,del9_01,del9_02,del9_03,del9_04,del9_05,del9_06,del9_07,del9_08,del9_09,del9_10,del9_11,del9_12,del10_01,del10_02,del10_03,del10_04,del10_05,del10_06,del10_07,del10_08,del10_09,del10_10,del10_11,del10_12 fs="\\t" >/data/tmp/baseData.txt
+
+#verringerte aufloesung
+g.region n=90n s=60s w=180w e=180e res=0:30
+r.out.xyz input=del0,del1,del2_01,del2_02,del2_03,del2_04,del2_05,del2_06,del2_07,del2_08,del2_09,del2_10,del2_11,del2_12,del3,del4,del5,del6,del7,del8_01,del8_02,del8_03,del8_04,del8_05,del8_06,del8_07,del8_08,del8_09,del8_10,del8_11,del8_12,del9_01,del9_02,del9_03,del9_04,del9_05,del9_06,del9_07,del9_08,del9_09,del9_10,del9_11,del9_12,del10_01,del10_02,del10_03,del10_04,del10_05,del10_06,del10_07,del10_08,del10_09,del10_10,del10_11,del10_12 fs="\\t" >/data/tmp/baseData30.txt
+
+g.region n=90n s=60s w=180w e=180e res=0:10
+r.out.xyz input=del0,del1,del2_01,del2_02,del2_03,del2_04,del2_05,del2_06,del2_07,del2_08,del2_09,del2_10,del2_11,del2_12,del3,del4,del5,del6,del7,del8_01,del8_02,del8_03,del8_04,del8_05,del8_06,del8_07,del8_08,del8_09,del8_10,del8_11,del8_12,del9_01,del9_02,del9_03,del9_04,del9_05,del9_06,del9_07,del9_08,del9_09,del9_10,del9_11,del9_12,del10_01,del10_02,del10_03,del10_04,del10_05,del10_06,del10_07,del10_08,del10_09,del10_10,del10_11,del10_12 fs="\\t" >/data/tmp/baseData10.txt
+
+g.region n=90n s=60s w=180w e=180e res=0:03
+r.out.xyz input=del0,del1,del2_01,del2_02,del2_03,del2_04,del2_05,del2_06,del2_07,del2_08,del2_09,del2_10,del2_11,del2_12,del3,del4,del5,del6,del7,del8_01,del8_02,del8_03,del8_04,del8_05,del8_06,del8_07,del8_08,del8_09,del8_10,del8_11,del8_12,del9_01,del9_02,del9_03,del9_04,del9_05,del9_06,del9_07,del9_08,del9_09,del9_10,del9_11,del9_12,del10_01,del10_02,del10_03,del10_04,del10_05,del10_06,del10_07,del10_08,del10_09,del10_10,del10_11,del10_12 fs="\\t" >/data/tmp/baseData03.txt
+
+g.mremove -f "del*"

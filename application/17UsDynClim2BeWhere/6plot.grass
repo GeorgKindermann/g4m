@@ -1,0 +1,59 @@
+#grass
+
+g.region -d
+g.region res=0:30
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=3 separator=space --overwrite
+g.region zoom=del
+
+d.mon start=wx0 width=264 height=117
+
+echo "0 255:255:255
+1.e+8 0:255:0
+2.7e+10 0:80:0" | r.colors map=del rules=-
+
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2016-2020" at=8,20 color=black
+d.out.file output=/tmp/harvest20162020.png format=png
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=4 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2021-2025" at=8,20 color=black
+d.out.file output=/tmp/harvest20212025.png format=png
+
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=5 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2026-2030" at=8,20 color=black
+d.out.file output=/tmp/harvest20262030.png format=png
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=6 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2031-2035" at=8,20 color=black
+d.out.file output=/tmp/harvest20312035.png format=png
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=7 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2036-2040" at=8,20 color=black
+d.out.file output=/tmp/harvest20362040.png format=png
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=8 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2041-2045" at=8,20 color=black
+d.out.file output=/tmp/harvest20412045.png format=png
+
+r.in.xyz input=/tmp/agg.txt output=del x=2 y=1 z=9 separator=space --overwrite
+d.frame -e
+d.rast map=del bg=80:140:225
+d.text text="2046-2050" at=8,20 color=black
+d.out.file output=/tmp/harvest20462050.png format=png
+
+
+
+
+

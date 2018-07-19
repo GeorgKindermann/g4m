@@ -1,0 +1,204 @@
+#grass 30Sec
+
+#test
+g.region n=84n s=56s w=180w e=180e res=0:30:00
+r.in.xyz input=/tmp/nppG4mTree.asc output=del1 fs=' ' x=1 y=2 z=16 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=del2 fs=' ' x=1 y=2 z=17 --overwrite
+
+
+#real Data
+g.region n=84n s=56s w=180w e=180e res=0:00:30
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalEvergreenBroadleaf fs=' ' x=1 y=2 z=3 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalDeciduousBroadleaf fs=' ' x=1 y=2 z=4 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalEvergreenBroadleaf fs=' ' x=1 y=2 z=5 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateEvergreenNeedleleaf fs=' ' x=1 y=2 z=6 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateDeciduousBroadleaf fs=' ' x=1 y=2 z=7 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealEvergreenNeedleleaf fs=' ' x=1 y=2 z=8 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealDeciduousNeedleleaf fs=' ' x=1 y=2 z=9 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalEvergreenNeedleleaf fs=' ' x=1 y=2 z=10 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalEvergreenNeedleleaf fs=' ' x=1 y=2 z=11 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalDeciduousBroadleaf fs=' ' x=1 y=2 z=12 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateEvergreenBroadleaf fs=' ' x=1 y=2 z=13 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateDeciduousNeedleleaf fs=' ' x=1 y=2 z=14 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealDeciduousBroadleaf fs=' ' x=1 y=2 z=15 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mMax fs=' ' x=1 y=2 z=16 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mMaxType fs=' ' x=1 y=2 z=17 --overwrite
+
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalEvergreenBroadleafIrri fs=' ' x=1 y=2 z=18 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalDeciduousBroadleafIrri fs=' ' x=1 y=2 z=19 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalEvergreenBroadleafIrri fs=' ' x=1 y=2 z=20 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateEvergreenNeedleleafIrri fs=' ' x=1 y=2 z=21 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateDeciduousBroadleafIrri fs=' ' x=1 y=2 z=22 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealEvergreenNeedleleafIrri fs=' ' x=1 y=2 z=23 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealDeciduousNeedleleafIrri fs=' ' x=1 y=2 z=24 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTropicalEvergreenNeedleleafIrri fs=' ' x=1 y=2 z=25 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalEvergreenNeedleleafIrri fs=' ' x=1 y=2 z=26 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mSubtropicalDeciduousBroadleafIrri fs=' ' x=1 y=2 z=27 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateEvergreenBroadleafIrri fs=' ' x=1 y=2 z=28 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mTemperateDeciduousNeedleleafIrri fs=' ' x=1 y=2 z=29 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mBorealDeciduousBroadleafIrri fs=' ' x=1 y=2 z=30 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mMaxIrri fs=' ' x=1 y=2 z=31 --overwrite
+r.in.xyz input=/tmp/nppG4mTree.asc output=nppG4mMaxTypeIrri fs=' ' x=1 y=2 z=32 --overwrite
+
+r.out.gdal input=nppG4mTropicalEvergreenBroadleaf format=GTiff type=Float32 output=nppG4mTropicalEvergreenBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTropicalDeciduousBroadleaf format=GTiff type=Float32 output=nppG4mTropicalDeciduousBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mSubtropicalEvergreenBroadleaf format=GTiff type=Float32 output=nppG4mSubtropicalEvergreenBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateEvergreenNeedleleaf format=GTiff type=Float32 output=nppG4mTemperateEvergreenNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateDeciduousBroadleaf format=GTiff type=Float32 output=nppG4mTemperateDeciduousBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mBorealEvergreenNeedleleaf format=GTiff type=Float32 output=nppG4mBorealEvergreenNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+
+r.out.gdal input=nppG4mBorealDeciduousNeedleleaf format=GTiff type=Float32 output=nppG4mBorealDeciduousNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTropicalEvergreenNeedleleaf format=GTiff type=Float32 output=nppG4mTropicalEvergreenNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mSubtropicalEvergreenNeedleleaf format=GTiff type=Float32 output=nppG4mSubtropicalEvergreenNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mSubtropicalDeciduousBroadleaf format=GTiff type=Float32 output=nppG4mSubtropicalDeciduousBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateEvergreenBroadleaf format=GTiff type=Float32 output=nppG4mTemperateEvergreenBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateDeciduousNeedleleaf format=GTiff type=Float32 output=nppG4mTemperateDeciduousNeedleleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+
+r.out.gdal input=nppG4mBorealDeciduousBroadleaf format=GTiff type=Float32 output=nppG4mBorealDeciduousBroadleaf.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mMax format=GTiff type=Float32 output=nppG4mMax.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mMaxType format=Byte type=Float32 output=nppG4mMaxType.tif createopt=COMPRESS=LZW &
+
+r.out.gdal input=nppG4mTropicalEvergreenBroadleafIrri format=GTiff type=Float32 output=nppG4mTropicalEvergreenBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTropicalDeciduousBroadleafIrri format=GTiff type=Float32 output=nppG4mTropicalDeciduousBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mSubtropicalEvergreenBroadleafIrri format=GTiff type=Float32 output=nppG4mSubtropicalEvergreenBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+
+r.out.gdal input=nppG4mTemperateEvergreenNeedleleafIrri format=GTiff type=Float32 output=nppG4mTemperateEvergreenNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateDeciduousBroadleafIrri format=GTiff type=Float32 output=nppG4mTemperateDeciduousBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mBorealEvergreenNeedleleafIrri format=GTiff type=Float32 output=nppG4mBorealEvergreenNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mBorealDeciduousNeedleleafIrri format=GTiff type=Float32 output=nppG4mBorealDeciduousNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTropicalEvergreenNeedleleafIrri format=GTiff type=Float32 output=nppG4mTropicalEvergreenNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mSubtropicalEvergreenNeedleleafIrri format=GTiff type=Float32 output=nppG4mSubtropicalEvergreenNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+
+r.out.gdal input=nppG4mSubtropicalDeciduousBroadleafIrri format=GTiff type=Float32 output=nppG4mSubtropicalDeciduousBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateEvergreenBroadleafIrri format=GTiff type=Float32 output=nppG4mTemperateEvergreenBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mTemperateDeciduousNeedleleafIrri format=GTiff type=Float32 output=nppG4mTemperateDeciduousNeedleleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mBorealDeciduousBroadleafIrri format=GTiff type=Float32 output=nppG4mBorealDeciduousBroadleafIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mMaxIrri format=GTiff type=Float32 output=nppG4mMaxIrri.tif createopt=COMPRESS=LZW,PREDICTOR=3 &
+r.out.gdal input=nppG4mMaxTypeIrri format=Byte type=Float32 output=nppG4mMaxTypeIrri.tif createopt=COMPRESS=LZW &
+
+#Current Npp from ecoregion, Forest type, Irrigation
+g.region n=84n s=56s w=180w e=180e res=0:00:30
+v.to.rast input=ecoRegionFao output=del1 use=attr column=GEZ_CODE --overwrite
+r.mapcalc "del1 = if(del1 < 60, int(del1/10),null())"
+#1..Tropical
+#2..Subtropical
+#3..Temperate
+#4..Boreal
+#5..Polar
+r.grow input=del1 output=del1
+r.colors map=del1 color=rainbow
+#ecoregion ist eher egal!!!(z.B. Berge in Tropen)
+#
+#npp EvergreenNeedleleaf not irrigated
+r.mapcalc "del1 = max(nppG4mTemperateEvergreenNeedleleaf,nppG4mBorealEvergreenNeedleleaf,nppG4mTropicalEvergreenNeedleleaf,nppG4mSubtropicalEvergreenNeedleleaf)" &
+#npp EvergreenBroadleaf not irrigated
+r.mapcalc "del2 = max(nppG4mTropicalEvergreenBroadleaf,nppG4mSubtropicalEvergreenBroadleaf,nppG4mTemperateEvergreenBroadleaf)" &
+#npp DeciduousNeedleleaf not irrigated
+r.mapcalc "del3 = max(nppG4mBorealDeciduousNeedleleaf,nppG4mTemperateDeciduousNeedleleaf)" &
+#npp DeciduousBroadleaf not irrigated
+r.mapcalc "del4 = max(nppG4mTropicalDeciduousBroadleaf,nppG4mTemperateDeciduousBroadleaf,nppG4mSubtropicalDeciduousBroadleaf,nppG4mBorealDeciduousBroadleaf)" &
+#
+#npp EvergreenNeedleleaf irrigated
+r.mapcalc "del5 = max(nppG4mTemperateEvergreenNeedleleafIrri,nppG4mBorealEvergreenNeedleleafIrri,nppG4mTropicalEvergreenNeedleleafIrri,nppG4mSubtropicalEvergreenNeedleleafIrri)" &
+#npp EvergreenBroadleaf irrigated
+r.mapcalc "del6 = max(nppG4mTropicalEvergreenBroadleafIrri,nppG4mSubtropicalEvergreenBroadleafIrri,nppG4mTemperateEvergreenBroadleafIrri)" &
+#npp DeciduousNeedleleaf irrigated
+r.mapcalc "del7 = max(nppG4mBorealDeciduousNeedleleafIrri,nppG4mTemperateDeciduousNeedleleafIrri)" &
+#npp DeciduousBroadleaf irrigated
+r.mapcalc "del8 = max(nppG4mTropicalDeciduousBroadleafIrri,nppG4mTemperateDeciduousBroadleafIrri,nppG4mSubtropicalDeciduousBroadleafIrri,nppG4mBorealDeciduousBroadleafIrri)" &
+#
+r.info map=del1
+r.info map=del2
+r.info map=del3
+r.info map=del4
+r.info map=del5
+r.info map=del6
+r.info map=del7
+r.info map=del8
+r.colors map=del7 color=rainbow
+r.colors map=del1 rast=del7
+r.colors map=del2 rast=del7
+r.colors map=del3 rast=del7
+r.colors map=del4 rast=del7
+r.colors map=del5 rast=del7
+r.colors map=del6 rast=del7
+r.colors map=del8 rast=del7
+#
+#Forest types where there is npp
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_npp = if(del1>0, type_EvergreenNeedleleafForest_g4m_base, 0)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_npp = if(del2>0, type_EvergreenBroadleafForest_g4m_base, 0)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_npp = if(del3>0, type_DeciduousNeedleleafForest_g4m_base, 0)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_npp = if(del4>0, type_DeciduousBroadleafForest_g4m_base, 0)" &
+#Summe auf exakt 100 bringen
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_npp + type_EvergreenBroadleafForest_g4m_base_npp + type_DeciduousNeedleleafForest_g4m_base_npp + type_DeciduousBroadleafForest_g4m_base_npp"
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_npp = if(del>0, round(100.*type_EvergreenNeedleleafForest_g4m_base_npp/del), 0)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_npp = if(del>0, round(100.*type_EvergreenBroadleafForest_g4m_base_npp/del), 0)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_npp = if(del>0, round(100.*type_DeciduousNeedleleafForest_g4m_base_npp/del), 0)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_npp = if(del>0, round(100.*type_DeciduousBroadleafForest_g4m_base_npp/del), 0)" &
+#
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_npp + type_EvergreenBroadleafForest_g4m_base_npp + type_DeciduousNeedleleafForest_g4m_base_npp + type_DeciduousBroadleafForest_g4m_base_npp"
+r.info map=del
+r.report map=del units=c
+r.mapcalc "del = if(del > 0, 100 - del, 0)"
+r.report map=del units=c
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_npp = if(type_EvergreenNeedleleafForest_g4m_base_npp > 0 && type_EvergreenNeedleleafForest_g4m_base_npp >= type_EvergreenBroadleafForest_g4m_base_npp && type_EvergreenNeedleleafForest_g4m_base_npp >= type_DeciduousNeedleleafForest_g4m_base_npp && type_EvergreenNeedleleafForest_g4m_base_npp >= type_DeciduousBroadleafForest_g4m_base_npp, type_EvergreenNeedleleafForest_g4m_base_npp + del, type_EvergreenNeedleleafForest_g4m_base_npp)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_npp = if(type_EvergreenBroadleafForest_g4m_base_npp>0 && type_EvergreenBroadleafForest_g4m_base_npp > type_EvergreenNeedleleafForest_g4m_base_npp && type_EvergreenBroadleafForest_g4m_base_npp >= type_DeciduousNeedleleafForest_g4m_base_npp && type_EvergreenBroadleafForest_g4m_base_npp >= type_DeciduousBroadleafForest_g4m_base_npp, type_EvergreenBroadleafForest_g4m_base_npp + del, type_EvergreenBroadleafForest_g4m_base_npp)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_npp = if(type_DeciduousNeedleleafForest_g4m_base_npp>0 && type_DeciduousNeedleleafForest_g4m_base_npp > type_EvergreenNeedleleafForest_g4m_base_npp && type_DeciduousNeedleleafForest_g4m_base_npp > type_EvergreenBroadleafForest_g4m_base_npp && type_DeciduousNeedleleafForest_g4m_base_npp >= type_DeciduousBroadleafForest_g4m_base_npp, type_DeciduousNeedleleafForest_g4m_base_npp + del, type_DeciduousNeedleleafForest_g4m_base_npp)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_npp = if(type_DeciduousBroadleafForest_g4m_base_npp>0 && type_DeciduousBroadleafForest_g4m_base_npp > type_EvergreenNeedleleafForest_g4m_base_npp && type_DeciduousBroadleafForest_g4m_base_npp > type_EvergreenBroadleafForest_g4m_base_npp && type_DeciduousBroadleafForest_g4m_base_npp > type_DeciduousNeedleleafForest_g4m_base_npp, type_DeciduousBroadleafForest_g4m_base_npp + del, type_DeciduousBroadleafForest_g4m_base_npp)" &
+#
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_npp + type_EvergreenBroadleafForest_g4m_base_npp + type_DeciduousNeedleleafForest_g4m_base_npp + type_DeciduousBroadleafForest_g4m_base_npp"
+r.info map=del
+r.report map=del units=c
+#forestCoverG4mBase
+r.mapcalc "forestCoverG4mBaseNpp = if(del > 0, forestCoverG4mBase, 0)"
+#Forest types where there is irrigatednpp
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_inpp = if(del5>0, type_EvergreenNeedleleafForest_g4m_base, 0)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_inpp = if(del6>0, type_EvergreenBroadleafForest_g4m_base, 0)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_inpp = if(del7>0, type_DeciduousNeedleleafForest_g4m_base, 0)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_inpp = if(del8>0, type_DeciduousBroadleafForest_g4m_base, 0)" &
+#Summe auf exakt 100 bringen
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_inpp + type_EvergreenBroadleafForest_g4m_base_inpp + type_DeciduousNeedleleafForest_g4m_base_inpp + type_DeciduousBroadleafForest_g4m_base_inpp"
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_inpp = if(del>0, round(100.*type_EvergreenNeedleleafForest_g4m_base_inpp/del), 0)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_inpp = if(del>0, round(100.*type_EvergreenBroadleafForest_g4m_base_inpp/del), 0)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_inpp = if(del>0, round(100.*type_DeciduousNeedleleafForest_g4m_base_inpp/del), 0)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_inpp = if(del>0, round(100.*type_DeciduousBroadleafForest_g4m_base_inpp/del), 0)" &
+#
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_inpp + type_EvergreenBroadleafForest_g4m_base_inpp + type_DeciduousNeedleleafForest_g4m_base_inpp + type_DeciduousBroadleafForest_g4m_base_inpp"
+r.info map=del
+r.report map=del units=c
+r.mapcalc "del = if(del > 0, 100 - del, 0)"
+r.report map=del units=c
+r.mapcalc "type_EvergreenNeedleleafForest_g4m_base_inpp = if(type_EvergreenNeedleleafForest_g4m_base_inpp > 0 && type_EvergreenNeedleleafForest_g4m_base_inpp >= type_EvergreenBroadleafForest_g4m_base_inpp && type_EvergreenNeedleleafForest_g4m_base_inpp >= type_DeciduousNeedleleafForest_g4m_base_inpp && type_EvergreenNeedleleafForest_g4m_base_inpp >= type_DeciduousBroadleafForest_g4m_base_inpp, type_EvergreenNeedleleafForest_g4m_base_inpp + del, type_EvergreenNeedleleafForest_g4m_base_inpp)" &
+r.mapcalc "type_EvergreenBroadleafForest_g4m_base_inpp = if(type_EvergreenBroadleafForest_g4m_base_inpp>0 && type_EvergreenBroadleafForest_g4m_base_inpp > type_EvergreenNeedleleafForest_g4m_base_inpp && type_EvergreenBroadleafForest_g4m_base_inpp >= type_DeciduousNeedleleafForest_g4m_base_inpp && type_EvergreenBroadleafForest_g4m_base_inpp >= type_DeciduousBroadleafForest_g4m_base_inpp, type_EvergreenBroadleafForest_g4m_base_inpp + del, type_EvergreenBroadleafForest_g4m_base_inpp)" &
+r.mapcalc "type_DeciduousNeedleleafForest_g4m_base_inpp = if(type_DeciduousNeedleleafForest_g4m_base_inpp>0 && type_DeciduousNeedleleafForest_g4m_base_inpp > type_EvergreenNeedleleafForest_g4m_base_inpp && type_DeciduousNeedleleafForest_g4m_base_inpp > type_EvergreenBroadleafForest_g4m_base_inpp && type_DeciduousNeedleleafForest_g4m_base_inpp >= type_DeciduousBroadleafForest_g4m_base_inpp, type_DeciduousNeedleleafForest_g4m_base_inpp + del, type_DeciduousNeedleleafForest_g4m_base_inpp)" &
+r.mapcalc "type_DeciduousBroadleafForest_g4m_base_inpp = if(type_DeciduousBroadleafForest_g4m_base_inpp>0 && type_DeciduousBroadleafForest_g4m_base_inpp > type_EvergreenNeedleleafForest_g4m_base_inpp && type_DeciduousBroadleafForest_g4m_base_inpp > type_EvergreenBroadleafForest_g4m_base_inpp && type_DeciduousBroadleafForest_g4m_base_inpp > type_DeciduousNeedleleafForest_g4m_base_inpp, type_DeciduousBroadleafForest_g4m_base_inpp + del, type_DeciduousBroadleafForest_g4m_base_inpp)" &
+#
+r.mapcalc "del = type_EvergreenNeedleleafForest_g4m_base_inpp + type_EvergreenBroadleafForest_g4m_base_inpp + type_DeciduousNeedleleafForest_g4m_base_inpp + type_DeciduousBroadleafForest_g4m_base_inpp"
+r.info map=del
+r.report map=del units=c
+#forestCoverG4mBase
+r.mapcalc "forestCoverG4mBaseINpp = if(del > 0, forestCoverG4mBase, 0)"
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s res=0:00:30
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+r.colors map=del color=rainbow
+g.region w=180w e=180e n=90n s=90s res=0:00:30
+
+g.copy rast=irrigation,tmp --overwrite
+r.null map=tmp null=0
+
+#country,gridarea,landshare[16],irrigation,...
+r.out.xyz input=countryGadmV1,del,waterLandModis30Sec,tmp,forestCoverG4mBaseNpp,forestCoverG4mBaseINpp,type_EvergreenNeedleleafForest_g4m_base_npp,type_EvergreenBroadleafForest_g4m_base_npp,type_DeciduousNeedleleafForest_g4m_base_npp,type_DeciduousBroadleafForest_g4m_base_npp,type_EvergreenNeedleleafForest_g4m_base_inpp,type_EvergreenBroadleafForest_g4m_base_inpp,type_DeciduousNeedleleafForest_g4m_base_inpp,type_DeciduousBroadleafForest_g4m_base_inpp,del1,del2,del3,del4,del5,del6,del7,del8 output=baseData.csv fs=,
+
+#cut -f 1,2,3 -d , baseData.csv >/tmp/pos.csv
+#r.in.xyz input=/tmp/pos.csv output=del9 fs=, --overwrite
+
+
+
+lat,lon,iso,forestarea_m2,neadle_share,broad_share,mai_neadle_tc_ha_year,mai_broad_tc_ha_year
+tail -n+2 g4mData.csv | sed 's/,$/,0/' | r.in.xyz -i input=- output=del fs=, x=1 y=2 z=8 --overwrite
+r.colors map=del color=rainbow

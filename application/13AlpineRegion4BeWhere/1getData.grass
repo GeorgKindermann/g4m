@@ -1,0 +1,48 @@
+#grass 30Sec
+
+g.region w=4:00e e=19:00e n=51:00n s=41:30n res=0:00:30
+
+r.mapcalc "del1 = max(nppG4mTemperateEvergreenNeedleleaf,nppG4mBorealEvergreenNeedleleaf,nppG4mTropicalEvergreenNeedleleaf,nppG4mSubtropicalEvergreenNeedleleaf)" &
+#npp EvergreenBroadleaf not irrigated
+r.mapcalc "del2 = max(nppG4mTropicalEvergreenBroadleaf,nppG4mSubtropicalEvergreenBroadleaf,nppG4mTemperateEvergreenBroadleaf)" &
+#npp DeciduousNeedleleaf not irrigated
+r.mapcalc "del3 = max(nppG4mBorealDeciduousNeedleleaf,nppG4mTemperateDeciduousNeedleleaf)" &
+#npp DeciduousBroadleaf not irrigated
+r.mapcalc "del4 = max(nppG4mTropicalDeciduousBroadleaf,nppG4mTemperateDeciduousBroadleaf,nppG4mSubtropicalDeciduousBroadleaf,nppG4mBorealDeciduousBroadleaf)" &
+#
+#npp EvergreenNeedleleaf irrigated
+r.mapcalc "del5 = max(nppG4mTemperateEvergreenNeedleleafIrri,nppG4mBorealEvergreenNeedleleafIrri,nppG4mTropicalEvergreenNeedleleafIrri,nppG4mSubtropicalEvergreenNeedleleafIrri)" &
+#npp EvergreenBroadleaf irrigated
+r.mapcalc "del6 = max(nppG4mTropicalEvergreenBroadleafIrri,nppG4mSubtropicalEvergreenBroadleafIrri,nppG4mTemperateEvergreenBroadleafIrri)" &
+#npp DeciduousNeedleleaf irrigated
+r.mapcalc "del7 = max(nppG4mBorealDeciduousNeedleleafIrri,nppG4mTemperateDeciduousNeedleleafIrri)" &
+#npp DeciduousBroadleaf irrigated
+r.mapcalc "del8 = max(nppG4mTropicalDeciduousBroadleafIrri,nppG4mTemperateDeciduousBroadleafIrri,nppG4mSubtropicalDeciduousBroadleafIrri,nppG4mBorealDeciduousBroadleafIrri)"
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s res=0:00:30
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+r.colors map=del color=rainbow
+g.region w=4:00e e=19:00e n=51:00n s=41:30n res=0:00:30
+
+g.copy rast=irrigation,tmp --overwrite
+r.null map=tmp null=0
+
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope3.tif output=del9 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope6.tif output=del10 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope10.tif output=del11 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope15.tif output=del12 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope30.tif output=del13 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slope50.tif output=del14 --overwrite &
+r.in.gdal input=/data/griddata/global/topography/slope/gls/slopeL50.tif output=del15 --overwrite &
+
+r.proj input=cAbove_ha location=halfDeg mapset=georg output=del16 --overwrite
+
+#country,gridarea,landshare[16],irrigation,...
+r.out.xyz input=g4mcol,g4mrow,countryGadmV1,del,waterLandModis30Sec,tmp,forestCoverG4mBaseNpp,forestCoverG4mBaseINpp,type_EvergreenNeedleleafForest_g4m_base_npp,type_EvergreenBroadleafForest_g4m_base_npp,type_DeciduousNeedleleafForest_g4m_base_npp,type_DeciduousBroadleafForest_g4m_base_npp,del1,del2,del3,del4,del5,del6,del7,del8,del9,del10,del11,del12,del13,del14,del15,del16 output=/tmp/baseData.csv fs=,
+
+g.remove rast=del1,del2,del3,del4,del5,del6,del7,del8,del9,del10,del11,del12,del13,del14,del15,del16
+

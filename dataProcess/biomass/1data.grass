@@ -1,0 +1,257 @@
+#grass 30Sec
+
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#g.region n=50n s=46s w=13e e=18e res=0:00:30
+#g.region n=90n s=90s w=180w e=180e res=0:30:00
+
+#landarea
+r.mapcalc "del2 = round(del * (16 - waterLandModis30Sec)/16.)"
+
+r.out.bin input=countryGadmV1G4m output=/data/tmp/country.bin bytes=1 &
+r.out.bin input=forestCoverG4mCalib2015 output=/data/tmp/forest.bin bytes=1 &
+r.out.bin input=forestCoverG4mIrri2015 output=/data/tmp/forestIrri.bin bytes=1 &
+r.out.bin input=managedForestG4M2015 output=/data/tmp/managedForest.bin bytes=1 &
+r.out.bin input=del2 output=/data/tmp/landarea.bin bytes=4 &
+r.out.bin input=slope1t6 output=/data/tmp/slope1t6.bin bytes=1 &
+#
+r.out.bin input=slope7t8 output=/data/tmp/slope7t8.bin bytes=1 &
+r.out.bin input=slope9 output=/data/tmp/slope1t9.bin bytes=1 &
+r.out.bin input=slope10 output=/data/tmp/slope1t10.bin bytes=1 &
+r.out.bin input=slope11 output=/data/tmp/slope1t11.bin bytes=1 &
+r.out.bin input=maiG4mCurrent2010 output=/data/tmp/mai.bin bytes=4 &
+r.out.bin input=maiG4mCurrent2010irri output=/data/tmp/maiIrri.bin bytes=4 &
+
+
+
+
+
+./2calcStdBm >countrysum.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/baseBmHa.hdr
+cp /data/tmp/baseBmHa.hdr /data/tmp/baseBmMaxHa.hdr
+
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /data/tmp/baseBmHa.bin /data/tmp/tif.tif
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /data/tmp/baseBmMaxHa.bin /data/tmp/tif2.tif
+
+r.in.gdal -o input=/data/tmp/tif2.tif output=del2 --overwrite
+r.colors map=del2 color=rainbow
+r.in.gdal -o input=/data/tmp/tif.tif output=del --overwrite
+r.colors map=del rast=del2
+
+#Hier 3calib.r durchfuehren
+#calibFactor*.txt nach ./ kopieren
+
+
+./4calcBm >countrysum2.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/cStem_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemManIrri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemManNoirri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemMax_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemUmanIrri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemUmanNoirri_ha.hdr
+
+
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStem_ha.bin /data/tmp/cStem_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemManIrri_ha.bin /data/tmp/cStemManIrri_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemManNoirri_ha.bin /data/tmp/cStemManNoirri_ha.tif
+#gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemMax_ha.bin /data/tmp/cStemMax_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemUmanIrri_ha.bin /data/tmp/cStemUmanIrri_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemUmanNoirri_ha.bin /data/tmp/cStemUmanNoirri_ha.tif
+
+
+#r.in.gdal -o input=/data/tmp/tif2.tif output=del2 --overwrite
+#r.in.gdal -o input=/data/tmp/tif2.tif output=del --overwrite
+
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/bmAg.hdr
+
+cp /data/tmp/bmAg.hdr /data/tmp/bmAg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmBg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmBg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmDe.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmDe_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cAg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cAg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cBg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cBg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cDe.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cDe_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLi.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLi_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLv.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLv_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/stock.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/stock_ha.hdr
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmAg_ha.bin /data/tmp/bmAg_ha.tif
+gdal_translate -stats -ot UInt32 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmAg.bin /data/tmp/bmAg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmBg_ha.bin /data/tmp/bmBg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmBg.bin /data/tmp/bmBg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmDe_ha.bin /data/tmp/bmDe_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmDe.bin /data/tmp/bmDe.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cAg_ha.bin /data/tmp/cAg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cAg.bin /data/tmp/cAg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cBg_ha.bin /data/tmp/cBg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cBg.bin /data/tmp/cBg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cDe_ha.bin /data/tmp/cDe_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cDe.bin /data/tmp/cDe.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLi_ha.bin /data/tmp/cLi_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLi.bin /data/tmp/cLi.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLv_ha.bin /data/tmp/cLv_ha.tif
+gdal_translate -stats -ot UInt16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLv.bin /data/tmp/cLv.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/stock_ha.bin /data/tmp/stock_ha.tif
+gdal_translate -stats -ot UInt16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/stock.bin /data/tmp/stock.tif
+
+
+
+
+##2000
+#grass 30Sec
+#get grid size in m2
+g.region w=0 e=0:00:30E n=90n s=90s
+r.mapcalc "del = row()"
+r.report -e -h map=del units=me | tail -n+5 | head -n-3 | cut -f 4 -d \| >/tmp/tmp.txt
+sed -i '1i north: 90N\nsouth: 90S\neast: 180E\nwest: 180W\nrows: 21600\ncols: 1' /tmp/tmp.txt
+r.in.ascii input=/tmp/tmp.txt output=del --overwrite
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+#g.region n=50n s=46s w=13e e=18e res=0:00:30
+#g.region n=90n s=90s w=180w e=180e res=0:30:00
+
+#landarea
+r.mapcalc "del2 = round(del * (16 - waterLandModis30Sec)/16.)"
+
+r.out.bin input=countryGadmV1G4m output=/data/tmp/country.bin bytes=1 &
+r.out.bin input=forestCoverG4mCalib2000 output=/data/tmp/forest.bin bytes=1 &
+r.out.bin input=forestCoverG4mIrri2000 output=/data/tmp/forestIrri.bin bytes=1 &
+r.out.bin input=managedForestG4M2000 output=/data/tmp/managedForest.bin bytes=1 &
+r.out.bin input=del2 output=/data/tmp/landarea.bin bytes=4 &
+r.out.bin input=slope1t6 output=/data/tmp/slope1t6.bin bytes=1 &
+#
+r.out.bin input=slope7t8 output=/data/tmp/slope7t8.bin bytes=1 &
+r.out.bin input=slope9 output=/data/tmp/slope1t9.bin bytes=1 &
+r.out.bin input=slope10 output=/data/tmp/slope1t10.bin bytes=1 &
+r.out.bin input=slope11 output=/data/tmp/slope1t11.bin bytes=1 &
+r.out.bin input=maiG4mCurrent2010 output=/data/tmp/mai.bin bytes=4 &
+r.out.bin input=maiG4mCurrent2010irri output=/data/tmp/maiIrri.bin bytes=4 &
+
+
+./2calcStdBm >countrysum.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/baseBmHa.hdr
+cp /data/tmp/baseBmHa.hdr /data/tmp/baseBmMaxHa.hdr
+
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /data/tmp/baseBmHa.bin /data/tmp/tif.tif
+gdal_translate -a_ullr -180 90 180 -90 -of GTiff /data/tmp/baseBmMaxHa.bin /data/tmp/tif2.tif
+
+r.in.gdal -o input=/data/tmp/tif2.tif output=del2 --overwrite
+r.colors map=del2 color=rainbow
+r.in.gdal -o input=/data/tmp/tif.tif output=del --overwrite
+r.colors map=del rast=del2
+
+#Hier 3calib.r durchfuehren
+#calibFactor*.txt nach ./ kopieren
+
+
+./4calcBm >countrysum2.txt
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/cStem_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemManIrri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemManNoirri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemMax_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemUmanIrri_ha.hdr
+cp /data/tmp/cStem_ha.hdr /data/tmp/cStemUmanNoirri_ha.hdr
+
+
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStem_ha.bin /data/tmp/cStem_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemManIrri_ha.bin /data/tmp/cStemManIrri_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemManNoirri_ha.bin /data/tmp/cStemManNoirri_ha.tif
+#gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemMax_ha.bin /data/tmp/cStemMax_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemUmanIrri_ha.bin /data/tmp/cStemUmanIrri_ha.tif
+gdal_translate -stats -a_srs EPSG:4326 -ot Byte -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cStemUmanNoirri_ha.bin /data/tmp/cStemUmanNoirri_ha.tif
+
+
+#r.in.gdal -o input=/data/tmp/tif2.tif output=del2 --overwrite
+#r.in.gdal -o input=/data/tmp/tif2.tif output=del --overwrite
+
+
+echo "DATATYPE: F32
+BANDS:      1
+ROWS:    21600
+COLS:    43200" >/data/tmp/bmAg.hdr
+
+cp /data/tmp/bmAg.hdr /data/tmp/bmAg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmBg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmBg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmDe.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/bmDe_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cAg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cAg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cBg.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cBg_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cDe.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cDe_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLi.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLi_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLv.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/cLv_ha.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/stock.hdr
+cp /data/tmp/bmAg.hdr /data/tmp/stock_ha.hdr
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmAg_ha.bin /data/tmp/bmAg_ha.tif
+gdal_translate -stats -ot UInt32 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmAg.bin /data/tmp/bmAg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmBg_ha.bin /data/tmp/bmBg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmBg.bin /data/tmp/bmBg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmDe_ha.bin /data/tmp/bmDe_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/bmDe.bin /data/tmp/bmDe.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cAg_ha.bin /data/tmp/cAg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cAg.bin /data/tmp/cAg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cBg_ha.bin /data/tmp/cBg_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cBg.bin /data/tmp/cBg.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cDe_ha.bin /data/tmp/cDe_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cDe.bin /data/tmp/cDe.tif
+
+gdal_translate -stats -ot Byte -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLi_ha.bin /data/tmp/cLi_ha.tif
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLi.bin /data/tmp/cLi.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLv_ha.bin /data/tmp/cLv_ha.tif
+gdal_translate -stats -ot UInt16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/cLv.bin /data/tmp/cLv.tif
+
+gdal_translate -stats -ot Int16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/stock_ha.bin /data/tmp/stock_ha.tif
+gdal_translate -stats -ot UInt16 -a_srs EPSG:4326 -co "COMPRESS=LZW" -co "PREDICTOR=2" -a_ullr -180 90 180 -90 -of GTiff /data/tmp/stock.bin /data/tmp/stock.tif

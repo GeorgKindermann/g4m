@@ -1,0 +1,18 @@
+c0 <- 
+
+
+walterLieth = c[14] * (c[15] + 1./(1. + exp(c[16] + c[17]*co2)));
+    double t3 = c[6] / (1. + exp(c[7] + c[8]*co2)) + c[9];
+    double days[12] = {31.,28.25,31.,30.,31.,30.,31.,31.,30.,31.,30.,31.};
+    for(int month=0; month<12; ++month) {
+      double t1 = c0[soilType]/(1. + std::exp(c[0] + c[1]*t[month])) - c0[soilType]*c[2] - c0[soilType]/(1. + std::exp(c[3]+c[4]*t[month]));
+      if(t1<0.) {t1=0.;}
+      double t2 = 1. - 2./(1. + exp( (sw[month]+p[month]-std::max(0.,t[month])*walterLieth)/(std::max(1.,t[month]*c[5]))));
+      if(t2<0.) {t2=0.;}
+      ret += t1 * t2 * t3 * days[month];
+    }
+    ret *= c[10] + c[11]*altitude + c[12]*cos(latitude) + c[13]*altitude*cos(latitude);
+    if(useBoundaries && ret < minNpp) {ret=0.;}
+  }
+  if(ret<0.) {ret = 0.;}
+  return(ret);

@@ -1,4 +1,4 @@
-//./2getUMaiBm >/tmp/datG4m4Fulvio2018.txt
+//./2getUMaiBm /tmp/datG4mIn.txt /data/tmp/datG4m4Fulvio2018.txt
 
 #include <iostream>
 #include <iomanip>
@@ -59,40 +59,44 @@ int main(int argc, char **argv) {
   }
   fpi.close();
 
+  ofstream fpo;
+  fpo.open(argv[2]);
   vector<double> mul = {0.75, 1., 1.25};
-  cout << "#x y iso forestArea[ha]";
+  fpo << "#x y iso forestArea[ha]";
   for(int scen=0; scen<2; ++scen) { //0..maxInc, 1..maxBm
     for(int tab=0; tab<3; ++tab) { //0..short, 1..normal, 2..long
       for(auto &mult : mul) {
-	cout << " u" << scen << "_" << tab << "_" << mult;
-	cout << " bm" << scen << "_" << tab << "_" << mult;
-	cout << " mai" << scen << "_" << tab << "_" << mult;
+	fpo << " u" << scen << "_" << tab << "_" << mult;
+	fpo << " bm" << scen << "_" << tab << "_" << mult;
+	fpo << " mai" << scen << "_" << tab << "_" << mult;
       }
     }
   }
-  cout << endl;
-  cout << "#u..rotation time[years], bm..average stocking biomass[tC/ha], mai..mean annual incremant[tC/ha/year]" << endl;
-  cout << "#?a_b_c: a..Management regime a=0..maxInc, a=1..maxBm; b..Species class b=0..short, b=1..average, b=2..long rotation time; c..optimal rotation time multiplier" << endl;
-  fpi.open("/tmp/datG4mIn.txt", ios::in);
+  fpo << endl;
+  fpo << "#u..rotation time[years], bm..average stocking biomass[tC/ha], mai..mean annual incremant[tC/ha/year]" << endl;
+  fpo << "#?a_b_c: a..Management regime a=0..maxInc, a=1..maxBm; b..Species class b=0..short, b=1..average, b=2..long rotation time; c..optimal rotation time multiplier" << endl;
+  fpi.open(argv[1], ios::in);
   while(getline(fpi, line)) {
     istringstream iss(line);
     double x,y,mmai,forestarea;
     int country;
     iss >> x >> y >> country >> mmai >> forestarea;
-    cout << x << " " << y << " " << iso[country] << " " << forestarea;
+    fpo << x << " " << y << " " << iso[country] << " " << forestarea;
     for(int scen=0; scen<2; ++scen) { //0..maxInc, 1..maxBm
       for(int tab=0; tab<3; ++tab) { //0..short, 1..normal, 2..long
        	double uoptt = iiTab[tab]->gTopt(mmai, scen);
 	for(auto &mult : mul) {
 	  double u = uoptt*mult;
-	  cout << " " << u;
-	  cout << " " << round(iiTab[tab]->gAvgBmt(u, mmai)*100.)/100.;
-	  cout << " " << round(iiTab[tab]->gMait(u, mmai)*100.)/100.;
+	  fpo << " " << u;
+	  fpo << " " << round(iiTab[tab]->gAvgBmt(u, mmai)*100.)/100.;
+	  fpo << " " << round(iiTab[tab]->gMait(u, mmai)*100.)/100.;
 	}
       }
     }
-    cout << endl;
+    fpo << endl;
   }  
-
+  fpo.close();
+  fpi.close();
+  
   return(0);
 }

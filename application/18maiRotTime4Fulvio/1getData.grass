@@ -1,0 +1,17 @@
+#grass74 30Sec
+
+g.region n=90n s=90s w=180w e=180e res=0:00:30
+
+r.in.gdal input=/data/griddata/global/human/adminBound/gadm/v28/gadm28.tif output=tmp0 --overwrite &
+r.in.gdal input=/data/griddata/global/npp/georg/mai.tif output=tmp1 --overwrite &
+r.in.gdal input=/data/griddata/global/waterLand/modis/latLon/waterLandModis30Sec.tif output=tmp2 --overwrite &
+r.in.gdal input=~/16/g4m/forestCover/forestCoverG4mCalib2000.tif output=tmp3 --overwrite &
+r.in.gdal input=~/16/g4m/forestCover/forestCoverG4mIrri2000.tif output=tmp4 --overwrite &
+
+r.mapcalc "tmp5 = area()/10000 * (1. - tmp2/16.) * (tmp3+tmp4)/100" --overwrite
+r.mapcalc "tmp5 = if(tmp5>0, tmp5, null())" --overwrite
+
+#x,y,country,mai,forestarea
+r.out.xyz input=tmp0,tmp1,tmp5 separator="\\t" >/tmp/datG4mIn.txt
+
+g.remove -f type=raste pattern="tmp?"

@@ -14,7 +14,7 @@ namespace g4m {
    , unsigned int amaiYears
    , double aminRotVal, int aminRotRef
    , double aflexSd
-   , ffipol<double> *sdMaxH, ffipol<double> *sdMinH
+   //, ffipol<double> *sdMaxH, ffipol<double> *sdMinH
    , unsigned int amaxAge)
   {
     it = ait;

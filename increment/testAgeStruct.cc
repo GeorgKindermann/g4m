@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv) {
+int main() {
   g4m::incrementCurvesAs pineAs (-0.3835, -0.2416, -1.7576, 1.1638, 170, 114.343, -2.804, 1.044, 0., 0.9, -0.8242, -0.4273, -0.4, -1.476, 4.283, -0.3, 3.610, -1.071, 0.1, 1., -2.0670, -0.3028, 0.5, 1.5, 150, 0.01, 0.5, 0.5, 0.8, 1./500., 2., 0.01, 0.5, 22.09082, 0.62065, -0.01965, 1.50614, -0.25346, 22.70, 16.56, -0.01068, 0.24754, -1.81373, 1.0945, 0.0999, -1.6033, 1.6, 0.95, 1.5);
 
   g4m::incrementTab tabPine (pineAs, 5., 0.25, 600, 1, 0.25, 1.5, 0.25, 5.);
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
      ,0 , sdMax, sdMin, maiYears, minRot
      , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
-     , &ffsdMaxH, &ffsdMinH
+     //, &ffsdMaxH, &ffsdMinH
      , maxAge
      );
 
@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
        ,0 , sdMax, sdMin, maiYears, minRot
        , 0  //reference of minrot
        , 0. //Flexibility of stocking degree
-       , &ffsdMaxH, &ffsdMinH
+       //, &ffsdMaxH, &ffsdMinH
        );
     forestMaxInc.createNormalForest(100, 500., 1.);
     g4m::ageStruct forestMaxBm
@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
        ,0 , sdMax, sdMin, maiYears, minRot
        , 0  //reference of minrot
        , 0. //Flexibility of stocking degree
-       , &ffsdMaxH, &ffsdMinH
+       //, &ffsdMaxH, &ffsdMinH
        );
     forestMaxBm.createNormalForest(100, 500., 1.);
     forestMaxInc.setFlexSd(1); forestMaxBm.setFlexSd(1);
@@ -242,7 +242,7 @@ int main(int argc, char **argv) {
      ,0 , sdMax, sdMin, maiYears, minRot
      , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
-     , &ffsdMaxH, &ffsdMinH
+     //, &ffsdMaxH, &ffsdMinH
      );
 
 

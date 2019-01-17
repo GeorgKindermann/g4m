@@ -7,7 +7,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv) {
+int main() {
 
   g4m::incrementCurvesHf rtShort  //Short rotation time
     (150, 6.55, 0., -1.2, -0.35,

@@ -404,7 +404,7 @@ namespace g4m {
 
   double mai::getMai(unsigned int type, bool minNpp) {
     double npp = 0.;
-    if(!testBoundaries(type)) {npp = getNpp(type);}
+    if(!testBoundaries(type)) {npp = getNpp(type, minNpp);}
     double mai = npp;
     if(fNpp2mai == 0) {
       mai *= cNpp2mai[0];
@@ -416,7 +416,7 @@ namespace g4m {
 
   std::valarray<double> mai::getMai(bool minNpp) {
     std::valarray<double> ret(outOfBoundaries.size());
-    for(unsigned int i=0; i<ret.size(); ++i) {ret[i] = getMai(i);}
+    for(unsigned int i=0; i<ret.size(); ++i) {ret[i] = getMai(i, minNpp);}
     return(ret);
   }
 
@@ -424,7 +424,7 @@ namespace g4m {
     std::valarray<double> ret(dontNeed.size());
     for(unsigned int i=0; i<ret.size(); ++i) {
       if(dontNeed[i]) {ret[i] = 0.;
-      } else {ret[i] = getMai(i);}
+      } else {ret[i] = getMai(i, minNpp);}
     }
     return(ret);
   }

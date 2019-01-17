@@ -45,8 +45,8 @@ namespace g4m {
        //how fast should the stoking degree target be reached
    //0..do only remove caused by stand density  to  1..do only typical removes 
        , double flexSd=0.
-       , ffipol<double> *sdMaxH=NULL//Stockindegree depending on max tree height
-       , ffipol<double> *sdMinH=NULL//Stockindegree depending on max tree height
+       //, ffipol<double> *sdMaxH=NULL//Stockindegree depending on max tree height
+       //, ffipol<double> *sdMinH=NULL//Stockindegree depending on max tree height
        , unsigned int maxAge=300
        );
     ~ageStruct();

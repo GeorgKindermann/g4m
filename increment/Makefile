@@ -1,4 +1,4 @@
-CC = g++ -Wall -O3 -funroll-loops -march=native -std=c++0x -mtune=native
+CC = g++ -Wall -Wextra -O3 -march=native -mtune=native -std=c++17
 
 all:	ic mi as ma
 

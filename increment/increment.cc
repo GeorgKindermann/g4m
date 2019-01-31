@@ -630,6 +630,8 @@ namespace g4m {
 	  }
 	}
       }
+    }
+    for(int cmai=0; cmai<nmai; ++cmai) {
       //Go to all time steps and get the increments
       dbht[0 + cmai*nt] = 0.;
       gwlt[0 + cmai*nt] = 0.;

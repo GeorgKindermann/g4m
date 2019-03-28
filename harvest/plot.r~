@@ -1,2 +1,0 @@
-x <- read.table("/tmp/out.txt", header = T)
-

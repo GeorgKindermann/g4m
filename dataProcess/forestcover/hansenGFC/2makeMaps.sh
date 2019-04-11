@@ -1,7 +1,7 @@
 nohup nice -19 gdalwarp -wo NUM_THREADS=8 -multi -co "TILED=YES" -co "COMPRESS=DEFLATE" -co "BIGTIFF=YES" -r average -ts 43200 21600 treecover2010HansenV3.tif treeCov2010HansV3HDeg.tif &
 
 #Land=1 other=0
-nohup nice -19 python3 /usr/bin/gdal_calc.py --calc="where(A==1,1,0)" --type=Byte --co="TILED=YES" --co="COMPRESS=DEFLATE" --co="BIGTIFF=YES" --outfile=landHansenv15.tif -A landWaterHansenV16.tif &
+nohup nice -19 python3 /usr/bin/gdal_calc.py --calc="where(A==1,1,0)" --type=Byte --co="TILED=YES" --co="COMPRESS=DEFLATE" --co="BIGTIFF=YES" --outfile=landHansenv16.tif -A landWaterHansenV16.tif &
 
 #Create defor map compareable with Aformap
 nohup nice -19 python3 /usr/bin/gdal_calc.py --calc="where(logical_and(A>0, A<13), 1, 0)" --type=Byte --co="TILED=YES" --co="COMPRESS=DEFLATE" --co="BIGTIFF=YES" --outfile=treecoverLoss20002012HansenV16.tif -A treecoverlossyearHansenV16.tif &

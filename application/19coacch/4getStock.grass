@@ -1,0 +1,18 @@
+r.in.gdal input=/home/georg/16/g4m/biomassmap/cStem_ha.tif output=del0 --overwrite &
+r.in.gdal input=/home/georg/16/g4m/forestCover/forestCoverG4mCalib2000.tif output=del1 --overwrite &
+r.in.gdal input=/home/georg/16/g4m/csoil/2000/soilc_ha.tif output=del2 --overwrite &
+r.in.gdal input=/home/georg/16/g4m/primaryForest/managedForestG4M2000.tif output=del3 --overwrite &
+
+wait
+
+g.region n=90n s=60s w=180w e=180e res=0:30
+r.resamp.stats input=del0 output=del10 &
+r.resamp.stats input=del1 output=del11 &
+r.resamp.stats input=del2 output=del12 &
+r.resamp.stats input=del3 output=del13 &
+
+wait
+
+cut -d ' ' -f 1,2 /tmp/mai.txt | r.what map=del10,del11,del12,del13 separator=' ' null_value=0 >/tmp/g4mStart.txt
+
+g.remove -f type=raste pattern="del*"

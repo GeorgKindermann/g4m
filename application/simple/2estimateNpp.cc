@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iterator>
 
-#include "..//mai.h"
+#include "../../increment/mai.h"
 
 using namespace std;
 

@@ -1,0 +1,43 @@
+DIR=~/prg/g4m/application/simple/data/
+
+#Forestype-0
+r.in.gdal input=${DIR}type_DeciduousBroadleafForest_g4m_base30.tif output=del0_0 --overwrite
+r.in.gdal input=${DIR}type_DeciduousNeedleleafForest_g4m_base30.tif output=del0_1 --overwrite
+r.in.gdal input=${DIR}type_EvergreenBroadleafForest_g4m_base30.tif output=del0_2 --overwrite
+r.in.gdal input=${DIR}type_EvergreenNeedleleafForest_g4m_base30.tif output=del0_3 --overwrite
+
+#soilIiasaFao90-4
+r.in.gdal input=${DIR}soilFAO90G4m30.tif output=del4 --overwrite
+
+#soilIiasaSwr-5
+r.in.gdal input=${DIR}soilSwr30.tif output=del5 --overwrite
+r.null map=del5 null=-1
+
+#soilIiasaAwc-6
+r.in.gdal input=${DIR}soilAcwG4m30.tif output=del6 --overwrite
+r.null map=del6 null=-1
+
+#elevation-7
+r.in.gdal input=${DIR}demGtopo30.tif output=del7 --overwrite
+
+r.in.gdal input=${DIR}waterLandModis30Sec30.tif output=del0 --overwrite
+
+g.region n=90n s=60s w=180w e=180e res=0:30
+r.mapcalc "del3 = if(del0 == 16, null(), del0)" --overwrite
+
+#Base mai-8
+r.in.xyz input=${DIR}/../result/nppG4mTree30.asc output=del8 separator=' ' z=19 skip=1 --overwrite
+
+cut -f 1,2 /tmp/prMonMean.txt | tail -n +2 | r.what map=del3,del0_0,del0_1,del0_2,del0_3,del4,del5,del6,del7,del8 separator=' ' null_value=-1 | awk '$3 != "-1" {print $0}' >/tmp/datG4m.txt
+
+g.remove -f type=raste pattern="del*"
+
+
+
+join -j1 <(</tmp/datG4m.txt awk '{print $1"_"$2}' | sort -k1,1) <(</tmp/datG4m.txt awk '{print $1"_"$2" "$0}' | sort -k1,1) | cut -d ' ' -f 2- >/tmp/datG4mS.txt
+join -j1 <(</tmp/datG4m.txt awk '{print $1"_"$2}' | sort -k1,1) <(</tmp/prMonMean.txt awk '{print $1"_"$2" "$0}' | sort -k1,1) | cut -d ' ' -f 2- >/tmp/prMonMeanS.txt
+join -j1 <(</tmp/datG4m.txt awk '{print $1"_"$2}' | sort -k1,1) <(</tmp/rsdsMonMean.txt awk '{print $1"_"$2" "$0}' | sort -k1,1) | cut -d ' ' -f 2- >/tmp/rsdsMonMeanS.txt
+join -j1 <(</tmp/datG4m.txt awk '{print $1"_"$2}' | sort -k1,1) <(</tmp/tasMonMean.txt awk '{print $1"_"$2" "$0}' | sort -k1,1) | cut -d ' ' -f 2- >/tmp/tasMonMeanS.txt
+
+rm /tmp/datG4m.txt /tmp/prMonMean.txt /tmp/rsdsMonMean.txt /tmp/tasMonMean.txt
+

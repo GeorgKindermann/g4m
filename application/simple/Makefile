@@ -1,5 +1,5 @@
 CC = g++ -Wall -O3 -funroll-loops -march=native -mtune=native
-G4MPATH = ../
+G4MPATH = ../../increment/
 
 all:	2estimateNpp 4useAgestruct
 

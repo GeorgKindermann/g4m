@@ -5,7 +5,7 @@
 #include <vector>
 #include <iterator>
 
-#include "../ageStruct.h"
+#include "../../increment/ageStruct.h"
 
 using namespace std;
 
@@ -111,7 +111,7 @@ int main() {
      ,0 , sdMax, sdMin, maiYears, minRot
      , 0  //reference of minrot
      , 0. //Flexibility of stocking degree
-     , &ffsdMaxH, &ffsdMinH
+     //, &ffsdMaxH, &ffsdMinH
      , maxAge
      );
   forest.setObjOfProd(3); //maximize increment

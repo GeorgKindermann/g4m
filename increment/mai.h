@@ -10,7 +10,35 @@ namespace g4m {
 
   class mai {
   public:
-    mai(const std::valarray<double>& c = {1.95866e-11,16.6774,5.30899,300,7.00127,0.0828,0.180158,50,0.002,0.85,20, 2, 0.5, 0.841, -22.131}  //Coefficients
+    mai(const std::valarray<double>& c = {.8, 0., 0., 0., .75, 0.004609729, -32.90496, 0.6081886, 1.719932, 1.323597, 0.003, 50., 0.1291932, 0.1711536, 1.1960215, -0.2604522, 0.7, -0.2446678, 0.7, -0.1, 1., -3.370857, -0.8971804}  //Coefficients: 0boden0, 1boden1, 2boden2, 3boden3, 4boden4, 5c0,6cr0,7cr1,8ct0,9ct1,10co0,11co1,12cp0,13cp1,14cp2,15cn0,16cn1,17cpo0,18cpo1,19cs0,20cs1,21cph0,22cph1
+	, const std::valarray<double>& t = std::valarray<double>(10., 12)  //Temperature of each month [deg C]
+	, const std::valarray<double>& p = std::valarray<double>(70., 12)  //Precipitation [mm/month]
+	, const std::valarray<double>& r = std::valarray<double>(180., 12) //Short wave Radiation [W/m2]
+	, double whc=100.    //Water holding capacity [mm]
+	, double swr=0.  //Soil Water Regime, additional water from soil or irrigation [mm/month]
+	, double co2=0.038   //CO2 concentration [volume %]
+	, double altitude=0.    //Altitude [m]
+	, double N=50. //Nitrogen [t/Ha]
+	, double P=30. //Phosphorus Seconday Mineral [gP/m2]
+	, double S=0.  //Salinity [dS/m]
+	, double pH=7. //pH-Value
+	, double soilWaterDecayRate=0.8  //lake of soil water
+	, unsigned char fNpp2mai=0 //Function type to convert npp to mai
+	, const std::valarray<double>& cNpp2mai = {0.35} //Coefficients to convert npp to mai
+	//the followign temperatures set boundaries where this species can exist
+	, const std::valarray<double>& tMinJ = {0.} //Average annual temperature - minimum
+	, const std::valarray<double>& tMaxJ = {std::numeric_limits<double>::infinity()} //Average annual temperature - maximum
+	, const std::valarray<double>& pMinJ = {0.} //Annual precipitation - minimum
+	, const std::valarray<double>& pMaxJ = {std::numeric_limits<double>::infinity()} //Annual precipitation - maximum
+	, const std::valarray<double>& tMinM = {0.} //Month temperature - minimum
+	, const std::valarray<double>& tMaxM = {std::numeric_limits<double>::infinity()} //Month temperature - maximum
+	, const std::valarray<double>& pMinM = {0.} //Month precipitation - minimum
+	, const std::valarray<double>& pMaxM = {std::numeric_limits<double>::infinity()} //Month precipitation - maximum
+	, const std::valarray<double>& minNpp = {0.} //Minimum NPP
+	, bool weatherIsDynamic = false
+	);
+
+    mai(const std::valarray<double>& c //= {1.95866e-11,16.6774,5.30899,300,7.00127,0.0828,0.180158,50,0.002,0.85,20, 2, 0.5, 0.841, -22.131}  //Coefficients
 	, const std::valarray<double>& c0 = {1.054684,1.099922,1.075196,0.980570,1.002155,1.044522,1.134524,1.073864,1.000548,1.070339,1.068615,1.086483,1.054495,1.036821,1.095323,1.008207,1.094867,1.031270,0.987843,1.035130,0.950606,1.074587,1.008381} //c0 Coefficients
 	, const std::valarray<double>& t = std::valarray<double>(10., 24)  //Temperature of each month [deg C]
 	, const std::valarray<double>& p = std::valarray<double>(70., 24)  //Precipitation [mm/30 Days]
@@ -78,6 +106,10 @@ namespace g4m {
     void setCo2(const double& co2);
     void setSwr(const double& swr);
     void setWhc(const double& whc);
+    void setN(const double& N);
+    void setP(const double& P);
+    void setS(const double& S);
+    void setpH(const double& pH);
     void setAltitude(const double& altitude);
     void setSoilType(const int& soilType);
     void setLatitude(double latitude);
@@ -114,6 +146,10 @@ namespace g4m {
     double whc;   //Water holding capacity 
     double swr;   //Soild water regime (Grundwassereinfluss)
     double co2;   //Co2 concentration
+    double N;     //Nitrogen
+    double P;     //Phosphorus
+    double S;     //Salinity
+    double pH;    //pH-Value
     double altitude;         //altitude
     int soilType; //Soil type
     std::valarray<double> t; //Temperature for each month of this year [12]
@@ -131,6 +167,7 @@ namespace g4m {
     
     double getNpp1(unsigned int type=0, bool useMinNpp=false);
     double getNpp2(unsigned int type=0, bool useMinNpp=false);
+    double getNpp3(unsigned int type=0, bool useMinNpp=false);
   };
 
 

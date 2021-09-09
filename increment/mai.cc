@@ -2,6 +2,71 @@
 
 namespace g4m {
 
+     mai::mai(const std::valarray<double>& ac //Coefficients: c0,cr0,cr1,ct0,ct1,co0,co1,cp0,cp1,cp2,cn0,cn1,cpo0,cpo1,cs0,cs1,cph0,cph1
+	, const std::valarray<double>& at //Temperature of each month [deg C]
+	, const std::valarray<double>& ap //Precipitation [mm/month]
+	, const std::valarray<double>& ar //Short wave Radiation [W/m2]
+	, double awhc    //Water holding capacity [mm]
+	, double aswr  //Soil Water Regime, additional water from soil or irrigation [mm/month]
+	, double aco2   //CO2 concentration [volume %]
+	, double aaltitude    //Altitude [m]
+	, double aN //Nitrogen [t/Ha]
+	, double aP //Phosphorus Seconday Mineral [gP/m2]
+	, double aS  //Salinity [dS/m]
+	, double apH //pH-Value
+	, double asoilWaterDecayRate  //lake of soil water
+	, unsigned char afNpp2mai //Function type to convert npp to mai
+	, const std::valarray<double>& acNpp2mai //Coefficients to convert npp to mai
+	//the followign temperatures set boundaries where this species can exist
+	, const std::valarray<double>& atMinJ //Average annual temperature - minimum
+	, const std::valarray<double>& atMaxJ //Average annual temperature - maximum
+	, const std::valarray<double>& apMinJ //Annual precipitation - minimum
+	, const std::valarray<double>& apMaxJ //Annual precipitation - maximum
+	, const std::valarray<double>& atMinM //Month temperature - minimum
+	, const std::valarray<double>& atMaxM //Month temperature - maximum
+	, const std::valarray<double>& apMinM //Month precipitation - minimum
+	, const std::valarray<double>& apMaxM //Month precipitation - maximum
+	, const std::valarray<double>& aminNpp //Minimum NPP
+	, bool aweatherIsDynamic
+	)  :
+    version(3)
+    , inputWasChanged(true)
+    , nc(23)
+    , nc0(0)
+    , whc(awhc)
+    , swr(aswr)
+    , co2(aco2)
+    , N(aN)
+    , P(aP)
+    , S(aS)
+    , pH(apH)
+    , altitude(aaltitude)
+    , weatherIsDynamic(aweatherIsDynamic)
+    , soilWaterDecayRate(asoilWaterDecayRate)
+    , fNpp2mai(afNpp2mai)
+  {
+    numberOfTypes = ac.size() / nc;
+    c = ac;
+    t = at[std::slice(at.size()-12,12,1)];
+    p = ap[std::slice(ap.size()-12,12,1)];
+    r = ar[std::slice(ar.size()-12,12,1)];
+    tp = at[std::slice(0,12,1)];
+    pp = ap[std::slice(0,12,1)];
+    rp = ar[std::slice(0,12,1)];
+    cNpp2mai = acNpp2mai;
+    tMinJ = atMinJ;
+    tMaxJ = atMaxJ;
+    pMinJ = apMinJ;
+    pMaxJ = apMaxJ;
+    tMinM = atMinM;
+    tMaxM = atMaxM;
+    pMinM = apMinM;
+    pMaxM = apMaxM;
+    minNpp = aminNpp;
+    sw.resize(12);
+    outOfBoundaries.resize(numberOfTypes);
+  }
+  
   mai::mai(const std::valarray<double>& ac     //Coefficients
 	   , const std::valarray<double>& ac0  //c0 Coefficients (soilType)
 	   , const std::valarray<double>& at   //Temperature of each month [deg C]
@@ -291,9 +356,60 @@ namespace g4m {
     return(ret);
   }
 
+  double mai::getNpp3(unsigned int type, bool useMinNpp) {
+    double ret=0.;
+    static const double days[12] = {31./30.,28.25/30.,31./30.,30./30.,31./30.,30./30.,31./30.,31./30.,30./30.,31./30.,30./30.,31./30.};
+    double bodenwasser = whc / 2.;
+    for(int month=0; month<12; ++month) {
+      double niederschlag = p[month];
+      double temperatur = t[month];
+      double verdunstungPot = 30. * exp(17.62*temperatur/(243.12 + temperatur));
+      double evapotrans = tanh(c[0+type*nc]) * verdunstungPot;
+      double interceptionPot = abs(c[1+type*nc]) + fmin(abs(c[2+type*nc]) * tanh(abs(c[3+type*nc]) * verdunstungPot), evapotrans);
+      double interception = fmin(niederschlag, interceptionPot);
+      double niederschlagBoden = niederschlag - interception;
+      double verfuegbaresBodenwasser = bodenwasser * pow((bodenwasser / whc), c[4+type*nc]);
+      double nutzbaresWasser = niederschlagBoden + verfuegbaresBodenwasser;
+      double genutztesWasser = fmin(nutzbaresWasser, evapotrans - interception);
+      bodenwasser += (niederschlagBoden - genutztesWasser) * days[month];
+      if(bodenwasser > whc) {bodenwasser = whc;}
+      if(bodenwasser < 0.) {bodenwasser = 0.;}
+    }
+    for(int month=0; month<12; ++month) {
+      double niederschlag = p[month];
+      double temperatur = t[month];
+      double radi = r[month];
+      double verdunstungPot = 30. * exp(17.62*temperatur/(243.12 + temperatur));
+      double evapotrans = tanh(c[0+type*nc]) * verdunstungPot;
+      double interceptionPot = abs(c[1+type*nc]) + fmin(abs(c[2+type*nc]) * tanh(abs(c[3+type*nc]) * verdunstungPot), evapotrans);
+      double interception = fmin(niederschlag, interceptionPot);
+      double niederschlagBoden = niederschlag - interception;
+      double verfuegbaresBodenwasser = bodenwasser * pow((bodenwasser / whc), c[4+type*nc]);
+      double nutzbaresWasser = niederschlagBoden + verfuegbaresBodenwasser;
+      double genutztesWasser = fmin(nutzbaresWasser, evapotrans - interception);
+      bodenwasser += (niederschlagBoden - genutztesWasser) * days[month];
+      if(bodenwasser > whc) {bodenwasser = whc;}
+      if(bodenwasser < 0.) {bodenwasser = 0.;}
+      ret += c[5+type*nc] * exp(-altitude/7990)    //Luftdruck
+	* pow(fmax(0.,  c[6+type*nc] + radi), c[7+type*nc])   //Strahlung
+	* pow(fmax(0., c[8+type*nc] + temperatur), c[9+type*nc])  //Temperatur
+	* pow(fmax(0, tanh(c[10+type*nc] * (co2 - c[11+type*nc])) - c[12+type*nc]*exp(17.62*temperatur/(243.12 + temperatur)) / tanh(c[13+type*nc]*bodenwasser)), c[14+type*nc]) //Wasser (Niederschlag, Bodenwasser) + CO2
+	* pow(1 - exp(c[15+type*nc] * N), c[16+type*nc])   //N - Mitscherlich
+	* pow(1 - exp(c[17+type*nc] * P), c[18+type*nc]) //P
+	* pow(exp(c[19+type*nc] * S), c[20+type*nc])          //Salz
+	* exp(log(fmax(0., c[21+type*nc] + pH)) + pow(c[22+type*nc]*log(fmax(0., c[21+type*nc] + pH)),2));
+    }
+    if(ret<0.) {ret = 0.;}
+    if(useMinNpp && ret < minNpp[type]) {ret = 0.;}
+    return(ret);
+  }
+  
   double mai::getNpp(unsigned int type, bool useMinNpp) {
     double ret=0.;
     switch ( version ) {
+    [[likely]] case 3:
+      ret = getNpp3(type, useMinNpp);
+      break;
     case 2:
       ret = getNpp2(type, useMinNpp);
       break;
@@ -301,7 +417,7 @@ namespace g4m {
       ret = getNpp1(type, useMinNpp);
       break;
     default:
-      ret = getNpp2(type, useMinNpp);
+      ret = getNpp3(type, useMinNpp);
       break;
     }
     return(ret);
@@ -385,6 +501,26 @@ namespace g4m {
 
   void mai::setWhc(const double& awhc) {
     whc = awhc;
+    inputWasChanged = true;
+  }
+
+  void mai::setN(const double& aN) {
+    N = aN;
+    inputWasChanged = true;
+  }
+
+  void mai::setP(const double& aP) {
+    P = aP;
+    inputWasChanged = true;
+  }
+
+  void mai::setS(const double& aS) {
+    S = aS;
+    inputWasChanged = true;
+  }
+
+  void mai::setpH(const double& apH) {
+    pH = apH;
     inputWasChanged = true;
   }
 

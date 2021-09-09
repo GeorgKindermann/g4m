@@ -1,4 +1,4 @@
-CC = g++ -Wall -Wextra -O3 -march=native -mtune=native -std=c++17
+CC = g++ -Wall -Wextra -O3 -march=native -mtune=native
 
 all:	ic mi as ma
 

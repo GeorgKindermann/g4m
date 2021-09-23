@@ -276,7 +276,7 @@ maiV2.setBoundaries(15,-11.4 - 2.9,7.9 - 7.3,190. - 0,6900. + 4000.,-40.9 + 1.,2
   maiV3.setTemperature(t);
   maiV3.setPrecipitation(p);
   maiV3.setRadiation(r);
-  maiV3.setCo2(0.038);
+  maiV3.setCo2(380);
   maiV3.setSwr(0.);
   maiV3.setWhc(150.);
   maiV3.setAltitude(400.);

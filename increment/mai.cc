@@ -397,7 +397,8 @@ namespace g4m {
 	* pow(1 - exp(c[15+type*nc] * N), c[16+type*nc])   //N - Mitscherlich
 	* pow(1 - exp(c[17+type*nc] * P), c[18+type*nc]) //P
 	* pow(exp(c[19+type*nc] * S), c[20+type*nc])          //Salz
-	* exp(log(fmax(0., c[21+type*nc] + pH)) + pow(c[22+type*nc]*log(fmax(0., c[21+type*nc] + pH)),2));
+	* exp(log(fmax(0., c[21+type*nc] + pH)) + pow(c[22+type*nc]*log(fmax(0., c[21+type*nc] + pH)),2))
+	;
     }
     if(ret<0.) {ret = 0.;}
     if(useMinNpp && ret < minNpp[type]) {ret = 0.;}

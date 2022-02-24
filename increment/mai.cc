@@ -390,10 +390,14 @@ namespace g4m {
       bodenwasser += (niederschlagBoden - genutztesWasser) * days[month];
       if(bodenwasser > whc) {bodenwasser = whc;}
       if(bodenwasser < 0.) {bodenwasser = 0.;}
+      double uw = genutztesWasser / evapotrans;
       ret += c[5+type*nc] * exp(-altitude/7990)    //Luftdruck
 	* pow(fmax(0.,  c[6+type*nc] + radi), c[7+type*nc])   //Strahlung
-	* pow(fmax(0., c[8+type*nc] + temperatur), c[9+type*nc])  //Temperatur
-	* pow(fmax(0, tanh(c[10+type*nc] * (co2 - c[11+type*nc])) - c[12+type*nc]*exp(17.62*temperatur/(243.12 + temperatur)) / tanh(c[13+type*nc]*bodenwasser)), c[14+type*nc]) //Wasser (Niederschlag, Bodenwasser) + CO2
+//* pow(fmax(0., c[8+type*nc] + temperatur), c[9+type*nc])  //Temperatur
+  * fmax(0., tanh(c[8+type*nc] * fmax(0., c[9+type*nc] + temperatur))
+        - pow(fmax(0., c[10+type*nc] * temperatur), c[11+type*nc])) //Temperatur
+//* pow(fmax(0, tanh(c[10+type*nc] * (co2 - c[11+type*nc])) - c[12+type*nc]*exp(17.62*temperatur/(243.12 + temperatur)) / tanh(c[13+type*nc]*bodenwasser)), c[14+type*nc]) //Wasser (Niederschlag, Bodenwasser) + CO2
+  * pow(fmax(0, (tanh(c[12+type*nc] * (co2 - c[13+type*nc]))  * uw - c[14+type*nc]) / (1 - c[14+type*nc])), c[15+type*nc]) //Trockenheit
 	* pow(1 - exp(c[15+type*nc] * N), c[16+type*nc])   //N - Mitscherlich
 	* pow(1 - exp(c[17+type*nc] * P), c[18+type*nc]) //P
 	* pow(exp(c[19+type*nc] * S), c[20+type*nc])          //Salz

@@ -126,7 +126,7 @@ namespace g4m {
  
     std::valarray<double> c14t17;
     unsigned int numberOfTypes;
-    const unsigned int nc; //Number of coefficients (new:15, old:14)
+    const unsigned int nc; //Number of coefficients (v3:24, v2:15, v1:14)
     const unsigned int nc0; //Number of c0 coefficients (23)
     std::valarray<double> c;  //18 Coefficients
     std::valarray<double> c0;  //23 c0 Coefficients

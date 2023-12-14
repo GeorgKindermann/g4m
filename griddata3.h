@@ -19,8 +19,8 @@ class griddata
     int VerResolution;
     int HorNeigh;
     int VerNeigh;
-    double GridRows[];
     double *grid, *gridPrev;  
+    double GridRows[];
   public:
       griddata(int VR, int HR, double val);
       griddata();

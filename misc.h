@@ -2,6 +2,7 @@
 #define G4M_MISC_H
 
 #include <map>
+#include <utility>
 
 namespace g4m {
 
@@ -25,14 +26,14 @@ namespace g4m {
 
   template <class IDX, class VAL>
   void ipol<IDX, VAL>::insert(IDX i, VAL v) {
-    aMap.insert(make_pair(i, v));
+    aMap.insert(std::make_pair(i, v));
   }
   
   template <class IDX, class VAL>
   void ipol<IDX, VAL>::inc(IDX i, VAL v) {
     v += aMap[i];
     aMap.erase(i);
-    aMap.insert(make_pair(i, v));
+    aMap.insert(std::make_pair(i, v));
   }
 
   

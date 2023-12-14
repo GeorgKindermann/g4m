@@ -1,0 +1,226 @@
+Kosova  Kosovo	XK	XXK		Kosovo
+Andorra	AD	AND	20	Andorra
+الإمارات العربية المتحدة	AE	ARE	784	United Arab Emirates
+افغانستان	AF	AFG	4	Afghanistan
+Antigua and Barbuda	AG	ATG	28	Antigua and Barbuda
+Anguilla	AI	AIA	660	Anguilla
+Shqipëria	AL	ALB	8	Albania
+Հայաստան	AM	ARM	51	Armenia
+Angola	AO	AGO	24	Angola
+Argentina	AR	ARG	32	Argentina
+Sāmoa	AS	ASM	16	American Samoa
+Österreich	AT	AUT	40	Austria
+Australia	AU	AUS	36	Australia
+Azərbaycan	AZ	AZE	31	Azerbaijan
+Bosna i Hercegovina  Босна и Херцеговина	BA	BIH	70	Bosnia and Herzegovina
+Barbados	BB	BRB	52	Barbados
+বাংলাদেশ	BD	BGD	50	Bangladesh
+België  Belgique  Belgien	BE	BEL	56	Belgium
+Burkina Faso	BF	BFA	854	Burkina Faso
+Бългaрия	BG	BGR	100	Bulgaria
+البحرين	BH	BHR	48	Bahrain
+Burundi	BI	BDI	108	Burundi
+Bénin	BJ	BEN	204	Benin
+Bermuda	BM	BMU	60	Bermuda
+Brunei	BN	BRN	96	Brunei Darussalam
+Bolivia	BO	BOL	68	Bolivia (Plurinational State of)
+Brasil	BR	BRA	76	Brazil
+The Bahamas	BS	BHS	44	Bahamas
+འབྲུགཡུལ་	BT	BTN	64	Bhutan
+Botswana	BW	BWA	72	Botswana
+Беларусь	BY	BLR	112	Belarus
+Belize	BZ	BLZ	84	Belize
+Canada	CA	CAN	124	Canada
+Congo	CD	COD	180	Congo, Democratic Republic of the
+République démocratique du Congo	CD	COD	180	Congo, Democratic Republic of the
+Ködörösêse tî Bêafrîka - République Centrafricaine	CF	CAF	140	Central African Republic
+Congo	CG	COG	178	Congo
+SchweizSuisseSvizzeraSvizra	CH	CHE	756	Switzerland
+Côte D Ivoire	CI	CIV	384	Côte d'Ivoire
+Kūki  Āirani	CK	COK	184	Cook Islands
+Chile	CL	CHL	152	Chile
+Cameroun	CM	CMR	120	Cameroon
+中国	CN	CHN	156	China
+Colombia	CO	COL	170	Colombia
+Costa Rica	CR	CRI	188	Costa Rica
+Cuba	CU	CUB	192	Cuba
+Cabo Verde	CV	CPV	132	Cabo Verde
+Κύπρος - Kıbrıs	CY	CYP	196	Cyprus
+Česko	CZ	CZE	203	Czechia
+Deutschland	DE	DEU	276	Germany
+Djibouti جيبوتي	DJ	DJI	262	Djibouti
+Danmark	DK	DNK	208	Denmark
+Dominica	DM	DMA	212	Dominica
+Dominica	DO	DOM	214	Dominican Republic
+República Dominicana	DO	DOM	214	Dominican Republic
+Algérie  ⵍⵣⵣⴰⵢⴻⵔ  الجزائر	DZ	DZA	12	Algeria
+Ecuador	EC	ECU	218	Ecuador
+Eesti	EE	EST	233	Estonia
+مصر	EG	EGY	818	Egypt
+الجمهورية العربية الصحراوية الديمقراطية	EH	ESH	732	Western Sahara
+ኤርትራ Eritrea إرتريا	ER	ERI	232	Eritrea
+España	ES	ESP	724	Spain
+ኢትዮጵያ	ET	ETH	231	Ethiopia
+Suomi  Finland	FI	FIN	246	Finland
+Viti	FJ	FJI	242	Fiji
+Falkland Islands	FK	FLK	238	Falkland Islands (Malvinas)
+Micronesia	FM	FSM	583	Micronesia (Federated States of)
+Føroyar	FO	FRO	234	Faroe Islands
+France	FR	FRA	250	France
+Gabon	GA	GAB	266	Gabon
+British Sovereign Base Areas	GB	GBR	826	United Kingdom of Great Britain and Northern Ireland
+United Kingdom	GB	GBR	826	United Kingdom of Great Britain and Northern Ireland
+Grenada	GD	GRD	308	Grenada
+საქართველო	GE	GEO	268	Georgia
+Guernsey	GG	GGY	831	Guernsey
+Ghana	GH	GHA	288	Ghana
+Gibraltar	GI	GIB	292	Gibraltar
+Kalaallit Nunaat	GL	GRL	304	Greenland
+Gambia	GM	GMB	270	Gambia
+Guinée	GN	GIN	324	Guinea
+Guinea Ecuatorial	GQ	GNQ	226	Equatorial Guinea
+Guinée	GQ	GNQ	226	Equatorial Guinea
+Ελλάς	GR	GRC	300	Greece
+South Georgia and the South Sandwich Islands	GS	SGS	239	South Georgia and the South Sandwich Islands
+Guatemala	GT	GTM	320	Guatemala
+Guiné-Bissau	GW	GNB	624	Guinea-Bissau
+Guyana	GY	GUY	328	Guyana
+Honduras	HN	HND	340	Honduras
+Hrvatska	HR	HRV	191	Croatia
+Ayiti	HT	HTI	332	Haiti
+Magyarország	HU	HUN	348	Hungary
+Indonesia	ID	IDN	360	Indonesia
+Éire  Ireland	IE	IRL	372	Ireland
+ישראל	IL	ISR	376	Israel
+Isle of Man	IM	IMN	833	Isle of Man
+India	IN	IND	356	India
+British Indian Ocean Territory	IO	IOT	86	British Indian Ocean Territory
+India	IO	IOT	86	British Indian Ocean Territory
+العراق	IQ	IRQ	368	Iraq
+ایران	IR	IRN	364	Iran (Islamic Republic of)
+Ísland	IS	ISL	352	Iceland
+Italia	IT	ITA	380	Italy
+Jersey	JE	JEY	832	Jersey
+Jamaica	JM	JAM	388	Jamaica
+الأردن	JO	JOR	400	Jordan
+日本	JP	JPN	392	Japan
+Kenya	KE	KEN	404	Kenya
+Кыргызстан	KG	KGZ	417	Kyrgyzstan
+ព្រះរាជាណាចក្រ​កម្ពុជា	KH	KHM	116	Cambodia
+Kiribati	KI	KIR	296	Kiribati
+Comores Komori جزر القمر	KM	COM	174	Comoros
+Saint Kitts and Nevis	KN	KNA	659	Saint Kitts and Nevis
+조선민주주의인민공화국	KP	PRK	408	Korea (Democratic People's Republic of)
+대한민국	KR	KOR	410	Korea, Republic of
+الكويت	KW	KWT	414	Kuwait
+Cayman Islands	KY	CYM	136	Cayman Islands
+Қазақстан	KZ	KAZ	398	Kazakhstan
+ປະເທດລາວ	LA	LAO	418	Lao People's Democratic Republic
+لبنان	LB	LBN	422	Lebanon
+Saint Lucia	LC	LCA	662	Saint Lucia
+Liechtenstein	LI	LIE	438	Liechtenstein
+ශ්‍රී ලංකාව இலங்கை	LK	LKA	144	Sri Lanka
+Liberia	LR	LBR	430	Liberia
+Lesotho	LS	LSO	426	Lesotho
+Lietuva	LT	LTU	440	Lithuania
+Lëtzebuerg	LU	LUX	442	Luxembourg
+Latvija	LV	LVA	428	Latvia
+ليبيا	LY	LBY	434	Libya
+Maroc  ⵍⵎⵖⵔⵉⴱ  المغرب	MA	MAR	504	Morocco
+Monaco	MC	MCO	492	Monaco
+Moldova	MD	MDA	498	Moldova, Republic of
+Crna Gora  Црна Гора	ME	MNE	499	Montenegro
+Madagasikara	MG	MDG	450	Madagascar
+Ṃajeḷ	MH	MHL	584	Marshall Islands
+Северна Македонија	MK	MKD	807	North Macedonia
+Mali	ML	MLI	466	Mali
+မြန်မာ	MM	MMR	104	Myanmar
+Монгол улс ᠮᠤᠩᠭᠤᠯ ᠤᠯᠤᠰ	MN	MNG	496	Mongolia
+موريتانيا	MR	MRT	478	Mauritania
+Montserrat	MS	MSR	500	Montserrat
+Malta	MT	MLT	470	Malta
+Mauritius	MU	MUS	480	Mauritius
+ދިވެހިރާއްޖެ	MV	MDV	462	Maldives
+Malawi	MW	MWI	454	Malawi
+México	MX	MEX	484	Mexico
+Malaysia	MY	MYS	458	Malaysia
+Moçambique	MZ	MOZ	508	Mozambique
+Namibia	NA	NAM	516	Namibia
+Niger	NE	NER	562	Niger
+Niger	NG	NGA	566	Nigeria
+Nigeria	NG	NGA	566	Nigeria
+Nigeria	NG	NGA	566	Nigeria
+Nicaragua	NI	NIC	558	Nicaragua
+Nederland	NL	NLD	528	Netherlands
+Norge	NO	NOR	578	Norway
+नेपाल	NP	NPL	524	Nepal
+Naoero	NR	NRU	520	Nauru
+Niuē	NU	NIU	570	Niue
+New Zealand  Aotearoa	NZ	NZL	554	New Zealand
+عمان	OM	OMN	512	Oman
+Panamá	PA	PAN	591	Panama
+Perú	PE	PER	604	Peru
+Papua Niugini	PG	PNG	598	Papua New Guinea
+Pilipinas  Philippines	PH	PHL	608	Philippines
+پاکستان	PK	PAK	586	Pakistan
+Polska	PL	POL	616	Poland
+Pitcairn Islands	PN	PCN	612	Pitcairn
+Portugal	PT	PRT	620	Portugal
+Belau	PW	PLW	585	Palau
+Paraguay	PY	PRY	600	Paraguay
+قطر	QA	QAT	634	Qatar
+România	RO	ROU	642	Romania
+Србија	RS	SRB	688	Serbia
+Россия	RU	RUS	643	Russian Federation
+Rwanda	RW	RWA	646	Rwanda
+السعودية	SA	SAU	682	Saudi Arabia
+Solomon Islands	SB	SLB	90	Solomon Islands
+Sesel	SC	SYC	690	Seychelles
+السودان	SD	SDN	729	Sudan
+Sverige	SE	SWE	752	Sweden
+Singapore	SG	SGP	702	Singapore
+Saint Helena, Ascension and Tristan da Cunha	SH	SHN	654	Saint Helena, Ascension and Tristan da Cunha
+Slovenija	SI	SVN	705	Slovenia
+Slovensko	SK	SVK	703	Slovakia
+Sierra Leone	SL	SLE	694	Sierra Leone
+San Marino	SM	SMR	674	San Marino
+Sénégal	SN	SEN	686	Senegal
+Soomaaliya الصومال	SO	SOM	706	Somalia
+Suriname	SR	SUR	740	Suriname
+South Sudan	SS	SSD	728	South Sudan
+São Tomé e Príncipe	ST	STP	678	Sao Tome and Principe
+El Salvador	SV	SLV	222	El Salvador
+سوريا	SY	SYR	760	Syrian Arab Republic
+eSwatini	SZ	SWZ	748	Eswatini
+Turks and Caicos Islands	TC	TCA	796	Turks and Caicos Islands
+Tchad تشاد	TD	TCD	148	Chad
+Togo	TG	TGO	768	Togo
+ประเทศไทย	TH	THA	764	Thailand
+Тоҷикистон	TJ	TJK	762	Tajikistan
+Tokelau	TK	TKL	772	Tokelau
+Timór Lorosa e  Timor-Leste	TL	TLS	626	Timor-Leste
+Türkmenistan	TM	TKM	795	Turkmenistan
+تونس	TN	TUN	788	Tunisia
+Tonga	TO	TON	776	Tonga
+Türkiye	TR	TUR	792	Turkey
+Trinidad and Tobago	TT	TTO	780	Trinidad and Tobago
+Tuvalu	TV	TUV	798	Tuvalu
+臺灣	TW	TWN	158	Taiwan, Province of China
+Tanzania	TZ	TZA	834	Tanzania, United Republic of
+Україна	UA	UKR	804	Ukraine
+Uganda	UG	UGA	800	Uganda
+United States	UM	UMI	581	United States Minor Outlying Islands
+United States	US	USA	840	United States of America
+Uruguay	UY	URY	858	Uruguay
+Oʻzbekiston	UZ	UZB	860	Uzbekistan
+Civitas Vaticana - Città del Vaticano	VA	VAT	336	Holy See
+Saint Vincent and the Grenadines	VC	VCT	670	Saint Vincent and the Grenadines
+Venezuela	VE	VEN	862	Venezuela (Bolivarian Republic of)
+British Virgin Islands	VG	VGB	92	Virgin Islands (British)
+Việt Nam	VN	VNM	704	Viet Nam
+Vanuatu	VU	VUT	548	Vanuatu
+Sāmoa	WS	WSM	882	Samoa
+اليمن	YE	YEM	887	Yemen
+South Africa	ZA	ZAF	710	South Africa
+Zambia	ZM	ZMB	894	Zambia
+Zimbabwe	ZW	ZWE	716	Zimbabwe

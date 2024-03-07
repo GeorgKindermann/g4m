@@ -130,6 +130,12 @@ int main() {
     }
   }
 
+  g4m::ageStruct::v calamity = forest.calamity(0.003);
+  cout << "Calamity: " << calamity.area
+       << ' ' << calamity.bm
+       << ' ' << calamity.sw
+       << ' ' << calamity.rw
+       << ' ' << calamity.co << '\n';
 
   return(0);
 

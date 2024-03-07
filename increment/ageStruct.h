@@ -105,6 +105,7 @@ namespace g4m {
     double u;       //Rotation time
     unsigned int getMaxAge();
     unsigned int setMaxAge(unsigned int maxAge);
+    v calamity(double share);  // Share of area which is destroied
     private:
     incrementTab *it;
     ffipol<double> *sws;

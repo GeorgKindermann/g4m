@@ -837,5 +837,23 @@ namespace g4m {
     return(ret);
   }
 
+  ageStruct::v ageStruct::calamity(double share) {
+    v ret = {0., 0., 0., 0., 0.};
+    for(size_t i=1; i<dat.size(); ++i) {
+      double area{dat[i].area * share};
+      double bm{dat[i].bm * area};
+      dat[i].area -= area;
+      ret.area += area;
+      ret.bm += bm;
+      double harvestedWood = bm * hle->g(dat[i].d);
+      double sawnWood = bm * sws->g(dat[i].d);
+      ret.sw += sawnWood;
+      ret.rw += harvestedWood - sawnWood;
+    }
+    ret.bm /= ret.area;
+    ret.sw /= ret.area;
+    ret.rw /= ret.area;
+    return ret;
+  }
 
 }

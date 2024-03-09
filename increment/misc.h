@@ -367,6 +367,7 @@ namespace g4m {
     for(unsigned int i=0; i<n; ++i) {
       aMap[i] = t.g((intercept + i)/zoom - add);
     }
+    intercept = add - zom*t.min();
   }
 
   template <class VAL>
@@ -429,6 +430,7 @@ namespace g4m {
     for(unsigned int i=0; i<n; ++i) {
       aMap[i] = t.g((intercept + i)/zoom - add);
     }
+    intercept = add - zom*t.min();
     return(ret);
   }
 

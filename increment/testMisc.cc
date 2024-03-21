@@ -10,6 +10,60 @@ using namespace std;
 int main() {
 
   {
+    g4m::ipol<vector<double>, double> vd;
+    vector<double> idx;
+    idx.push_back(10.);
+    idx.push_back(10.);
+    vd.insert(idx, 0.);
+    idx[0] = 20; idx[1] = 30;
+    vd.insert(idx, 10.);
+    for(int i=0; i<25; ++i) {
+      cout << i;
+      idx[0] = i;
+      for(int j=0; j<35; ++j) {
+	idx[1] = j;
+	cout << ' ' << vd.g(idx);
+      }
+      cout << "\n";
+    }
+    g4m::fipolm<double> fipm(vd);
+    for(int i=0; i<25; ++i) {
+      cout << i;
+      idx[0] = i;
+      for(int j=0; j<35; ++j) {
+	idx[1] = j;
+	cout << ' ' << fipm.g(idx);
+      }
+      cout << "\n";
+    }
+    g4m::fipolm<double> ffipm(vd);
+    for(int i=0; i<25; ++i) {
+      cout << i;
+      idx[0] = i;
+      for(int j=0; j<35; ++j) {
+	idx[1] = j;
+	cout << ' ' << ffipm.g(idx);
+      }
+      cout << "\n";
+    }
+  }
+  
+  {
+    g4m::ipol<double,double> sws;
+    sws.insert(10, .0);
+    sws.insert(30, .6);
+    g4m::fipol<double> fsws(sws);
+    g4m::ffipol<double> ffsws(sws, 5., .25);
+    for (int i = 0; i < 55; ++i) {
+      double x{9.7 + i*.05};
+      std::cout << i << ' ' << x << ' ' << sws.g(x) << ' ' << fsws.g(x) << ' ' << ffsws.g(x) << '\n';
+    }
+    for (int i = 0; i <= 50; i++) {
+      std::cout << i << ' ' << sws.g(i) << ' ' << fsws.g(i) << ' ' << ffsws.g(i) << '\n';
+    }
+  }
+
+  {
     double ic = 20.5;
     vector<double> idx;
     idx.push_back(0+ic);

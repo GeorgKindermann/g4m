@@ -257,11 +257,13 @@ namespace g4m {
   }
 
   template <class VAL>
-    fipol<VAL>::fipol(ipol<double,VAL> t, double zom) : intercept(zom*t.min()), zoom(zom) {
+  //fipol<VAL>::fipol(ipol<double,VAL> t, double zom) : intercept(zom*t.min()), zoom(zom) {
+    fipol<VAL>::fipol(ipol<double,VAL> t, double zom) : intercept(t.min()), zoom(zom) {
     n = static_cast<int>(1 + zoom * (std::ceil(t.max()) - std::floor(t.min())));
     aMap = new VAL[n];
     for(unsigned int i=0; i<n; ++i) {
-      aMap[i] = t.g((intercept + i)/zoom);
+      //aMap[i] = t.g((intercept + i)/zoom);
+      aMap[i] = t.g(i / zoom + intercept);
     }
   }
 
@@ -292,10 +294,11 @@ namespace g4m {
   template <class VAL>
     VAL fipol<VAL>::g(const double &i) {
     if(n > 1) {
-      double zi = i*zoom + intercept;
+      //double zi = i*zoom + intercept;
+      double zi = (i - intercept) * zoom;
       int i0 = static_cast<int>(zi);
       unsigned int i1 = i0+1;
-      if(i0 < 0) {return(aMap[0]);}
+      if(i0 < 0 || i <= intercept) {return(aMap[0]);}
       else if(i1 >= n) {return(aMap[n-1]);}
       else {
 	return(aMap[i0] + (zi - static_cast<double>(i0)) * (aMap[i1] - aMap[i0]));
@@ -361,13 +364,14 @@ namespace g4m {
   }
 
   template <class VAL>
-    ffipol<VAL>::ffipol(ipol<double,VAL> t, double zom, double add) : intercept(zom*t.min() + add), zoom(zom) {
+  //ffipol<VAL>::ffipol(ipol<double,VAL> t, double zom, double add) : intercept(zom*t.min() + add), zoom(zom) {
+  ffipol<VAL>::ffipol(ipol<double,VAL> t, double zom, double add) : intercept(t.min() - add/zom), zoom(zom) {
     n = static_cast<int>(1 + zoom * (std::ceil(t.max()) - std::floor(t.min())));
     aMap = new VAL[n];
     for(unsigned int i=0; i<n; ++i) {
-      aMap[i] = t.g((intercept + i)/zoom - add);
+      //aMap[i] = t.g((intercept + i)/zoom - add);
+      aMap[i] = t.g((i+add) / zoom + intercept);
     }
-    intercept = add - zom*t.min();
   }
 
   template <class VAL>
@@ -397,7 +401,8 @@ namespace g4m {
   template <class VAL>
     VAL ffipol<VAL>::g(const double &i) {
     if(n > 1) {
-      int i0 = static_cast<int>(i*zoom + intercept);
+      //int i0 = static_cast<int>(i*zoom + intercept);
+      int i0 = static_cast<int>((i - intercept) * zoom);
       if(i0 <= 0) {return(aMap[0]);}
       else if(i0 >= static_cast<int>(n)) {return(aMap[n-1]);}
       else {
@@ -506,13 +511,15 @@ namespace g4m {
     zoom = new double[dim];
     n = new unsigned int[dim];
     zoom[0] = 1.;
-    intercept[0]=zoom[0] * idxMin[0]; 
+    intercept[0]=zoom[0] * idxMin[0];
+    //intercept[0] = idxMin[0];
     unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
     for(unsigned int i=1; i<dim; ++i) {
       zoom[i] = 1.;
       n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
       slots *= n[i];
-      intercept[i]=zoom[i] * idxMin[i]; 
+      intercept[i]=zoom[i] * idxMin[i];
+      //intercept[i] = idxMin[i];
     }
     aMap = new VAL[slots];
     std::vector<double> key;
@@ -531,13 +538,15 @@ namespace g4m {
     zoom = new double[dim];
     n = new unsigned int[dim];
     zoom[0] = azoom[0];
-    intercept[0]=zoom[0] * idxMin[0]; 
+    intercept[0]=zoom[0] * idxMin[0];
+    //intercept[0] = idxMin[0];
     unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
     for(unsigned int i=1; i<dim; ++i) {
       zoom[i] = azoom[i];
       n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
       slots *= n[i];
-      intercept[i]=zoom[i] * idxMin[i]; 
+      intercept[i]=zoom[i] * idxMin[i];
+      //intercept[i] = idxMin[i];
     }
     aMap = new VAL[slots];
     std::vector<double> key;
@@ -600,7 +609,8 @@ namespace g4m {
     VAL fipolm<VAL>::g(double* i) {
     //Test if index is in the possible range
     for(unsigned j = 0; j < dim; ++j) {
-      i[j] = i[j] * zoom[j] - intercept[j];
+      //i[j] = i[j] * zoom[j] - intercept[j];
+      i[j] = (i[j] - intercept[j]) * zoom[j];
       if(i[j] >= n[j]) {i[j] = n[j]-1;}
       if(i[j] < 0) {i[j] = 0;}
     }
@@ -627,7 +637,7 @@ namespace g4m {
     double sdist = 0.;
     double sval = 0.;
     for(unsigned j=0; j<sur; ++j) {
-      if(idx[j] >= 0) {
+      //if(idx[j] >= 0) {  // is unsigned
 	if(dist[j] > 0.) {
 	  sval += aMap[idx[j]] / dist[j];
 	  sdist += 1./dist[j];
@@ -636,7 +646,7 @@ namespace g4m {
 	  sdist = 1.;
 	  break;
 	}
-      }
+	//}
     }
     if(sdist > 0.) {return(sval / sdist);}
     return(std::numeric_limits<VAL>::quiet_NaN());
@@ -647,7 +657,8 @@ namespace g4m {
     //Test if index is in the possible range
     if(i.size() != dim) {return(std::numeric_limits<VAL>::quiet_NaN());}
     for(unsigned j = 0; j < dim; ++j) {
-      i[j] = i[j] * zoom[j] - intercept[j];
+      //i[j] = i[j] * zoom[j] - intercept[j];
+      i[j] = (i[j] - intercept[j]) * zoom[j];
       if(i[j] >= n[j]) {i[j] = n[j]-1;}
       if(i[j] < 0) {i[j] = 0;}
     }
@@ -674,7 +685,7 @@ namespace g4m {
     double sdist = 0.;
     double sval = 0.;
     for(unsigned j=0; j<sur; ++j) {
-      if(idx[j] >= 0) {
+      //if(idx[j] >= 0) {  // is unsigned
 	if(dist[j] > 0.) {
 	  sval += aMap[idx[j]] / dist[j];
 	  sdist += 1./dist[j];
@@ -683,7 +694,7 @@ namespace g4m {
 	  sdist = 1.;
 	  break;
 	}
-      }
+	//}
     }
     if(sdist > 0.) {return(sval / sdist);}
     return(std::numeric_limits<VAL>::quiet_NaN());
@@ -804,7 +815,7 @@ namespace g4m {
     zoom = new double[dim];
     n = new unsigned int[dim];
     zoom[0] = 1.;
-    intercept[0]=zoom[0] * idxMin[0]; 
+    intercept[0]=zoom[0] * idxMin[0];
     unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
     for(unsigned int i=1; i<dim; ++i) {
       zoom[i] = 1.;

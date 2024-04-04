@@ -861,4 +861,39 @@ namespace g4m {
     return ret;
   }
 
+  ageStruct::v ageStruct::calamity(ffipol<double> *share, int type) {
+    v ret = {0., 0., 0., 0., 0.};
+    std::vector<double> dbhBm(2,0);
+    double S;
+    for(size_t i=1; i<dat.size(); ++i) {
+      switch(type) {
+      case 0:
+	S = share->g(dat[i].bm);
+	break;
+      case 1:
+	S = share->g(dat[i].d);
+	break;
+      default:
+	S = share->g(dat[i].h);
+      }
+      dbhBm[0] = dat[i].d;
+      dbhBm[1] = dat[i].bm;
+      double area{dat[i].area * S};
+      double bm{dat[i].bm * area};
+      dat[i].area -= area;
+      ret.area += area;
+      ret.bm += bm;
+      double harvestedWood = bm * hle->g(dat[i].d);
+      double sawnWood = bm * sws->g(dat[i].d);
+      ret.sw += sawnWood;
+      ret.rw += harvestedWood - sawnWood;
+      ret.co += bm * coe->g(dbhBm);
+    }
+    ret.bm /= ret.area;
+    ret.sw /= ret.area;
+    ret.rw /= ret.area;
+    ret.co /= ret.area;
+    return ret;
+  }
+
 }

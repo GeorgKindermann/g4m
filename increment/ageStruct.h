@@ -106,6 +106,7 @@ namespace g4m {
     unsigned int getMaxAge();
     unsigned int setMaxAge(unsigned int maxAge);
     v calamity(double share);  // Share of area which is destroied
+    v calamity(ffipol<double> *share, int type=0);  // 0..bm, 1..d, 2..h
     private:
     incrementTab *it;
     ffipol<double> *sws;

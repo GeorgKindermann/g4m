@@ -133,9 +133,26 @@ int main() {
   g4m::ageStruct::v calamity = forest.calamity(0.003);
   cout << "Calamity: " << calamity.area
        << ' ' << calamity.bm
-       << ' ' << calamity.sw
-       << ' ' << calamity.rw
-       << ' ' << calamity.co << '\n';
+       << ' ' << calamity.sw * 0.7
+       << ' ' << calamity.rw + calamity.sw * 0.15
+       << ' ' << calamity.co * 1.5 << '\n';
+
+  g4m::ffipol<double> pCalamityff(0);
+  {
+    g4m::ipol<double,double> pCalamity;
+    pCalamity.insert(0., 0.);
+    pCalamity.insert(10., 0.002);
+    pCalamity.insert(20., 0.005);
+    pCalamity.insert(30., 0.015);
+    pCalamity.insert(60., 0.05);
+    pCalamityff.overwrite(pCalamity);
+  }
+  calamity = forest.calamity(&pCalamityff, 2);
+  cout << "Calamity: " << calamity.area
+       << ' ' << calamity.bm
+       << ' ' << calamity.sw * 0.7
+       << ' ' << calamity.rw + calamity.sw * 0.15
+       << ' ' << calamity.co * 1.5 << '\n';
 
   return(0);
 

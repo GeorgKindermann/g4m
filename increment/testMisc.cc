@@ -12,35 +12,40 @@ int main() {
   {
     g4m::ipol<vector<double>, double> vd;
     vector<double> idx;
-    idx.push_back(10.);
-    idx.push_back(10.);
+    idx.push_back(3.);
+    idx.push_back(3.);
     vd.insert(idx, 0.);
-    idx[0] = 20; idx[1] = 30;
+    idx[0] = 8; idx[1] = 13;
     vd.insert(idx, 10.);
-    for(int i=0; i<25; ++i) {
+    cout << " ipol";
+    for(int j=0; j<=15; ++j) cout << ' ' << j;
+    cout << "\n";
+    for(int i=0; i<=10; ++i) {
       cout << i;
       idx[0] = i;
-      for(int j=0; j<35; ++j) {
+      for(int j=0; j<=15; ++j) {
 	idx[1] = j;
 	cout << ' ' << vd.g(idx);
       }
       cout << "\n";
     }
+    cout << "fipol\n";
     g4m::fipolm<double> fipm(vd);
-    for(int i=0; i<25; ++i) {
+    for(int i=0; i<=10; ++i) {
       cout << i;
       idx[0] = i;
-      for(int j=0; j<35; ++j) {
+      for(int j=0; j<=15; ++j) {
 	idx[1] = j;
 	cout << ' ' << fipm.g(idx);
       }
       cout << "\n";
     }
-    g4m::fipolm<double> ffipm(vd);
-    for(int i=0; i<25; ++i) {
+    cout << "ffipol\n";
+    g4m::ffipolm<double> ffipm(vd);
+    for(int i=0; i<=10; ++i) {
       cout << i;
       idx[0] = i;
-      for(int j=0; j<35; ++j) {
+      for(int j=0; j<=15; ++j) {
 	idx[1] = j;
 	cout << ' ' << ffipm.g(idx);
       }

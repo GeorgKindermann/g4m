@@ -815,13 +815,15 @@ namespace g4m {
     zoom = new double[dim];
     n = new unsigned int[dim];
     zoom[0] = 1.;
-    intercept[0]=zoom[0] * idxMin[0];
+    //intercept[0]=zoom[0] * idxMin[0];
+    intercept[0] = idxMin[0] - add / zoom[0]; //##
     unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
     for(unsigned int i=1; i<dim; ++i) {
       zoom[i] = 1.;
       n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
       slots *= n[i];
-      intercept[i]=zoom[i] * idxMin[i]; 
+      //intercept[i]=zoom[i] * idxMin[i];
+      intercept[i] = idxMin[i] - add / zoom[i]; //##
     }
     aMap = new VAL[slots];
     std::vector<double> key;
@@ -830,20 +832,22 @@ namespace g4m {
 
   template <class VAL>
     ffipolm<VAL>::ffipolm(ipol<std::vector<double>, VAL> &t, std::vector<double> &azoom, double add) {
-     std::vector<double> idxMin(t.min());
+    std::vector<double> idxMin(t.min());
     std::vector<double> idxMax(t.max());
     dim = idxMin.size();
     intercept = new double[dim];
     zoom = new double[dim];
     n = new unsigned int[dim];
     zoom[0] = azoom[0];
-    intercept[0]=zoom[0] * idxMin[0]; 
+    //intercept[0]=zoom[0] * idxMin[0];
+    intercept[0] = idxMin[0] - add / zoom[0]; //##
     unsigned int slots = n[0] = static_cast<int>(1 + zoom[0] * (std::ceil(idxMax[0]) - std::floor(idxMin[0])));
     for(unsigned int i=1; i<dim; ++i) {
       zoom[i] = azoom[i];
       n[i] = static_cast<int>(1 + zoom[i] * (std::ceil(idxMax[i]) - std::floor(idxMin[i])));
       slots *= n[i];
-      intercept[i]=zoom[i] * idxMin[i]; 
+      //intercept[i]=zoom[i] * idxMin[i];
+      intercept[i] = idxMin[i] - add / zoom[i]; //##
     }
     aMap = new VAL[slots];
     std::vector<double> key;
@@ -854,7 +858,8 @@ namespace g4m {
     int ffipolm<VAL>::fill(ipol<std::vector<double>, VAL> &t, unsigned int idx, unsigned int adim, unsigned int mul, std::vector<double> key, double add) {
     key.push_back(0.);
     for(unsigned int i=0; i<n[adim]; ++i) {
-      key[adim] = (intercept[adim] + i)/zoom[adim] + add;
+      //key[adim] = (intercept[adim] + i)/zoom[adim] + add;
+      key[adim] = (i+add)/zoom[adim] + intercept[adim]; //##
       if(adim+1 < dim) {fill(t, idx+i*mul, adim+1, mul*n[adim], key, add);}
       else {aMap[idx+i*mul] = t.g(key);}
     }
@@ -904,7 +909,8 @@ namespace g4m {
     unsigned int idx = 0;
     unsigned int mul = 1;
     for(unsigned j = 0; j < dim; ++j) {
-      int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      //int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      int k = static_cast<int>((i[j] - intercept[j]) * zoom[j]); //##
       if(k < 0) {k = 0;}
       if(static_cast<unsigned int>(k) >= n[j]) {k = n[j]-1;}
       idx += k * mul;
@@ -919,7 +925,8 @@ namespace g4m {
     unsigned int idx = 0;
     unsigned int mul = 1;
     for(unsigned j = 0; j < dim; ++j) {
-      int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      //int k = static_cast<int>(i[j] * zoom[j] + intercept[j]);
+      int k = static_cast<int>((i[j] - intercept[j]) * zoom[j]); //##
       if(k < 0) {k = 0;}
       if(static_cast<unsigned int>(k) >= n[j]) {k = n[j]-1;}
       idx += k * mul;

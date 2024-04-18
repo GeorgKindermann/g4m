@@ -8,6 +8,7 @@
 #include <limits>
 #include <deque>
 #include <utility>
+#include <numeric>
 
 //objOfProd MISSING: Keep same biomass
 
@@ -85,6 +86,7 @@ namespace g4m {
 
     double afforest(double area); //Insert in youngest age class
     double reforest(double area); //Make afforestations in age class 0 and 1
+    void reforest2(double area, const std::vector<double> &age, const std::vector<int> &when); //Make afforestations in given age class shares at given timestep
 
     struct v {
       double area;//Area where management was done
@@ -108,6 +110,7 @@ namespace g4m {
     v calamity(double share);  // Share of area which is destroied
     v calamity(ffipol<double> *share, int type=0);  // 0..bm, 1..d, 2..h
     private:
+    std::vector<std::vector<double> > refor;  // *)When  *)how much
     incrementTab *it;
     ffipol<double> *sws;
     ffipol<double> *hlv;

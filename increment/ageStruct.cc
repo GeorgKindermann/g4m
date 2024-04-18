@@ -417,6 +417,25 @@ namespace g4m {
     return(dat[0].area + dat[1].area);
   }
 
+  void ageStruct::reforest2(double area, const std::vector<double> &age, const std::vector<int> &when) {
+    auto sum = std::reduce(age.begin(), age.end()) * when.size();
+    for(auto& t : when) {
+      for(size_t i=0; i<age.size(); ++i) {
+	refor[t][i] += age[i] * area / sum;
+      }
+    }
+    for(size_t i=0; i<refor[0].size(); ++i) {
+      if(i>0) {
+	dat[i].bm = (dat[i].bm * dat[i].area + it->gBmSdTab((i-0.5)*timeStep, mai, 1) * refor[0][i]) / (dat[i].area + refor[0][i]);
+      }
+      dat[i].area += refor[0][i];
+    }
+    for(size_t i=1; i<refor.size(); ++i) {
+      refor[i-1] = refor[i];
+    }
+    for(auto& x : refor.back()) x = 0.;
+  }
+  
   ageStruct::v ageStruct::deforest(double aarea, int type) {
     v ret = {0., 0., 0., 0., 0.};
     if(type == 0) { //Take from all age classes

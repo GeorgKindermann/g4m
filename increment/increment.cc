@@ -849,15 +849,17 @@ namespace g4m {
     }
     int mail = floor(mai);
     if(sd < 0.) {sd = 0.;}
-    int sdh = ceil(sd);
+    int sdh;
     if(sdNat == true) {
       sd /= sdNatStep;
+      sdh = ceil(sd);
       if(sdh >= nsdNat) {sdh=nsdNat-1;
 	if(sd >= nsdNat) {sd=nsdNat-1;}
       }
     }
     else {
       sd /= sdTabStep;
+      sdh = ceil(sd);
       if(sdh >= nsdTab) {sdh=nsdTab-1;
 	if(sd >= nsdTab) {sd=nsdTab-1;}
       }
@@ -918,15 +920,17 @@ namespace g4m {
     }
     int ul = floor(u);
     if(sd < 0.) {sd = 0.;}
-    int sdh = ceil(sd);
+    int sdh;
     if(sdNat == true) {
       sd /= sdNatStep;
+      sdh = ceil(sd);
       if(sdh >= nsdNat) {sdh=nsdNat-1.;
 	if(sd >= nsdNat) {sd=nsdNat-1.;}
       }
     }
     else {
       sd /= sdTabStep;
+      sdh = ceil(sd);
       if(sdh >= nsdTab) {sdh=nsdTab-1.;
 	if(sd >= nsdTab) {sd=nsdTab-1.;}
       }
@@ -1128,13 +1132,13 @@ namespace g4m {
 
   double incrementTab::gSdNat(double age, double mai, double bm) {
     double sd = bm / gBm(age, mai);
-    if(sd < 0.) {sd = 0.;}
+    if(sd < 0. || sd != sd) {sd = 0.;}
     if(sd > 1.) {sd = 1.;}
     return(sd);
   }
   double incrementTab::gSdTab(double age, double mai, double bm) {
     double sd = bm / gBmt(age, mai);
-    if(sd < 0.) {sd = 0.;}
+    if(sd < 0. || sd != sd) {sd = 0.;}
     if(sd > 1.) {
       double sdnat = gSdNat(age, mai);
       if(sd * sdnat > 1.) {sd = 1. / sdnat;}
@@ -1144,13 +1148,13 @@ namespace g4m {
 
   double incrementTab::gAvgSdNat(double u, double mai, double bm) {
     double sd = bm / gAvgBm(u, mai);
-    if(sd < 0.) {sd = 0.;}
+    if(sd < 0. || sd != sd) {sd = 0.;}
     if(sd > 1.) {sd = 1.;}
     return(sd);
   }
   double incrementTab::gAvgSdTab(double u, double mai, double bm) {
     double sd = bm / gAvgBmt(u, mai);
-    if(sd < 0.) {sd = 0.;}
+    if(sd < 0. || sd != sd) {sd = 0.;}
     if(sd > 1.) {
       double sdnat = gAvgSdNat(u, mai, bm);
       if(sdnat < 1. && bm > 0.) {

@@ -16,7 +16,7 @@ using namespace std;
 #endif
 
 int main() {
-  g4m::mai mai;
+  g4m::mai mai({1.95866e-11,16.6774,5.30899,300,7.00127,0.0828,0.180158,50,0.002,0.85,20, 2, 0.5, 0.841, -22.131},{1.054684,1.099922,1.075196,0.980570,1.002155,1.044522,1.134524,1.073864,1.000548,1.070339,1.068615,1.086483,1.054495,1.036821,1.095323,1.008207,1.094867,1.031270,0.987843,1.035130,0.950606,1.074587,1.008381},std::valarray<double>(10., 24),std::valarray<double>(70., 24),std::valarray<double>(180., 24),100,0,0.038,0,0,0,std::valarray<double>({0.35}),std::valarray<double>({0.}),std::valarray<double>({std::numeric_limits<double>::infinity()}),std::valarray<double>({0.}),std::valarray<double>({std::numeric_limits<double>::infinity()}),std::valarray<double>({0.}),std::valarray<double>({std::numeric_limits<double>::infinity()}),std::valarray<double>({0.}),std::valarray<double>({std::numeric_limits<double>::infinity()}),std::valarray<double>({0.}),false);
   mai.setSwr(0.8);
   mai.setcNpp2mai({1./3.});
 
